@@ -100,7 +100,7 @@ const MainLayout: React.FC = () => {
       getItem('Development Team', 'group-1'),
       getItem('General Chat', 'group-2'),
     ]),
-    ...(aiEnabled ? [getItem(t('settings.ai.title'), 'ai', <RobotOutlined />)] : []),
+    ...(aiEnabled ? [getItem(t('common.ai'), 'ai', <RobotOutlined />)] : []),
     getItem(t('common.settings'), 'settings', <SettingOutlined />),
   ];
 

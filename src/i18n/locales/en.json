@@ -14,6 +14,7 @@
     "logout": "Logout",
     "directMessages": "Direct Messages",
     "groups": "Groups",
+    "ai": "AI Assistant",
     "status": {
       "online": "Online",
       "offline": "Offline"

@@ -14,6 +14,7 @@
     "logout": "退出登录",
     "directMessages": "私信",
     "groups": "群组",
+    "ai": "AI 助手",
     "status": {
       "online": "在线",
       "offline": "离线"

@@ -139,21 +139,39 @@ const ChatPage: React.FC = () => {
     }
 
     try {
-      const aiResponse = await sendMessage(inputValue.trim());
-      
-      if (aiResponse) {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: aiResponse,
-          sender: 'other',
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, aiMessage]);
+      if (isAIChat) {
+        // 只在AI聊天时调用sendMessage
+        const aiResponse = await sendMessage(inputValue.trim());
         
-        // 自动朗读接收到的消息
-        if (autoRead) {
-          speak(aiMessage.content);
+        if (aiResponse) {
+          const aiMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: aiResponse,
+            sender: 'other',
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          
+          // 自动朗读接收到的消息
+          if (autoRead) {
+            speak(aiMessage.content);
+          }
         }
+      } else {
+        // 非AI聊天时，模拟一个简单的自动回复
+        setTimeout(() => {
+          const replyMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            content: t('chat.demoMessages.answer'),
+            sender: 'other',
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, replyMessage]);
+          
+          if (autoRead) {
+            speak(replyMessage.content);
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error('Error sending message:', error);
