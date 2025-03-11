@@ -263,17 +263,41 @@ const ChatPage: React.FC = () => {
       } else {
         // 非AI聊天时，模拟一个简单的自动回复
         setTimeout(() => {
-          const replyMessage: Message = {
+          // 先显示"发送中"状态
+          const pendingMessage: Message = {
             id: (Date.now() + 1).toString(),
             content: t('chat.demoMessages.answer'),
             sender: 'other',
             timestamp: new Date(),
+            status: 'sending'
           };
-          setMessages(prev => [...prev, replyMessage]);
+          setMessages(prev => [...prev, pendingMessage]);
           
-          if (autoRead) {
-            speak(replyMessage.content);
-          }
+          // 1秒后更新为"已发送"状态
+          setTimeout(() => {
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === pendingMessage.id 
+                  ? { ...msg, status: 'sent' as const } 
+                  : msg
+              )
+            );
+            
+            // 再过1秒更新为"已读"状态
+            setTimeout(() => {
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg.id === pendingMessage.id 
+                    ? { ...msg, status: 'read' as const } 
+                    : msg
+                )
+              );
+              
+              if (autoRead) {
+                speak(pendingMessage.content);
+              }
+            }, 1000);
+          }, 1000);
         }, 1000);
       }
       
@@ -551,10 +575,14 @@ const ChatPage: React.FC = () => {
         </div>
         <Divider style={{ margin: '0 0 16px 0' }} />
         <div className="message-container" ref={messageContainerRef}>
-          {messages.map(msg => (
+          {messages.map((msg, index) => (
             <div 
               key={msg.id} 
               className={`message-bubble ${msg.sender === 'user' ? 'user-message' : 'other-message'}`}
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                animationDuration: '0.5s'
+              }}
             >
               <div className="message-avatar">
                 <Avatar 
@@ -595,6 +623,28 @@ const ChatPage: React.FC = () => {
                         <>
                           <span style={{ color: '#ff4d4f' }}>!</span>
                           {t('chat.status.failed')}
+                        </>
+                      )}
+                    </span>
+                  )}
+                  {msg.sender === 'other' && msg.status && (
+                    <span className="message-status other-status">
+                      {msg.status === 'sending' && (
+                        <>
+                          <span className="sending-indicator"></span>
+                          {t('chat.status.sending')}
+                        </>
+                      )}
+                      {msg.status === 'sent' && (
+                        <>
+                          <CheckOutlined />
+                          {t('chat.status.sent')}
+                        </>
+                      )}
+                      {msg.status === 'read' && (
+                        <>
+                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                          {t('chat.status.read')}
                         </>
                       )}
                     </span>

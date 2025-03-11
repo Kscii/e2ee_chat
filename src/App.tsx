@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/login';
 import ChatPage from './pages/chat';
@@ -15,6 +15,7 @@ import { TTSProvider } from './contexts/TTSContext';
 import { AIProvider } from './contexts/AIContext';
 import { APIProvider } from './contexts/APIContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import './i18n'; // 导入 i18n 配置
 import './App.css';
 
@@ -22,6 +23,7 @@ import './App.css';
 const AppContent = () => {
   const { algorithm } = useTheme();
   const { language } = useLanguage();
+  const location = useLocation();
   
   // 根据当前语言选择 Ant Design 的语言包
   const antdLocale = language.startsWith('zh') ? zhCN : enUS;
@@ -36,19 +38,25 @@ const AppContent = () => {
         },
       }}
     >
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/chat" replace />} />
-            <Route path="chat/:id?" element={<ChatPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="ai" element={<ChatPage />} />
-          </Route>
-        </Routes>
-      </Router>
+      <TransitionGroup>
+        <CSSTransition
+          key={location.key}
+          classNames="page-transition"
+          timeout={300}
+        >
+          <Routes location={location}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Navigate to="/chat" replace />} />
+              <Route path="chat/:id?" element={<ChatPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="ai" element={<ChatPage />} />
+            </Route>
+          </Routes>
+        </CSSTransition>
+      </TransitionGroup>
     </ConfigProvider>
   );
 };
@@ -64,7 +72,9 @@ function App() {
               <AvatarProvider>
                 <TTSProvider>
                   <AIProvider>
-                    <AppContent />
+                    <Router>
+                      <AppContent />
+                    </Router>
                   </AIProvider>
                 </TTSProvider>
               </AvatarProvider>
