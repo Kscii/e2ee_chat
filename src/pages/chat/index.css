@@ -54,9 +54,16 @@
   gap: 16px;
   position: absolute;
   top: 73px;
-  bottom: 89px;
+  bottom: 0;
   left: 0;
   right: 0;
+}
+
+.message-container::after {
+  content: '';
+  display: block;
+  height: 120px; /* 输入框的高度 */
+  flex-shrink: 0;
 }
 
 .input-container {
@@ -84,6 +91,7 @@
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 10;
 }
 
 [data-theme='dark'] .message-input {
