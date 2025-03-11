@@ -73,11 +73,20 @@
     "inputPlaceholder": "输入消息...",
     "sendButton": "发送",
     "uploadButton": "上传文件",
+    "emojiButton": "插入表情",
+    "status": {
+      "sending": "发送中...",
+      "sent": "已发送",
+      "read": "已读",
+      "failed": "发送失败"
+    },
     "demoMessages": {
       "welcome": "你好！我是 AI 助手，有什么可以帮你的吗？",
       "question": "你好，最近过得怎么样？",
       "answer": "挺好的，谢谢关心！",
-      "followup": "那就好，有什么新鲜事吗？"
+      "followup": "那就好，有什么新鲜事吗？",
+      "sendingExample": "这是一条正在发送中的消息...",
+      "sentExample": "这是一条已发送的消息"
     },
     "fileMessages": {
       "image": "发送了一张图片",

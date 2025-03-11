@@ -73,11 +73,20 @@
     "inputPlaceholder": "Type a message...",
     "sendButton": "Send",
     "uploadButton": "Upload File",
+    "emojiButton": "Insert Emoji",
+    "status": {
+      "sending": "Sending...",
+      "sent": "Sent",
+      "read": "Read",
+      "failed": "Failed"
+    },
     "demoMessages": {
       "welcome": "Hello! I'm your AI assistant. How can I help you?",
       "question": "Hi, how are you doing?",
       "answer": "I'm doing great, thanks for asking!",
-      "followup": "That's good to hear! Anything new?"
+      "followup": "That's good to hear! Anything new?",
+      "sendingExample": "This is a message being sent...",
+      "sentExample": "This is a sent message"
     },
     "fileMessages": {
       "image": "sent an image",

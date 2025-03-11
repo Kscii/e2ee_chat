@@ -15,7 +15,11 @@ import {
   FileTextOutlined,
   EyeOutlined,
   DownloadOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  CheckOutlined,
+  CheckCircleOutlined,
+  LoadingOutlined,
+  SmileOutlined
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
@@ -48,7 +52,47 @@ interface Message {
     type: string;
     previewUrl?: string;
   };
+  status?: 'sending' | 'sent' | 'read' | 'failed';
 }
+
+// 添加打字机效果组件
+const TypewriterEffect: React.FC<{ text: string; speed?: number }> = ({ text, speed = 30 }) => {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, speed);
+      return () => clearTimeout(timer);
+    } else {
+      setIsComplete(true);
+    }
+  }, [currentIndex, text, speed]);
+
+  return (
+    <>
+      {displayText}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </>
+  );
+};
+
+// 添加加载动画组件
+const LoadingAnimation: React.FC = () => {
+  return (
+    <div className="loading-animation">
+      <div className="loading-dots">
+        <div className="loading-dot"></div>
+        <div className="loading-dot"></div>
+        <div className="loading-dot"></div>
+      </div>
+    </div>
+  );
+};
 
 const ChatPage: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -72,6 +116,21 @@ const ChatPage: React.FC = () => {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<Message['fileInfo']>();
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // 添加表情选择器
+  const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
+                 '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
+                 '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+                 '👍', '👎', '👏', '🙌', '👋', '🤝', '❤️', '💔', '😢', '😭'];
+  
+  const handleEmojiClick = (emoji: string) => {
+    setInputValue(prev => prev + emoji);
+    setShowEmoji(false);
+    inputRef.current?.focus();
+  };
 
   // 根据chatId加载对应的聊天记录和联系人信息
   useEffect(() => {
@@ -85,7 +144,8 @@ const ChatPage: React.FC = () => {
           id: '1',
           content: t('chat.demoMessages.welcome'),
           sender: 'other',
-          timestamp: new Date()
+          timestamp: new Date(),
+          status: 'read'
         }
       ]);
     } else {
@@ -96,74 +156,110 @@ const ChatPage: React.FC = () => {
           id: '1',
           content: t('chat.demoMessages.question'),
           sender: 'other',
-          timestamp: new Date(Date.now() - 3600000)
+          timestamp: new Date(Date.now() - 3600000),
+          status: 'read'
         },
         {
           id: '2',
           content: t('chat.demoMessages.answer'),
           sender: 'user',
-          timestamp: new Date(Date.now() - 3000000)
+          timestamp: new Date(Date.now() - 3500000),
+          status: 'read'
         },
         {
           id: '3',
           content: t('chat.demoMessages.followup'),
           sender: 'other',
-          timestamp: new Date(Date.now() - 2400000)
+          timestamp: new Date(Date.now() - 60000),
+          status: 'read'
+        },
+        {
+          id: '4',
+          content: t('chat.demoMessages.sendingExample'),
+          sender: 'user',
+          timestamp: new Date(),
+          status: 'sending'
+        },
+        {
+          id: '5',
+          content: t('chat.demoMessages.sentExample'),
+          sender: 'user',
+          timestamp: new Date(Date.now() - 10000),
+          status: 'sent'
         }
       ] as Message[];
 
-      const mockContact = {
-        name: chatId?.startsWith('user-') ? 'Contact' : 'Group Chat',
+      setCurrentContact({
+        name: 'Demo User',
         isOnline: true
-      };
-
+      });
       setMessages(mockMessages);
-      setCurrentContact(mockContact);
     }
-  }, [chatId, isAIChat, t, aiEnabled]);
+  }, [isAIChat, aiEnabled, t]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
 
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue.trim(),
+      sender: 'user',
+      timestamp: new Date(),
+      status: 'sending'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setLoading(true);
+
+    // 自动朗读发送的消息
+    if (autoRead) {
+      speak(userMessage.content);
+    }
+
     try {
-      if (isAIChat && !apiKey) {
-        message.error(t('errors.api.configMissing'));
-        return;
-      }
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        content: inputValue.trim(),
-        sender: 'user',
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-      setInputValue('');
-      setLoading(true);
-
-      // 自动朗读发送的消息
-      if (autoRead) {
-        speak(userMessage.content);
-      }
-
       if (isAIChat) {
-        // 只在AI聊天时调用sendMessage
+        if (!apiKey) {
+          message.error(t('errors.api.configMissing'));
+          setLoading(false);
+          return;
+        }
+        
+        // 创建一个临时的AI消息，用于显示打字效果
+        const tempId = (Date.now() + 1).toString();
+        const tempMessage: Message = {
+          id: tempId,
+          content: '',
+          sender: 'other',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, tempMessage]);
+        setTypingMessageId(tempId);
+        
+        // 获取AI回复
         const aiResponse = await sendMessage(inputValue.trim());
         
         if (aiResponse) {
-          const aiMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            content: aiResponse,
-            sender: 'other',
-            timestamp: new Date(),
-          };
-          setMessages(prev => [...prev, aiMessage]);
+          // 更新消息内容
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === tempId 
+                ? { ...msg, content: aiResponse } 
+                : msg
+            )
+          );
           
           // 自动朗读接收到的消息
           if (autoRead) {
-            speak(aiMessage.content);
+            speak(aiResponse);
           }
         }
+        
+        // 打字效果完成后清除typing状态
+        setTimeout(() => {
+          setTypingMessageId(null);
+        }, aiResponse.length * 30 + 500);
       } else {
         // 非AI聊天时，模拟一个简单的自动回复
         setTimeout(() => {
@@ -180,9 +276,40 @@ const ChatPage: React.FC = () => {
           }
         }, 1000);
       }
+      
+      // 更新消息状态为已发送
+      setTimeout(() => {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === userMessage.id 
+              ? { ...msg, status: 'sent' as const } 
+              : msg
+          )
+        );
+        
+        // 2秒后更新为已读状态
+        setTimeout(() => {
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === userMessage.id 
+                ? { ...msg, status: 'read' as const } 
+                : msg
+            )
+          );
+        }, 2000);
+      }, 1000);
     } catch (error) {
       console.error('Error sending message:', error);
       message.error(t('errors.chat.sendFailed'));
+      
+      // 更新消息状态为发送失败
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === userMessage.id 
+            ? { ...msg, status: 'failed' as const } 
+            : msg
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -315,15 +442,29 @@ const ChatPage: React.FC = () => {
     );
   };
 
+  // 图片预览
+  const handleImagePreview = (url: string) => {
+    setImagePreview(url);
+  };
+  
+  const handleCloseImagePreview = () => {
+    setImagePreview(null);
+  };
+
   // 渲染消息内容
   const renderMessageContent = (message: Message) => {
+    // 如果是正在输入的消息，显示打字机效果
+    if (message.id === typingMessageId) {
+      return <TypewriterEffect text={message.content} />;
+    }
+    
     if (message.type === 'image') {
       return (
         <img 
           src={message.fileInfo?.url} 
           alt="图片消息" 
           style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px', cursor: 'pointer' }}
-          onClick={() => handlePreview(message.fileInfo!)}
+          onClick={() => handleImagePreview(message.fileInfo?.url || '')}
         />
       );
     } else if (message.type && message.type !== 'text') {
@@ -430,6 +571,34 @@ const ChatPage: React.FC = () => {
                   <span className="message-time">
                     {msg.timestamp.toLocaleTimeString()}
                   </span>
+                  {msg.sender === 'user' && msg.status && (
+                    <span className="message-status">
+                      {msg.status === 'sending' && (
+                        <>
+                          <span className="sending-indicator"></span>
+                          {t('chat.status.sending')}
+                        </>
+                      )}
+                      {msg.status === 'sent' && (
+                        <>
+                          <CheckOutlined />
+                          {t('chat.status.sent')}
+                        </>
+                      )}
+                      {msg.status === 'read' && (
+                        <>
+                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                          {t('chat.status.read')}
+                        </>
+                      )}
+                      {msg.status === 'failed' && (
+                        <>
+                          <span style={{ color: '#ff4d4f' }}>!</span>
+                          {t('chat.status.failed')}
+                        </>
+                      )}
+                    </span>
+                  )}
                   {ttsEnabled && msg.type !== 'image' && msg.type !== 'file' && (
                     <Button
                       type="text"
@@ -443,6 +612,21 @@ const ChatPage: React.FC = () => {
               </div>
             </div>
           ))}
+          {loading && (
+            <div className="message-bubble other-message">
+              <div className="message-avatar">
+                <Avatar 
+                  size={40} 
+                  icon={isAIChat ? <RobotOutlined /> : <UserOutlined />}
+                />
+              </div>
+              <div className="message-content">
+                <div className="message-text">
+                  <LoadingAnimation />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div className="message-input">
           <div className="input-container">
@@ -452,11 +636,17 @@ const ChatPage: React.FC = () => {
               onChange={e => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               onPaste={handlePaste}
-              placeholder={isAIChat ? "输入你的问题..." : "输入消息..."}
+              placeholder={isAIChat ? t('chat.inputPlaceholder') : t('chat.inputPlaceholder')}
               autoSize={{ minRows: 1, maxRows: 4 }}
               style={{ flex: 1 }}
             />
             <div className="input-actions">
+              <Button
+                type="text"
+                icon={<SmileOutlined />}
+                onClick={() => setShowEmoji(!showEmoji)}
+                title={t('chat.emojiButton')}
+              />
               <Upload
                 fileList={fileList}
                 onChange={({ fileList, file }) => {
@@ -482,7 +672,7 @@ const ChatPage: React.FC = () => {
                 <Button 
                   type="text" 
                   icon={<PaperClipOutlined />}
-                  title={t('chat.fileUpload.title')}
+                  title={t('chat.uploadButton')}
                 />
               </Upload>
               <Upload
@@ -516,7 +706,7 @@ const ChatPage: React.FC = () => {
                 <Button 
                   type="text" 
                   icon={<PictureOutlined />}
-                  title={t('chat.imageUpload.title')}
+                  title={t('chat.uploadButton')}
                 />
               </Upload>
               <Button 
@@ -526,6 +716,19 @@ const ChatPage: React.FC = () => {
                 loading={loading}
               />
             </div>
+            {showEmoji && (
+              <div className="emoji-picker">
+                {emojis.map(emoji => (
+                  <span 
+                    key={emoji} 
+                    className="emoji-item" 
+                    onClick={() => handleEmojiClick(emoji)}
+                  >
+                    {emoji}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -536,14 +739,32 @@ const ChatPage: React.FC = () => {
         onCancel={() => setPreviewVisible(false)}
         width={800}
       >
-        {previewFile?.type.startsWith('image/') ? (
+        {previewFile?.type?.startsWith('image/') ? (
           <img src={previewFile.url} alt={previewFile.name} style={{ width: '100%' }} />
         ) : (
           <div className="preview-error">{t('chat.preview.unsupported')}</div>
+        )}
+      </Modal>
+      {/* 图片预览模态框 */}
+      <Modal
+        open={!!imagePreview}
+        footer={null}
+        onCancel={handleCloseImagePreview}
+        width="auto"
+        centered
+        bodyStyle={{ padding: 0 }}
+        className="image-preview-modal"
+      >
+        {imagePreview && (
+          <img 
+            src={imagePreview} 
+            alt={t('chat.preview.title')}
+            style={{ maxWidth: '100%', maxHeight: '80vh' }}
+          />
         )}
       </Modal>
     </div>
   );
 };
 
-export default ChatPage; 
+export default ChatPage;
