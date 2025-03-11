@@ -96,11 +96,37 @@
     }
   },
   "errors": {
-    "onlyImageAllowed": "Only image files are allowed",
-    "imageTooLarge": "Image must be smaller than 2MB",
-    "uploadFailed": "Upload failed",
-    "downloadFailed": "Download failed",
-    "sendFailed": "Failed to send message",
-    "networkError": "Network error"
+    "network": {
+      "title": "Network Error",
+      "message": "Failed to connect to server, please check your network connection"
+    },
+    "api": {
+      "title": "API Error",
+      "invalidKey": "Invalid API key, please check your settings",
+      "configMissing": "Please configure your OpenAI API key in settings first",
+      "requestFailed": "Request failed, please try again later"
+    },
+    "chat": {
+      "sendFailed": "Failed to send message",
+      "receiveFailed": "Failed to receive message",
+      "loadFailed": "Failed to load chat history"
+    },
+    "file": {
+      "uploadFailed": "Failed to upload file",
+      "downloadFailed": "Failed to download file",
+      "sizeLimitExceeded": "File size cannot exceed {size}MB",
+      "imageOnly": "Only image files are allowed",
+      "unsupportedFormat": "Unsupported file format"
+    },
+    "tts": {
+      "failed": "Failed to convert text to speech",
+      "unsupported": "Text to speech is not supported in your browser"
+    },
+    "common": {
+      "unauthorized": "Please login first",
+      "forbidden": "You don't have permission to perform this action",
+      "notFound": "Resource not found",
+      "serverError": "Server error, please try again later"
+    }
   }
 } 

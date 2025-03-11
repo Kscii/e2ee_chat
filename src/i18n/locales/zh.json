@@ -96,11 +96,37 @@
     }
   },
   "errors": {
-    "onlyImageAllowed": "只能上传图片文件",
-    "imageTooLarge": "图片大小不能超过 2MB",
-    "uploadFailed": "上传失败",
-    "downloadFailed": "下载失败",
-    "sendFailed": "发送失败",
-    "networkError": "网络错误"
+    "network": {
+      "title": "网络错误",
+      "message": "无法连接到服务器，请检查网络连接"
+    },
+    "api": {
+      "title": "API错误",
+      "invalidKey": "无效的API密钥，请检查设置",
+      "configMissing": "请先在设置页面配置OpenAI API密钥",
+      "requestFailed": "请求失败，请稍后重试"
+    },
+    "chat": {
+      "sendFailed": "发送消息失败",
+      "receiveFailed": "接收消息失败",
+      "loadFailed": "加载聊天记录失败"
+    },
+    "file": {
+      "uploadFailed": "文件上传失败",
+      "downloadFailed": "文件下载失败",
+      "sizeLimitExceeded": "文件大小不能超过{size}MB",
+      "imageOnly": "只能上传图片文件",
+      "unsupportedFormat": "不支持的文件格式"
+    },
+    "tts": {
+      "failed": "语音转换失败",
+      "unsupported": "您的浏览器不支持语音功能"
+    },
+    "common": {
+      "unauthorized": "请先登录",
+      "forbidden": "您没有执行此操作的权限",
+      "notFound": "资源未找到",
+      "serverError": "服务器错误，请稍后重试"
+    }
   }
 } 

@@ -122,23 +122,27 @@ const ChatPage: React.FC = () => {
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue.trim(),
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setLoading(true);
-
-    // 自动朗读发送的消息
-    if (autoRead) {
-      speak(userMessage.content);
-    }
-
     try {
+      if (isAIChat && !apiKey) {
+        message.error(t('errors.api.configMissing'));
+        return;
+      }
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        content: inputValue.trim(),
+        sender: 'user',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue('');
+      setLoading(true);
+
+      // 自动朗读发送的消息
+      if (autoRead) {
+        speak(userMessage.content);
+      }
+
       if (isAIChat) {
         // 只在AI聊天时调用sendMessage
         const aiResponse = await sendMessage(inputValue.trim());
@@ -175,6 +179,7 @@ const ChatPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      message.error(t('errors.chat.sendFailed'));
     } finally {
       setLoading(false);
     }
@@ -219,6 +224,11 @@ const ChatPage: React.FC = () => {
 
   // 处理文件上传
   const handleFileUpload = async (file: File) => {
+    const isLt10M = file.size / 1024 / 1024 < 10;
+    if (!isLt10M) {
+      message.error(t('errors.file.sizeLimitExceeded', { size: 10 }));
+      return false;
+    }
     const url = URL.createObjectURL(file);
     const type = getFileType(file);
     const content = t(`chat.fileMessages.${type}`, { filename: file.name });
@@ -431,7 +441,7 @@ const ChatPage: React.FC = () => {
                 beforeUpload={(file) => {
                   const isLt10M = file.size / 1024 / 1024 < 10;
                   if (!isLt10M) {
-                    message.error('文件大小不能超过10MB！');
+                    message.error(t('errors.file.sizeLimitExceeded', { size: 10 }));
                     return false;
                   }
                   return true;
@@ -460,12 +470,12 @@ const ChatPage: React.FC = () => {
                 beforeUpload={(file) => {
                   const isImage = file.type.startsWith('image/');
                   if (!isImage) {
-                    message.error('只能上传图片文件！');
+                    message.error(t('errors.file.imageOnly'));
                     return false;
                   }
                   const isLt5M = file.size / 1024 / 1024 < 5;
                   if (!isLt5M) {
-                    message.error('图片大小不能超过5MB！');
+                    message.error(t('errors.file.sizeLimitExceeded', { size: 5 }));
                     return false;
                   }
                   return true;

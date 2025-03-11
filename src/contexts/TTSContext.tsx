@@ -310,7 +310,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (error) {
       console.error('TTS error:', error);
-      message.error('语音合成失败，请检查配置或网络连接');
+      message.error(t('errors.tts.failed'));
     }
   };
 

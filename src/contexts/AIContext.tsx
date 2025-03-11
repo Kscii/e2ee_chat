@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import OpenAI from 'openai';
 import { useAPI } from './APIContext';
 import { message } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 interface AIContextType {
   aiEnabled: boolean;
@@ -14,6 +15,7 @@ const AIContext = createContext<AIContextType | undefined>(undefined);
 export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [aiEnabled, setAIEnabled] = useState(true);
   const { apiKey } = useAPI();
+  const { t } = useTranslation();
 
   const toggleAI = () => {
     setAIEnabled(!aiEnabled);
@@ -21,7 +23,7 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   const sendMessage = async (content: string): Promise<string> => {
     if (!apiKey) {
-      message.error('请先在设置页面配置OpenAI API Key');
+      message.error(t('errors.api.configMissing'));
       return '';
     }
 
@@ -46,8 +48,8 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       return response.choices[0]?.message?.content || '抱歉，我现在无法回答这个问题。';
     } catch (error) {
       console.error('OpenAI API error:', error);
-      message.error('AI助手出现错误，请检查您的API Key是否正确');
-      return '抱歉，发生了一些错误。请检查您的API Key是否正确。';
+      message.error(t('errors.api.requestFailed'));
+      return t('errors.api.requestFailed');
     }
   };
 
