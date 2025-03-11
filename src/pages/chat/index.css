@@ -4,6 +4,8 @@
   background-color: #fff;
   position: relative;
   animation: fadeInSlide 0.3s ease-in-out;
+  width: 100%;
+  overflow: hidden;
 }
 
 @keyframes fadeInSlide {
@@ -28,6 +30,8 @@
   background-color: transparent;
   position: relative;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -44,6 +48,8 @@
   right: 0;
   z-index: 1;
   animation: slideInDown 0.4s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes slideInDown {
@@ -81,6 +87,9 @@
   bottom: 0;
   left: 0;
   right: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 80px; /* 为输入框留出空间 */
 }
 
 .message-container::after {
@@ -111,12 +120,14 @@
   border-top: 1px solid #f0f0f0;
   background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 10;
   animation: slideInUp 0.4s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes slideInUp {
@@ -127,6 +138,33 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .message-input {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .chat-header {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  .message-container {
+    position: fixed;
+    top: 73px;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    width: 100%;
   }
 }
 

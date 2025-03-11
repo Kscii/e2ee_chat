@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Input, Button, Avatar, Typography, Divider, Switch, Tooltip, Upload, message, Modal, Space } from 'antd';
+import { Input, Button, Avatar, Typography, Divider, Tooltip, Upload, message, Modal } from 'antd';
 import { 
   SendOutlined, 
   UserOutlined, 
-  FileMarkdownOutlined, 
   SoundOutlined, 
   RobotOutlined,
   PaperClipOutlined,
@@ -15,10 +14,8 @@ import {
   FileTextOutlined,
   EyeOutlined,
   DownloadOutlined,
-  DeleteOutlined,
   CheckOutlined,
   CheckCircleOutlined,
-  LoadingOutlined,
   SmileOutlined
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
@@ -29,7 +26,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
@@ -96,13 +93,12 @@ const LoadingAnimation: React.FC = () => {
 
 const ChatPage: React.FC = () => {
   const { isDarkMode } = useTheme();
-  const { markdownMode, toggleMarkdownMode } = useMarkdown();
+  const { markdownMode } = useMarkdown();
   const { avatar } = useAvatar();
   const { ttsEnabled, autoRead, speak } = useTTS();
   const { aiEnabled, sendMessage } = useAI();
   const { apiKey } = useAPI();
   const { t } = useTranslation();
-  const { id: chatId } = useParams();
   const location = useLocation();
   const isAIChat = location.pathname === '/ai';
 
@@ -533,10 +529,6 @@ const ChatPage: React.FC = () => {
     ));
   };
 
-  const handleClearMessages = () => {
-    setMessages([]);
-  };
-
   // 滚动到底部的函数
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -687,7 +679,7 @@ const ChatPage: React.FC = () => {
               onKeyPress={handleKeyPress}
               onPaste={handlePaste}
               placeholder={isAIChat ? t('chat.inputPlaceholder') : t('chat.inputPlaceholder')}
-              autoSize={{ minRows: 1, maxRows: 4 }}
+              autoSize={{ minRows: 1, maxRows: 3 }}
               style={{ flex: 1 }}
             />
             <div className="input-actions">
