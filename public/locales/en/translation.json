@@ -1,0 +1,53 @@
+{
+  "common": {
+    "send": "Send",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "chat": {
+    "inputPlaceholder": "Type a message...",
+    "aiPlaceholder": "Ask me anything...",
+    "sendFile": "Send File",
+    "sendImage": "Send Image",
+    "preview": "Preview",
+    "download": "Download",
+    "fileTooBig": "File size cannot exceed {{size}}MB!",
+    "imageTooBig": "Image size cannot exceed {{size}}MB!",
+    "onlyImage": "Only image files are allowed!"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "appearance": "Appearance",
+    "accessibility": "Accessibility",
+    "language": "Language",
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "markdown": {
+      "title": "Markdown Support",
+      "enable": "Enable Markdown"
+    },
+    "tts": {
+      "title": "Text-to-Speech",
+      "enable": "Enable TTS",
+      "auto": "Auto Read",
+      "voice": "Select Voice"
+    },
+    "ai": {
+      "title": "AI Settings",
+      "enable": "Enable AI Assistant",
+      "apiKey": "API Key",
+      "model": "Model"
+    }
+  }
+} 

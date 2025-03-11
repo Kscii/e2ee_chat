@@ -1,0 +1,53 @@
+{
+  "common": {
+    "send": "发送",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功"
+  },
+  "chat": {
+    "inputPlaceholder": "输入消息...",
+    "aiPlaceholder": "输入你的问题...",
+    "sendFile": "发送文件",
+    "sendImage": "发送图片",
+    "preview": "预览",
+    "download": "下载",
+    "fileTooBig": "文件大小不能超过{{size}}MB！",
+    "imageTooBig": "图片大小不能超过{{size}}MB！",
+    "onlyImage": "只能上传图片文件！"
+  },
+  "settings": {
+    "title": "设置",
+    "general": "通用",
+    "appearance": "外观",
+    "accessibility": "无障碍",
+    "language": "语言",
+    "theme": {
+      "title": "主题",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    },
+    "markdown": {
+      "title": "Markdown 支持",
+      "enable": "启用 Markdown"
+    },
+    "tts": {
+      "title": "语音朗读",
+      "enable": "启用语音朗读",
+      "auto": "自动朗读",
+      "voice": "选择声音"
+    },
+    "ai": {
+      "title": "AI 设置",
+      "enable": "启用 AI 助手",
+      "apiKey": "API 密钥",
+      "model": "模型"
+    }
+  }
+} 

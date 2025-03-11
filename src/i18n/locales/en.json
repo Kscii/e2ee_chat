@@ -1,0 +1,105 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "send": "Send",
+    "upload": "Upload",
+    "download": "Download",
+    "preview": "Preview",
+    "close": "Close",
+    "settings": "Settings",
+    "logout": "Logout",
+    "directMessages": "Direct Messages",
+    "groups": "Groups",
+    "status": {
+      "online": "Online",
+      "offline": "Offline"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": {
+      "title": "Profile",
+      "name": "Username",
+      "email": "Email"
+    },
+    "theme": {
+      "title": "Theme Settings",
+      "dark": "Dark Mode",
+      "description": "Toggle dark/light theme",
+      "markdown": "Enable Markdown Mode",
+      "markdownDescription": "Enable support for Markdown syntax in text fields"
+    },
+    "language": {
+      "title": "Language Settings",
+      "description": "Choose interface language",
+      "zh": "中文",
+      "en": "English"
+    },
+    "ai": {
+      "title": "AI Settings",
+      "enable": "Enable AI Assistant",
+      "description": "Toggle AI assistant features",
+      "apiKey": "API Key",
+      "apiKeyDescription": "Set OpenAI API Key"
+    },
+    "tts": {
+      "title": "Text-to-Speech",
+      "enable": "Enable Voice Reading",
+      "auto": "Auto Read",
+      "service": "Voice Service",
+      "voice": "Voice",
+      "speed": "Speed",
+      "pitch": "Pitch",
+      "volume": "Volume",
+      "azureKey": "Azure Key",
+      "azureRegion": "Azure Region",
+      "googleKey": "Google Cloud Key",
+      "gptSovitsUrl": "GPT-SoVITS Service URL",
+      "character": "Character Name",
+      "emotion": "Emotion Value",
+      "browser": "Browser Speech",
+      "azure": "Azure Speech Service",
+      "google": "Google Cloud TTS",
+      "gptSovits": "GPT-SoVITS"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Type a message...",
+    "sendButton": "Send",
+    "uploadButton": "Upload File",
+    "demoMessages": {
+      "welcome": "Hello! I'm your AI assistant. How can I help you?",
+      "question": "Hi, how are you doing?",
+      "answer": "I'm doing great, thanks for asking!",
+      "followup": "That's good to hear! Anything new?"
+    },
+    "fileMessages": {
+      "image": "sent an image",
+      "file": "sent a file: {filename}",
+      "pdf": "sent a PDF file: {filename}",
+      "word": "sent a Word document: {filename}",
+      "excel": "sent an Excel spreadsheet: {filename}",
+      "ppt": "sent a PowerPoint presentation: {filename}",
+      "txt": "sent a text file: {filename}"
+    },
+    "preview": {
+      "title": "File Preview",
+      "loading": "Loading...",
+      "error": "Preview failed",
+      "unsupported": "Preview not supported for this file type"
+    }
+  },
+  "errors": {
+    "onlyImageAllowed": "Only image files are allowed",
+    "imageTooLarge": "Image must be smaller than 2MB",
+    "uploadFailed": "Upload failed",
+    "downloadFailed": "Download failed",
+    "sendFailed": "Failed to send message",
+    "networkError": "Network error"
+  }
+} 

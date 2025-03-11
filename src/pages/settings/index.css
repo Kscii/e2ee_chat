@@ -1,0 +1,148 @@
+.settings-container {
+  height: 100%;
+  background-color: #fff;
+  padding: 24px;
+  width: 100%;
+  overflow-y: auto;
+  position: relative;
+}
+
+[data-theme='dark'] .settings-container {
+  background-color: #1f1f1f;
+}
+
+.settings-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.settings-section {
+  margin-bottom: 48px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 24px;
+}
+
+.settings-section h2 {
+  margin-bottom: 16px;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.avatar-upload {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.avatar-upload:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.avatar-overlay .anticon {
+  color: white;
+  font-size: 24px;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+[data-theme='dark'] .setting-item {
+  border-bottom-color: #303030;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.setting-item:first-child {
+  padding-top: 0;
+}
+
+.setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.setting-label-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.setting-label-description {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+[data-theme='dark'] .setting-label-description {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.setting-control {
+  margin-left: 24px;
+  min-width: 80px;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+  }
+
+  .settings-content {
+    padding: 0 8px;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .setting-control {
+    margin-left: 0;
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+} 

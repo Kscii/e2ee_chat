@@ -1,0 +1,105 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "send": "发送",
+    "upload": "上传",
+    "download": "下载",
+    "preview": "预览",
+    "close": "关闭",
+    "settings": "设置",
+    "logout": "退出登录",
+    "directMessages": "私信",
+    "groups": "群组",
+    "status": {
+      "online": "在线",
+      "offline": "离线"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "profile": {
+      "title": "个人资料",
+      "name": "用户名",
+      "email": "邮箱"
+    },
+    "theme": {
+      "title": "主题设置",
+      "dark": "深色模式",
+      "description": "切换深色/浅色主题",
+      "markdown": "启用Markdown模式",
+      "markdownDescription": "在文本框中启用Markdown语法支持"
+    },
+    "language": {
+      "title": "语言设置",
+      "description": "选择界面语言",
+      "zh": "中文",
+      "en": "English"
+    },
+    "ai": {
+      "title": "AI 设置",
+      "enable": "启用 AI 助手",
+      "description": "开启/关闭 AI 助手功能",
+      "apiKey": "API 密钥",
+      "apiKeyDescription": "设置 OpenAI API 密钥"
+    },
+    "tts": {
+      "title": "语音合成",
+      "enable": "启用语音朗读",
+      "auto": "自动朗读",
+      "service": "语音服务",
+      "voice": "语音",
+      "speed": "语速",
+      "pitch": "音调",
+      "volume": "音量",
+      "azureKey": "Azure 密钥",
+      "azureRegion": "Azure 区域",
+      "googleKey": "Google Cloud 密钥",
+      "gptSovitsUrl": "GPT-SoVITS 服务地址",
+      "character": "角色名称",
+      "emotion": "情感值",
+      "browser": "浏览器语音",
+      "azure": "Azure 语音服务",
+      "google": "Google Cloud TTS",
+      "gptSovits": "GPT-SoVITS"
+    }
+  },
+  "chat": {
+    "title": "聊天",
+    "inputPlaceholder": "输入消息...",
+    "sendButton": "发送",
+    "uploadButton": "上传文件",
+    "demoMessages": {
+      "welcome": "你好！我是 AI 助手，有什么可以帮你的吗？",
+      "question": "你好，最近过得怎么样？",
+      "answer": "挺好的，谢谢关心！",
+      "followup": "那就好，有什么新鲜事吗？"
+    },
+    "fileMessages": {
+      "image": "发送了一张图片",
+      "file": "发送了一个文件：{filename}",
+      "pdf": "发送了一个 PDF 文件：{filename}",
+      "word": "发送了一个 Word 文档：{filename}",
+      "excel": "发送了一个 Excel 表格：{filename}",
+      "ppt": "发送了一个 PPT 文件：{filename}",
+      "txt": "发送了一个文本文件：{filename}"
+    },
+    "preview": {
+      "title": "文件预览",
+      "loading": "加载中...",
+      "error": "预览失败",
+      "unsupported": "不支持预览此类型的文件"
+    }
+  },
+  "errors": {
+    "onlyImageAllowed": "只能上传图片文件",
+    "imageTooLarge": "图片大小不能超过 2MB",
+    "uploadFailed": "上传失败",
+    "downloadFailed": "下载失败",
+    "sendFailed": "发送失败",
+    "networkError": "网络错误"
+  }
+} 
