@@ -29,6 +29,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
+import { useAPI } from '../../contexts/APIContext';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
@@ -55,6 +56,7 @@ const ChatPage: React.FC = () => {
   const { avatar } = useAvatar();
   const { ttsEnabled, autoRead, speak } = useTTS();
   const { aiEnabled, sendMessage } = useAI();
+  const { apiKey } = useAPI();
   const { t } = useTranslation();
   const { id: chatId } = useParams();
   const location = useLocation();
@@ -67,6 +69,7 @@ const ChatPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<Message['fileInfo']>();
 
@@ -369,6 +372,30 @@ const ChatPage: React.FC = () => {
     setMessages([]);
   };
 
+  // 滚动到底部的函数
+  const scrollToBottom = () => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+    }
+  };
+
+  // 当消息更新时，滚动到底部
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // 监听窗口大小变化，确保在窗口大小变化时也能正确滚动
+  useEffect(() => {
+    const handleResize = () => {
+      scrollToBottom();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
     <div className="chat-container">
       <div className="chat-main">
@@ -382,7 +409,7 @@ const ChatPage: React.FC = () => {
           </div>
         </div>
         <Divider style={{ margin: '0 0 16px 0' }} />
-        <div className="message-container">
+        <div className="message-container" ref={messageContainerRef}>
           {messages.map(msg => (
             <div 
               key={msg.id} 
