@@ -43,8 +43,8 @@ If you want to experience this project, you can visit:
 1. Clone the repository
 ```bash
 git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
-git checkout web_chat_project
 cd INFO2222-group
+git checkout web_chat_project
 ```
 
 2. Install dependencies
@@ -107,8 +107,8 @@ npm run dev
 1. 克隆仓库
 ```bash
 git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
-git checkout web_chat_project
 cd INFO2222-group
+git checkout web_chat_project
 ```
 
 2. 安装依赖
