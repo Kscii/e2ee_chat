@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Form } from 'antd';
+import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Form, Card, Space, Slider } from 'antd';
 import { UserOutlined, CameraOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
@@ -21,7 +21,7 @@ const SettingsPage: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { markdownMode, toggleMarkdownMode } = useMarkdown();
   const { avatar, setAvatar } = useAvatar();
-  const { ttsEnabled, autoRead, toggleTTS, toggleAutoRead, selectedVoice, setSelectedVoice, availableVoices, ttsConfig, updateTTSConfig } = useTTS();
+  const { ttsEnabled, autoRead, ttsSpeed, toggleTTS, toggleAutoRead, setTTSSpeed, selectedVoice, setSelectedVoice, availableVoices, ttsConfig, updateTTSConfig } = useTTS();
   const { aiEnabled, toggleAI } = useAI();
   const { apiKey, setAPIKey } = useAPI();
   const { language, changeLanguage } = useLanguage();
@@ -220,6 +220,31 @@ const SettingsPage: React.FC = () => {
                 disabled={!ttsEnabled}
                 checkedChildren={t('common.save')}
                 unCheckedChildren={t('common.cancel')}
+              />
+            </div>
+          </div>
+          <div className="setting-item">
+            <div className="setting-label">
+              <span className="setting-label-title">{t('settings.tts.speed')}</span>
+              <span className="setting-label-description">{t('settings.tts.speed')}</span>
+            </div>
+            <div className="setting-control">
+              <Slider
+                min={0.5}
+                max={2}
+                step={0.1}
+                value={ttsSpeed}
+                onChange={setTTSSpeed}
+                disabled={!ttsEnabled}
+                style={{ width: 200 }}
+                marks={{
+                  0.5: '0.5x',
+                  1: t('settings.tts.normal'),
+                  2: '2x'
+                }}
+                tooltip={{
+                  formatter: (value) => `${value}x`
+                }}
               />
             </div>
           </div>

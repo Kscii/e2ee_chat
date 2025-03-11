@@ -32,9 +32,11 @@ interface TTSConfig {
 interface TTSContextType {
   ttsEnabled: boolean;
   autoRead: boolean;
+  ttsSpeed: number;
   ttsConfig: TTSConfig;
   toggleTTS: () => void;
   toggleAutoRead: () => void;
+  setTTSSpeed: (speed: number) => void;
   speak: (text: string) => void;
   updateTTSConfig: (config: Partial<TTSConfig>) => void;
   selectedVoice: SpeechSynthesisVoice | null;
@@ -59,6 +61,7 @@ const detectLanguage = (text: string): string => {
 export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [ttsEnabled, setTTSEnabled] = useState(true);
   const [autoRead, setAutoRead] = useState(false);
+  const [ttsSpeed, setTTSSpeed] = useState(1);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const [ttsConfig, setTTSConfig] = useState<TTSConfig>({
@@ -158,7 +161,9 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const ssml = `
         <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}">
           <voice name="${voiceName}">
-            ${text}
+            <prosody rate="${ttsSpeed}">
+              ${text}
+            </prosody>
           </voice>
         </speak>
       `;
@@ -213,7 +218,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           body: JSON.stringify({
             input: { text },
             voice: { languageCode: lang },
-            audioConfig: { audioEncoding: 'MP3' },
+            audioConfig: { 
+              audioEncoding: 'MP3',
+              speakingRate: ttsSpeed
+            },
           }),
         }
       );
@@ -222,6 +230,14 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const { audioContent } = await response.json();
       const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      
+      // 清理之前的音频
+      if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio = null;
+      }
+      
+      window.currentAudio = audio;
       await audio.play();
     } catch (error) {
       console.error('Google TTS error:', error);
@@ -239,7 +255,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           text,
           character: ttsConfig.gptSovitsConfig?.character || 'Anon',
           emotion: ttsConfig.gptSovitsConfig?.emotion || 0,
-          speed: ttsConfig.gptSovitsConfig?.speed || 1,
+          speed: ttsSpeed,
           text_language: ttsConfig.gptSovitsConfig?.textLanguage || 'auto',
         }),
       });
@@ -301,7 +317,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (selectedVoice) {
             utterance.voice = selectedVoice;
           }
-          utterance.rate = 1.0;
+          utterance.rate = ttsSpeed;
           utterance.pitch = 1.0;
           utterance.volume = 1.0;
           window.speechSynthesis.speak(utterance);
@@ -310,7 +326,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch (error) {
       console.error('TTS error:', error);
-      message.error(t('errors.tts.failed'));
+      message.error('语音合成失败');
     }
   };
 
@@ -318,9 +334,11 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <TTSContext.Provider value={{ 
       ttsEnabled, 
       autoRead, 
+      ttsSpeed,
       ttsConfig,
       toggleTTS, 
       toggleAutoRead,
+      setTTSSpeed,
       updateTTSConfig,
       speak,
       selectedVoice,
