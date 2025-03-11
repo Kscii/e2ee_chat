@@ -42,7 +42,8 @@ If you want to experience this project, you can visit:
 ### Installation and Setup
 1. Clone the repository
 ```bash
-git clone [repository-url]
+git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
+git checkout web_chat_project
 cd INFO2222-group
 ```
 
@@ -105,7 +106,8 @@ npm run dev
 ### 安装和设置
 1. 克隆仓库
 ```bash
-git clone [仓库地址]
+git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
+git checkout web_chat_project
 cd INFO2222-group
 ```
 
