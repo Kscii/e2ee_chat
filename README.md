@@ -44,7 +44,6 @@ If you want to experience this project, you can visit:
 ```bash
 git clone [repository-url]
 cd INFO2222-group
-cd web_project
 ```
 
 2. Install dependencies
@@ -108,7 +107,6 @@ npm run dev
 ```bash
 git clone [仓库地址]
 cd INFO2222-group
-cd web_project
 ```
 
 2. 安装依赖
