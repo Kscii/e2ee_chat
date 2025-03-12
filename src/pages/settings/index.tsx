@@ -1,11 +1,10 @@
 import React from 'react';
-import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Form, Card, Space, Slider } from 'antd';
+import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Form, Slider } from 'antd';
 import { UserOutlined, CameraOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
 import { useAvatar } from '../../contexts/AvatarContext';
-import { useTTS } from '../../contexts/TTSContext';
-import type { TTSService } from '../../contexts/TTSContext';
+import { useTTS, TTSService } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
 import { useAPI } from '../../contexts/APIContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -13,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import type { UploadChangeParam } from 'antd/es/upload';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import './index.css';
+import apiConfig from '../../config/apiConfig';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -184,7 +184,7 @@ const SettingsPage: React.FC = () => {
               <Input.Password
                 value={apiKey === 'OPENAI_API_KEY_PLACEHOLDER' ? '' : apiKey}
                 onChange={(e) => setAPIKey(e.target.value || 'OPENAI_API_KEY_PLACEHOLDER')}
-                placeholder="使用默认配置"
+                placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
                 style={{ width: '300px' }}
               />
             </div>
@@ -300,11 +300,11 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div className="setting-control">
                   <Input.Password
-                    value={ttsConfig.azureKey === 'AZURE_AI_SERVICES_KEY_PLACEHOLDER' ? '' : ttsConfig.azureKey}
-                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureKey: e.target.value || 'AZURE_AI_SERVICES_KEY_PLACEHOLDER' })}
+                    value={ttsConfig.azureKey === apiConfig.azure.apiKey ? '' : ttsConfig.azureKey}
+                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureKey: e.target.value })}
                     style={{ width: 300 }}
                     disabled={!ttsEnabled}
-                    placeholder="使用默认配置"
+                    placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
                   />
                 </div>
               </div>
@@ -315,11 +315,11 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div className="setting-control">
                   <Input
-                    value={ttsConfig.azureRegion === 'australiaeast' ? '' : ttsConfig.azureRegion}
-                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureRegion: e.target.value || 'australiaeast' })}
+                    value={ttsConfig.azureRegion === apiConfig.azure.region ? '' : ttsConfig.azureRegion}
+                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureRegion: e.target.value })}
                     style={{ width: 200 }}
                     disabled={!ttsEnabled}
-                    placeholder="使用默认配置"
+                    placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
                   />
                 </div>
               </div>
@@ -334,11 +334,11 @@ const SettingsPage: React.FC = () => {
               </div>
               <div className="setting-control">
                 <Input.Password
-                  value={ttsConfig.googleKey === 'AIzaSyAPQwlQ-IHLzJtC5IAftcgjbFYx5PZt93c' ? '' : ttsConfig.googleKey}
-                  onChange={(e) => updateTTSConfig({ ...ttsConfig, googleKey: e.target.value || 'AIzaSyAPQwlQ-IHLzJtC5IAftcgjbFYx5PZt93c' })}
+                  value={ttsConfig.googleKey === apiConfig.google.apiKey ? '' : ttsConfig.googleKey}
+                  onChange={(e) => updateTTSConfig({ ...ttsConfig, googleKey: e.target.value })}
                   style={{ width: 300 }}
                   disabled={!ttsEnabled}
-                  placeholder="使用默认配置"
+                  placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
                 />
               </div>
             </div>
@@ -346,19 +346,19 @@ const SettingsPage: React.FC = () => {
 
           {ttsConfig.service === 'gpt-sovits' && (
             <>
-              <Form.Item label="GPT-SoVITS 服务地址">
+              <Form.Item label={language === 'zh' ? 'GPT-SoVITS 服务地址' : 'GPT-SoVITS Service URL'}>
                 <Input
-                  placeholder="https://tts.kscii.tech/tts"
-                  value={ttsConfig.gptSovitsUrl || ''}
-                  onChange={(e) => updateTTSConfig({ gptSovitsUrl: e.target.value || 'https://tts.kscii.tech/tts' })}
+                  placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
+                  value={ttsConfig.gptSovitsUrl === apiConfig.gptSovits.url ? '' : ttsConfig.gptSovitsUrl}
+                  onChange={(e) => updateTTSConfig({ gptSovitsUrl: e.target.value })}
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  默认使用 https://tts.kscii.tech/tts
+                  {language === 'zh' ? `默认值: ${apiConfig.gptSovits.url}` : `Default: ${apiConfig.gptSovits.url}`}
                 </div>
               </Form.Item>
-              <Form.Item label="角色">
+              <Form.Item label={language === 'zh' ? '角色' : 'Character'}>
                 <Input
-                  placeholder="角色名称"
+                  placeholder={language === 'zh' ? '角色名称' : 'Character name'}
                   value={ttsConfig.gptSovitsConfig?.character || ''}
                   onChange={(e) => updateTTSConfig({
                     gptSovitsConfig: {

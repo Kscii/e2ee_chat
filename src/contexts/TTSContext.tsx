@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { message } from 'antd';
+import apiConfig from '../config/apiConfig';
 
 // 扩展Window接口以包含currentAudio属性
 declare global {
@@ -64,12 +65,16 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [ttsSpeed, setTTSSpeed] = useState(1);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  
+  // 打印apiConfig的值，用于调试
+  console.log('apiConfig loaded:', apiConfig);
+  
   const [ttsConfig, setTTSConfig] = useState<TTSConfig>({
     service: 'browser',
-    azureKey: '',
-    azureRegion: '',
-    googleKey: '',
-    gptSovitsUrl: '',
+    azureKey: apiConfig.azure.apiKey || '',
+    azureRegion: apiConfig.azure.region || '',
+    googleKey: apiConfig.google.apiKey || '',
+    gptSovitsUrl: apiConfig.gptSovits.url || '',
     gptSovitsConfig: {
       character: 'Anon',
       emotion: 0,
@@ -77,6 +82,9 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       textLanguage: 'auto'
     }
   });
+  
+  // 打印初始ttsConfig的值，用于调试
+  console.log('Initial ttsConfig:', ttsConfig);
 
   // 加载和更新可用的语音
   useEffect(() => {
@@ -107,6 +115,11 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const savedAutoRead = localStorage.getItem('auto_read');
     const savedConfig = localStorage.getItem('tts_config');
 
+    console.log('Loading from localStorage:');
+    console.log('- tts_enabled:', savedTTS);
+    console.log('- auto_read:', savedAutoRead);
+    console.log('- tts_config:', savedConfig);
+
     if (savedTTS !== null) {
       setTTSEnabled(savedTTS === 'true');
     }
@@ -116,9 +129,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (savedConfig) {
       try {
         const config = JSON.parse(savedConfig);
+        console.log('Parsed config from localStorage:', config);
         setTTSConfig(config);
-      } catch {
-        console.error('Failed to parse saved TTS config');
+      } catch (error) {
+        console.error('Failed to parse saved TTS config:', error);
       }
     }
   }, []);
@@ -136,9 +150,29 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateTTSConfig = (config: Partial<TTSConfig>) => {
+    // 处理空值，使用默认配置
+    if (config.azureKey === '') {
+      config.azureKey = undefined; // 设为undefined，这样会使用默认值
+    }
+    if (config.azureRegion === '') {
+      config.azureRegion = undefined;
+    }
+    if (config.googleKey === '') {
+      config.googleKey = undefined;
+    }
+    if (config.gptSovitsUrl === '') {
+      config.gptSovitsUrl = undefined;
+    }
+    
     const newConfig = { ...ttsConfig, ...config };
+    console.log('Updating TTS config:', newConfig);
     setTTSConfig(newConfig);
-    localStorage.setItem('tts_config', JSON.stringify(newConfig));
+    try {
+      localStorage.setItem('tts_config', JSON.stringify(newConfig));
+      console.log('Saved TTS config to localStorage');
+    } catch (error) {
+      console.error('Failed to save TTS config to localStorage:', error);
+    }
   };
 
   const getAzureVoiceName = (lang: string): string => {
@@ -153,10 +187,18 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const speakWithAzure = async (text: string, lang: string) => {
-    const azureKey = ttsConfig.azureKey || '';
-    const azureRegion = ttsConfig.azureRegion || '';
+    // 如果azureKey为空，则使用apiConfig中的默认值
+    const azureKey = ttsConfig.azureKey || apiConfig.azure.apiKey || '';
+    const azureRegion = ttsConfig.azureRegion || apiConfig.azure.region || '';
 
     try {
+      if (!azureKey || !azureRegion) {
+        message.error('Azure TTS服务配置不完整，请检查API密钥和区域设置');
+        return;
+      }
+      
+      console.log('使用Azure TTS服务:', azureRegion);
+      
       const voiceName = getAzureVoiceName(lang);
       const ssml = `
         <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}">
@@ -183,8 +225,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Azure TTS request failed: ${response.status} - ${errorText}`);
+        const errorText = await response.text().catch(() => '未知错误');
+        console.error(`Azure TTS请求失败: ${response.status} - ${errorText}`);
+        message.error(`语音合成失败: ${response.status} ${response.statusText}`);
+        return;
       }
 
       const audioBlob = await response.blob();
@@ -200,14 +244,22 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await audio.play();
     } catch (error) {
       console.error('Azure TTS error:', error);
-      message.error('语音合成失败，请检查API配置');
+      message.error('Azure语音合成失败，请检查API配置和网络连接');
     }
   };
 
   const speakWithGoogle = async (text: string, lang: string) => {
-    const googleKey = ttsConfig.googleKey || '';
+    // 如果googleKey为空，则使用apiConfig中的默认值
+    const googleKey = ttsConfig.googleKey || apiConfig.google.apiKey || '';
 
     try {
+      if (!googleKey) {
+        message.error('Google TTS服务API密钥未配置');
+        return;
+      }
+      
+      console.log('使用Google TTS服务');
+      
       const response = await fetch(
         `https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`,
         {
@@ -226,9 +278,20 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       );
 
-      if (!response.ok) throw new Error('Google TTS request failed');
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '未知错误');
+        console.error(`Google TTS请求失败: ${response.status} - ${errorText}`);
+        message.error(`语音合成失败: ${response.status} ${response.statusText}`);
+        return;
+      }
 
       const { audioContent } = await response.json();
+      if (!audioContent) {
+        console.error('Google TTS响应中没有音频内容');
+        message.error('语音合成失败: 响应中没有音频内容');
+        return;
+      }
+      
       const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
       
       // 清理之前的音频
@@ -241,12 +304,23 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await audio.play();
     } catch (error) {
       console.error('Google TTS error:', error);
+      message.error('Google语音合成失败，请检查API配置和网络连接');
     }
   };
 
   const speakWithGPTSovits = async (text: string) => {
     try {
-      const response = await fetch(ttsConfig.gptSovitsUrl || '', {
+      // 如果gptSovitsUrl为空，则使用apiConfig中的默认值
+      const gptSovitsUrl = ttsConfig.gptSovitsUrl || apiConfig.gptSovits.url || '';
+      
+      if (!gptSovitsUrl) {
+        message.error('GPT-SoVITS服务地址未配置');
+        return;
+      }
+      
+      console.log('使用GPT-SoVITS服务:', gptSovitsUrl);
+      
+      const response = await fetch(gptSovitsUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +335,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text().catch(() => '未知错误');
+        console.error(`GPT-SoVITS请求失败: ${response.status} - ${errorText}`);
+        message.error(`语音合成失败: ${response.status} ${response.statusText}`);
+        return;
       }
 
       const audioData = await response.arrayBuffer();
@@ -284,6 +361,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await audio.play();
     } catch (error) {
       console.error('Error in GPT-SoVITS TTS:', error);
+      message.error('GPT-SoVITS语音合成失败，请检查服务地址和网络连接');
     }
   };
 
@@ -297,6 +375,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const detectedLang = detectLanguage(text);
+    console.log('Speaking text:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
+    console.log('Detected language:', detectedLang);
+    console.log('Using TTS service:', ttsConfig.service);
+    console.log('Current TTS config:', ttsConfig);
 
     try {
       switch (ttsConfig.service) {
@@ -311,6 +393,7 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           break;
         default: {
           // 使用浏览器默认TTS
+          console.log('Using browser TTS with voice:', selectedVoice?.name);
           window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = detectedLang;
