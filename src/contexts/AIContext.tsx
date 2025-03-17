@@ -4,6 +4,7 @@ import { useAPI } from './APIContext';
 import { message } from 'antd';
 import { useTranslation } from 'react-i18next';
 
+
 interface AIContextType {
   aiEnabled: boolean;
   toggleAI: () => void;
@@ -34,11 +35,11 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       });
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
-            content: content
+            content: "" //提示词
           }
         ],
         temperature: 0.7,
