@@ -1,0 +1,50 @@
+/* Discord主题变量 */
+:root {
+  /* 亮色主题默认值 */
+  --background-primary: #ffffff;
+  --background-secondary: #f2f3f5;
+  --background-tertiary: #e3e5e8;
+  --background-modifier-hover: rgba(0, 0, 0, 0.05);
+  --background-modifier-accent: #ebedef;
+  
+  --text-normal: #2e3338;
+  --text-muted: #747f8d;
+  --header-primary: #060607;
+  
+  --interactive-normal: #4f5660;
+  --interactive-hover: #2e3338;
+  --interactive-active: #060607;
+  
+  --green: #23a559;
+  
+  --elevation-low: 0 1px 0 rgba(4,4,5,0.05);
+  --scrollbar-thin-thumb: #c4c9ce;
+  --scrollbar-thin-thumb-hover: #9ca0a4;
+  
+  --hover-filter: brightness(0.95);
+}
+
+/* 暗色主题 */
+[data-theme="dark"] {
+  --background-primary: #313338;
+  --background-secondary: #1e1f22;
+  --background-tertiary: #2b2d31;
+  --background-modifier-hover: rgba(255, 255, 255, 0.05);
+  --background-modifier-accent: #2b2d31;
+  
+  --text-normal: #dbdee1;
+  --text-muted: #949ba4;
+  --header-primary: #f2f3f5;
+  
+  --interactive-normal: #b5bac1;
+  --interactive-hover: #dbdee1;
+  --interactive-active: #f2f3f5;
+  
+  --green: #23a559;
+  
+  --elevation-low: 0 1px 0 rgba(4,4,5,0.2);
+  --scrollbar-thin-thumb: #1e1f22;
+  --scrollbar-thin-thumb-hover: #2b2d31;
+  
+  --hover-filter: brightness(1.1);
+} 

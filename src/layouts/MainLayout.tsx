@@ -10,6 +10,8 @@ import {
   RobotOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  AppstoreOutlined,
+  BulbOutlined,
 } from '@ant-design/icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +40,7 @@ function getItem(
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
   const { aiEnabled } = useAI();
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
@@ -46,6 +48,17 @@ const MainLayout: React.FC = () => {
   const [lastNormalWidth, setLastNormalWidth] = useState(240);
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // 从 localStorage 初始化 openKeys
+  const [openKeys, setOpenKeys] = useState<string[]>(() => {
+    const savedOpenKeys = localStorage.getItem('menuOpenKeys');
+    return savedOpenKeys ? JSON.parse(savedOpenKeys) : [];
+  });
+
+  // 保存 openKeys 到 localStorage
+  useEffect(() => {
+    localStorage.setItem('menuOpenKeys', JSON.stringify(openKeys));
+  }, [openKeys]);
 
   // 检测屏幕宽度并自动折叠
   useEffect(() => {
@@ -91,21 +104,28 @@ const MainLayout: React.FC = () => {
 
   // 菜单项配置
   const items: MenuItem[] = [
-    getItem(t('common.directMessages'), 'direct-messages', <MessageOutlined />, [
+    getItem(t('navigation.channels'), 'channels', <AppstoreOutlined />),
+    getItem(t('navigation.directMessages'), 'direct-messages', <MessageOutlined />, [
       getItem('Alice', 'user-1'),
       getItem('Bob', 'user-2'),
       getItem('Charlie', 'user-3'),
     ]),
-    getItem(t('common.groups'), 'groups', <TeamOutlined />, [
+    getItem(t('navigation.groups'), 'groups', <TeamOutlined />, [
       getItem('Development Team', 'group-1'),
       getItem('General Chat', 'group-2'),
     ]),
-    ...(aiEnabled ? [getItem(t('common.ai'), 'ai', <RobotOutlined />)] : []),
-    getItem(t('common.settings'), 'settings', <SettingOutlined />),
+    ...(aiEnabled ? [getItem(t('navigation.ai'), 'ai', <RobotOutlined />)] : []),
+    getItem(t('navigation.settings'), 'settings', <SettingOutlined />),
   ];
 
   // 用户下拉菜单项
   const userMenuItems = [
+    {
+      key: 'theme',
+      label: isDarkMode ? '切换到亮色模式' : '切换到暗色模式',
+      icon: <BulbOutlined />,
+      onClick: toggleTheme,
+    },
     {
       key: 'settings',
       label: t('common.settings'),
@@ -122,12 +142,20 @@ const MainLayout: React.FC = () => {
 
   // 处理菜单点击
   const handleMenuClick: MenuProps['onClick'] = (e) => {
-    if (e.key.startsWith('user-') || e.key.startsWith('group-')) {
+    if (e.key === 'channels') {
+      navigate('/channels');
+    } else if (e.key.startsWith('user-') || e.key.startsWith('group-')) {
       navigate(`/chat/${e.key}`);
     } else if (e.key === 'settings') {
       navigate('/settings');
     } else if (e.key === 'ai') {
       navigate('/ai');
+    }
+
+    // 在移动设备上点击菜单项后收起菜单
+    if (isMobile) {
+      setShowMobileMenu(false);
+      setSiderWidth(0);
     }
   };
 
@@ -135,6 +163,11 @@ const MainLayout: React.FC = () => {
   const getSelectedKey = () => {
     const path = location.pathname.split('/')[2];
     return [path || 'direct-messages'];
+  };
+
+  // 处理子菜单展开/收起
+  const handleOpenChange = (keys: string[]) => {
+    setOpenKeys(keys);
   };
 
   return (
@@ -186,13 +219,9 @@ const MainLayout: React.FC = () => {
               selectedKeys={getSelectedKey()}
               mode="inline"
               items={items}
-              onClick={(e) => {
-                handleMenuClick(e);
-                if (isMobile) {
-                  setShowMobileMenu(false);
-                  setSiderWidth(0);
-                }
-              }}
+              onClick={handleMenuClick}
+              openKeys={openKeys}
+              onOpenChange={handleOpenChange}
               style={{
                 background: 'transparent',
                 border: 'none',

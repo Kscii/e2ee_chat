@@ -1,0 +1,96 @@
+.channel-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  width: 72px;
+  background-color: var(--background-secondary);
+  height: 100%;
+  overflow-y: auto;
+  gap: 8px;
+}
+
+.channel-list::-webkit-scrollbar {
+  width: 0px;
+}
+
+.channel-item {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: var(--background-tertiary);
+}
+
+.channel-item::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  width: 8px;
+  height: 0;
+  background-color: var(--interactive-active);
+  border-radius: 0 4px 4px 0;
+  transition: height 0.2s ease;
+}
+
+.channel-item:hover::before {
+  height: 20px;
+  background-color: var(--interactive-active);
+}
+
+.channel-item.active::before {
+  height: 40px;
+  background-color: var(--interactive-active);
+}
+
+.channel-item:hover {
+  border-radius: 16px;
+  background-color: var(--background-tertiary);
+  filter: var(--hover-filter);
+}
+
+.channel-item.active {
+  border-radius: 16px;
+  background-color: var(--background-tertiary);
+  filter: var(--hover-filter);
+}
+
+.channel-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  background-color: var(--background-tertiary);
+  color: var(--text-normal);
+}
+
+.channel-item:hover .channel-avatar,
+.channel-item.active .channel-avatar {
+  border-radius: 16px;
+}
+
+.add-channel-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--background-tertiary);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 24px;
+}
+
+.add-channel-button:hover {
+  border-radius: 16px;
+  background-color: var(--green);
+  color: #fff;
+} 

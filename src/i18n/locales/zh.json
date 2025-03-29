@@ -1,4 +1,11 @@
 {
+  "navigation": {
+    "channels": "频道",
+    "directMessages": "私信",
+    "groups": "群组",
+    "ai": "AI 助手",
+    "settings": "设置"
+  },
   "common": {
     "save": "保存",
     "cancel": "取消",
@@ -12,13 +19,11 @@
     "close": "关闭",
     "settings": "设置",
     "logout": "退出登录",
-    "directMessages": "私信",
-    "groups": "群组",
-    "ai": "AI 助手",
     "status": {
       "online": "在线",
       "offline": "离线"
-    }
+    },
+    "system": "系统"
   },
   "settings": {
     "title": "设置",
@@ -102,6 +107,16 @@
       "loading": "加载中...",
       "error": "预览失败",
       "unsupported": "不支持预览此类型的文件"
+    },
+    "currentUser": "当前用户",
+    "actions": {
+      "search": "搜索",
+      "inbox": "收件箱",
+      "help": "帮助"
+    },
+    "search": {
+      "placeholder": "搜索消息...",
+      "noResults": "没有找到包含 \"{keyword}\" 的消息"
     }
   },
   "errors": {
@@ -136,6 +151,90 @@
       "forbidden": "您没有执行此操作的权限",
       "notFound": "资源未找到",
       "serverError": "服务器错误，请稍后重试"
+    }
+  },
+  "channel": {
+    "title": "频道",
+    "create": "创建频道",
+    "join": "加入频道",
+    "leave": "退出频道",
+    "delete": "删除频道",
+    "settings": "频道设置",
+    "types": {
+      "text": "文字频道",
+      "voice": "语音频道"
+    },
+    "status": {
+      "connected": "已连接",
+      "disconnected": "未连接",
+      "connecting": "连接中"
+    },
+    "actions": {
+      "mute": "静音",
+      "unmute": "取消静音",
+      "deafen": "耳机静音",
+      "undeafen": "取消耳机静音",
+      "threads": "线程",
+      "notifications": "通知设置",
+      "pinned": "置顶消息",
+      "members": "成员列表",
+      "add": "添加频道"
+    },
+    "messages": {
+      "welcome": "欢迎来到 {channelName}",
+      "joined": "{username} 加入了频道",
+      "left": "{username} 退出了频道",
+      "deleted": "频道已被删除",
+      "noPermission": "你没有权限访问此频道",
+      "joinedVoice": "已加入语音频道",
+      "leftVoice": "已退出语音频道",
+      "micPermissionDenied": "无法访问麦克风，请检查权限设置",
+      "defaultDescription": "这是 #{channelName} 频道的开始"
+    },
+    "form": {
+      "name": "频道名称",
+      "type": "频道类型",
+      "description": "频道描述",
+      "createSuccess": "频道创建成功！",
+      "createError": "请填写必要的信息！"
+    },
+    "placeholders": {
+      "channelName": "频道名称",
+      "description": "频道描述",
+      "message": "在 #{channelName} 中发送消息"
+    },
+    "default": "常规"
+  },
+  "server": {
+    "title": "测试服务器",
+    "create": "创建新服务器",
+    "createNew": "创建新服务器",
+    "join": "加入服务器",
+    "leave": "退出服务器",
+    "delete": "删除服务器",
+    "settings": "服务器设置",
+    "form": {
+      "name": "服务器名称",
+      "nameRequired": "请输入服务器名称",
+      "namePlaceholder": "输入服务器名称",
+      "description": "服务器描述",
+      "descriptionPlaceholder": "输入服务器描述",
+      "icon": "服务器图标",
+      "uploadIcon": "上传图片",
+      "required": "必填项",
+      "createSuccess": "服务器创建成功！",
+      "createError": "请填写必要的信息！"
+    },
+    "messages": {
+      "selectChannel": "请选择一个频道",
+      "welcome": "欢迎来到 {serverName}",
+      "joined": "{username} 加入了服务器",
+      "left": "{username} 退出了服务器",
+      "deleted": "服务器已被删除",
+      "noPermission": "你没有权限访问此服务器"
+    },
+    "actions": {
+      "add": "添加新服务器"
     }
   }
 } 

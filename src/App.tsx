@@ -5,6 +5,7 @@ import ChatPage from './pages/chat';
 import ProfilePage from './pages/profile';
 import RegisterPage from './pages/register';
 import SettingsPage from './pages/settings';
+import ChannelPage from './pages/Channel/ChannelPage';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/lib/locale/zh_CN';
 import enUS from 'antd/lib/locale/en_US';
@@ -17,11 +18,33 @@ import { APIProvider } from './contexts/APIContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import './i18n'; // 导入 i18n 配置
+import './styles/theme.css';
 import './App.css';
+import { ServerProvider } from './contexts/ServerContext';
+
+// Discord主题配置
+const discordTheme = {
+  light: {
+    token: {
+      colorPrimary: '#5865f2',
+      colorBgBase: '#ffffff',
+      colorTextBase: '#2e3338',
+      borderRadius: 4,
+    }
+  },
+  dark: {
+    token: {
+      colorPrimary: '#5865f2',
+      colorBgBase: '#313338',
+      colorTextBase: '#dbdee1',
+      borderRadius: 4,
+    }
+  }
+};
 
 // 应用内容组件
 const AppContent = () => {
-  const { algorithm } = useTheme();
+  const { algorithm, themeMode } = useTheme();
   const { language } = useLanguage();
   const location = useLocation();
   
@@ -34,7 +57,7 @@ const AppContent = () => {
       theme={{
         algorithm: algorithm,
         token: {
-          colorPrimary: '#1677ff',
+          ...discordTheme[themeMode].token,
         },
       }}
     >
@@ -50,6 +73,7 @@ const AppContent = () => {
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Navigate to="/chat" replace />} />
               <Route path="chat/:id?" element={<ChatPage />} />
+              <Route path="channels" element={<ChannelPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="ai" element={<ChatPage />} />
@@ -68,17 +92,19 @@ function App() {
       <ThemeProvider>
         <APIProvider>
           <LanguageProvider>
-            <MarkdownProvider>
-              <AvatarProvider>
-                <TTSProvider>
-                  <AIProvider>
-                    <Router>
-                      <AppContent />
-                    </Router>
-                  </AIProvider>
-                </TTSProvider>
-              </AvatarProvider>
-            </MarkdownProvider>
+            <ServerProvider>
+              <MarkdownProvider>
+                <AvatarProvider>
+                  <TTSProvider>
+                    <AIProvider>
+                      <Router>
+                        <AppContent />
+                      </Router>
+                    </AIProvider>
+                  </TTSProvider>
+                </AvatarProvider>
+              </MarkdownProvider>
+            </ServerProvider>
           </LanguageProvider>
         </APIProvider>
       </ThemeProvider>

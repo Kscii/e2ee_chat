@@ -9,7 +9,7 @@ interface ThemeContextProps {
   themeMode: ThemeMode;
   toggleTheme: () => void;
   isDarkMode: boolean;
-  algorithm?: any; // 添加algorithm属性
+  algorithm?: any;
 }
 
 // 创建上下文
@@ -19,6 +19,28 @@ const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 interface ThemeProviderProps {
   children: ReactNode;
 }
+
+// Discord主题配置
+const discordTheme = {
+  light: {
+    backgroundColor: '#ffffff',
+    antdAlgorithm: theme.defaultAlgorithm,
+    antdToken: {
+      colorPrimary: '#5865f2',
+      colorBgBase: '#ffffff',
+      colorTextBase: '#2e3338',
+    }
+  },
+  dark: {
+    backgroundColor: '#313338',
+    antdAlgorithm: theme.darkAlgorithm,
+    antdToken: {
+      colorPrimary: '#5865f2',
+      colorBgBase: '#313338',
+      colorTextBase: '#dbdee1',
+    }
+  }
+};
 
 // 主题提供者组件
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
@@ -40,30 +62,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // 监听主题变化，更新HTML根元素的data-theme属性
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
-    // 更新body的背景色
-    if (themeMode === 'dark') {
-      document.body.style.backgroundColor = '#141414';
-    } else {
-      document.body.style.backgroundColor = '#f0f2f5';
-    }
+    // 更新body的背景色为Discord风格
+    document.body.style.backgroundColor = discordTheme[themeMode].backgroundColor;
   }, [themeMode]);
 
   // 主题上下文值
   const contextValue: ThemeContextProps = {
     themeMode,
     toggleTheme,
-    isDarkMode: themeMode === 'dark'
+    isDarkMode: themeMode === 'dark',
+    algorithm: discordTheme[themeMode].antdAlgorithm,
   };
-
-  // 获取antd的主题算法
-  const { darkAlgorithm, defaultAlgorithm } = theme;
-
-  // 根据主题模式选择相应的算法并导出，供App.tsx使用
-  const algorithm = themeMode === 'dark' ? darkAlgorithm : defaultAlgorithm;
 
   // 提供主题上下文和antd主题
   return (
-    <ThemeContext.Provider value={{...contextValue, algorithm}}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

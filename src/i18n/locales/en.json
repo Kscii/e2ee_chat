@@ -1,4 +1,11 @@
 {
+  "navigation": {
+    "channels": "Channels",
+    "directMessages": "Direct Messages",
+    "groups": "Groups",
+    "ai": "AI Assistant",
+    "settings": "Settings"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -12,13 +19,11 @@
     "close": "Close",
     "settings": "Settings",
     "logout": "Logout",
-    "directMessages": "Direct Messages",
-    "groups": "Groups",
-    "ai": "AI Assistant",
     "status": {
       "online": "Online",
       "offline": "Offline"
-    }
+    },
+    "system": "System"
   },
   "settings": {
     "title": "Settings",
@@ -102,6 +107,16 @@
       "loading": "Loading...",
       "error": "Preview failed",
       "unsupported": "Preview not supported for this file type"
+    },
+    "currentUser": "Current User",
+    "actions": {
+      "search": "Search",
+      "inbox": "Inbox",
+      "help": "Help"
+    },
+    "search": {
+      "placeholder": "Search messages...",
+      "noResults": "No messages found containing \"{keyword}\""
     }
   },
   "errors": {
@@ -136,6 +151,90 @@
       "forbidden": "You don't have permission to perform this action",
       "notFound": "Resource not found",
       "serverError": "Server error, please try again later"
+    }
+  },
+  "channel": {
+    "title": "Channel",
+    "create": "Create Channel",
+    "join": "Join Channel",
+    "leave": "Leave Channel",
+    "delete": "Delete Channel",
+    "settings": "Channel Settings",
+    "types": {
+      "text": "Text Channel",
+      "voice": "Voice Channel"
+    },
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connecting": "Connecting"
+    },
+    "actions": {
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "deafen": "Deafen",
+      "undeafen": "Undeafen",
+      "threads": "Threads",
+      "notifications": "Notifications",
+      "pinned": "Pinned Messages",
+      "members": "Member List",
+      "add": "Add Channel"
+    },
+    "messages": {
+      "welcome": "Welcome to {channelName}",
+      "joined": "{username} joined the channel",
+      "left": "{username} left the channel",
+      "deleted": "Channel has been deleted",
+      "noPermission": "You don't have permission to access this channel",
+      "joinedVoice": "Joined voice channel",
+      "leftVoice": "Left voice channel",
+      "micPermissionDenied": "Cannot access microphone, please check permissions",
+      "defaultDescription": "This is the beginning of the #{channelName} channel"
+    },
+    "form": {
+      "name": "Channel Name",
+      "type": "Channel Type",
+      "description": "Channel Description",
+      "createSuccess": "Channel created successfully!",
+      "createError": "Please fill in the required information!"
+    },
+    "placeholders": {
+      "channelName": "Channel Name",
+      "description": "Channel Description",
+      "message": "Message #{channelName}"
+    },
+    "default": "General"
+  },
+  "server": {
+    "title": "Test Server",
+    "create": "Create Server",
+    "createNew": "Create New Server",
+    "join": "Join Server",
+    "leave": "Leave Server",
+    "delete": "Delete Server",
+    "settings": "Server Settings",
+    "form": {
+      "name": "Server Name",
+      "nameRequired": "Please enter server name",
+      "namePlaceholder": "Enter server name",
+      "description": "Server Description",
+      "descriptionPlaceholder": "Enter server description",
+      "icon": "Server Icon",
+      "uploadIcon": "Upload Image",
+      "required": "Required",
+      "createSuccess": "Server created successfully!",
+      "createError": "Please fill in the required information!"
+    },
+    "messages": {
+      "selectChannel": "Please select a channel",
+      "welcome": "Welcome to {serverName}",
+      "joined": "{username} joined the server",
+      "left": "{username} left the server",
+      "deleted": "Server has been deleted",
+      "noPermission": "You don't have permission to access this server"
+    },
+    "actions": {
+      "add": "Add New Server"
     }
   }
 } 
