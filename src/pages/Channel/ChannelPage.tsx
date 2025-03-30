@@ -120,60 +120,61 @@ const ChannelPage: React.FC = () => {
   // 控制MainLayout菜单的显示与隐藏
   useLayoutEffect(() => {
     if (isMobile) {
-      // 获取MainLayout的侧边栏元素
+      // 获取MainLayout的侧边栏元素和菜单按钮
       const mainSider = document.querySelector('.app-sider') as HTMLElement;
       const mobileMenuButton = document.querySelector('.mobile-menu-button') as HTMLElement;
       
       if (mainSider && mobileMenuButton) {
-        // 隐藏MainLayout的侧边栏
-        mainSider.style.left = '-100%';
-        
-        // 保留移动菜单按钮并调整位置
+        // 保留移动菜单按钮的位置和层级，但不修改其原有行为
         mobileMenuButton.style.display = 'flex';
         mobileMenuButton.style.top = '10px';
         mobileMenuButton.style.right = '10px';
         mobileMenuButton.style.zIndex = '1002';
         
-        // 创建点击事件处理函数
-        const handleMenuClick = () => {
-          // 切换MainLayout侧边栏的显示状态
-          if (mainSider.style.left === '-100%') {
-            mainSider.style.left = '0';
-            mainSider.classList.add('show');
-            
-            // 当打开MainLayout菜单时，临时隐藏Channel页面内容
-            const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
-            if (channelPageElement) {
-              channelPageElement.style.opacity = '0.3';
-              channelPageElement.style.pointerEvents = 'none';
+        // 使用MutationObserver监听MainLayout侧边栏的class变化
+        // 这样可以保持与MainLayout组件的状态同步
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+              // 检测.show类是否存在来判断菜单是否打开
+              const isMenuOpen = mainSider.classList.contains('show');
+              
+              // 更新Channel页面的显示状态
+              const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
+              if (channelPageElement) {
+                if (isMenuOpen) {
+                  channelPageElement.classList.add('dimmed');
+                  channelPageElement.style.opacity = '0.3';
+                  channelPageElement.style.pointerEvents = 'none';
+                } else {
+                  channelPageElement.classList.remove('dimmed');
+                  channelPageElement.style.opacity = '1';
+                  channelPageElement.style.pointerEvents = 'auto';
+                }
+              }
             }
-          } else {
-            mainSider.style.left = '-100%';
-            mainSider.classList.remove('show');
-            
-            // 恢复Channel页面内容
-            const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
-            if (channelPageElement) {
-              channelPageElement.style.opacity = '1';
-              channelPageElement.style.pointerEvents = 'auto';
-            }
-          }
-        };
+          });
+        });
         
-        // 添加点击事件监听
-        mobileMenuButton.addEventListener('click', handleMenuClick);
+        // 观察侧边栏的class属性变化
+        observer.observe(mainSider, { attributes: true });
         
-        // 返回清理函数，移除事件监听
+        // 清理函数
         return () => {
-          mobileMenuButton.removeEventListener('click', handleMenuClick);
-          mainSider.style.removeProperty('left');
-          mainSider.classList.remove('show');
-          
-          // 恢复Channel页面内容
+          observer.disconnect();
+          // 清理我们添加的样式，不影响MainLayout的状态
           const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
           if (channelPageElement) {
+            channelPageElement.classList.remove('dimmed');
             channelPageElement.style.removeProperty('opacity');
             channelPageElement.style.removeProperty('pointer-events');
+          }
+          
+          // 去除移动按钮的自定义样式
+          if (mobileMenuButton) {
+            mobileMenuButton.style.removeProperty('top');
+            mobileMenuButton.style.removeProperty('right');
+            mobileMenuButton.style.removeProperty('z-index');
           }
         };
       }

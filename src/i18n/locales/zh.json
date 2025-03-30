@@ -19,7 +19,8 @@
     "close": "关闭",
     "settings": "设置",
     "logout": "退出登录",
-    "system": "系统"
+    "system": "系统",
+    "back": "返回"
   },
   "settings": {
     "title": "设置",

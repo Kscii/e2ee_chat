@@ -531,6 +531,25 @@
     width: 100vw;
     height: 100vh;
     z-index: 1000; /* 高于MainLayout但低于菜单按钮 */
+    transition: opacity 0.3s ease;
+  }
+  
+  /* 当MainLayout菜单打开时的Channel页面样式 */
+  .channel-page.dimmed {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  
+  /* 服务器列表容器样式 */
+  .server-list-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* 确保移动端按钮在Channel页面上方可见 */
+  .mobile-menu-button {
+    z-index: 1002 !important;
   }
   
   /* 隐藏MainLayout的内容区域 */
@@ -626,16 +645,5 @@
   /* 当菜单展开时，确保它在Channel页面上方 */
   .app-sider.show {
     z-index: 1003 !important;
-  }
-  
-  /* 确保Channel页面在过渡时平滑 */
-  .channel-page {
-    transition: opacity 0.3s ease;
-  }
-  
-  /* 当MainLayout菜单打开时让Channel页面后退一点 */
-  .channel-page.dimmed {
-    opacity: 0.3;
-    pointer-events: none;
   }
 } 

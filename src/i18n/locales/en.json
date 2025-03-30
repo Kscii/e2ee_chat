@@ -19,7 +19,8 @@
     "close": "Close",
     "settings": "Settings",
     "logout": "Logout",
-    "system": "System"
+    "system": "System",
+    "back": "Back"
   },
   "settings": {
     "title": "Settings",
