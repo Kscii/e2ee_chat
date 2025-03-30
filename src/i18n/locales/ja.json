@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "チャンネル",
+    "directMessages": "ダイレクトメッセージ",
+    "groups": "グループ",
+    "ai": "AIアシスタント",
+    "settings": "設定"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "delete": "削除",
+    "edit": "編集",
+    "send": "送信",
+    "upload": "アップロード",
+    "download": "ダウンロード",
+    "preview": "プレビュー",
+    "close": "閉じる",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "system": "システム",
+    "back": "戻る"
+  },
+  "settings": {
+    "title": "設定",
+    "profile": {
+      "title": "プロフィール",
+      "name": "ユーザー名",
+      "email": "メールアドレス"
+    },
+    "theme": {
+      "title": "テーマ設定",
+      "dark": "ダークモード",
+      "description": "ライト/ダークテーマを切り替える",
+      "markdown": "マークダウンモードを有効化",
+      "markdownDescription": "テキストフィールドでのマークダウン構文サポートを有効にする"
+    },
+    "language": {
+      "title": "言語設定",
+      "description": "インターフェース言語を選択",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "AI設定",
+      "enable": "AIアシスタントを有効化",
+      "description": "AIアシスタント機能をオン/オフする",
+      "apiKey": "APIキー",
+      "apiKeyDescription": "OpenAI APIキーを設定"
+    },
+    "tts": {
+      "title": "テキスト読み上げ",
+      "enable": "TTSを有効化",
+      "auto": "自動読み上げ",
+      "speed": "読み上げ速度",
+      "normal": "標準",
+      "service": "TTSサービス",
+      "browser": "ブラウザ",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "音声",
+      "azureKey": "Azure APIキー",
+      "azureRegion": "Azureリージョン",
+      "googleKey": "Google APIキー",
+      "gptSovitsUrl": "GPT-SoVITS URL",
+      "character": "キャラクター",
+      "emotion": "感情",
+      "textLanguage": "テキスト言語"
+    }
+  },
+  "chat": {
+    "title": "チャット",
+    "inputPlaceholder": "メッセージを入力...",
+    "sendButton": "送信",
+    "uploadButton": "ファイルをアップロード",
+    "emojiButton": "絵文字を挿入",
+    "status": {
+      "sending": "送信中...",
+      "sent": "送信済み",
+      "read": "既読",
+      "failed": "失敗",
+      "online": "オンライン",
+      "offline": "オフライン"
+    },
+    "demoMessages": {
+      "welcome": "こんにちは！AIアシスタントです。どのようにお手伝いできますか？",
+      "question": "こんにちは、調子はどうですか？",
+      "answer": "元気です、ありがとうございます！",
+      "followup": "それは良かったです！何か新しいことはありますか？",
+      "sendingExample": "これは送信中のメッセージです...",
+      "sentExample": "これは送信済みのメッセージです"
+    },
+    "fileMessages": {
+      "image": "画像を送信しました",
+      "file": "ファイルを送信しました：{filename}",
+      "pdf": "PDFファイルを送信しました：{filename}",
+      "word": "Word文書を送信しました：{filename}",
+      "excel": "Excelスプレッドシートを送信しました：{filename}",
+      "ppt": "PowerPointプレゼンテーションを送信しました：{filename}",
+      "txt": "テキストファイルを送信しました：{filename}"
+    },
+    "preview": {
+      "title": "ファイルプレビュー",
+      "loading": "読み込み中...",
+      "error": "プレビューに失敗しました",
+      "unsupported": "このファイル形式はプレビューに対応していません"
+    },
+    "currentUser": "現在のユーザー",
+    "actions": {
+      "search": "検索",
+      "inbox": "受信トレイ",
+      "help": "ヘルプ"
+    },
+    "search": {
+      "placeholder": "メッセージを検索...",
+      "noResults": "\"{keyword}\"を含むメッセージは見つかりませんでした"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "ネットワークエラー",
+      "message": "サーバーに接続できません。ネットワーク接続を確認してください"
+    },
+    "api": {
+      "title": "APIエラー",
+      "invalidKey": "無効なAPIキーです。設定を確認してください",
+      "configMissing": "最初に設定でOpenAI APIキーを設定してください",
+      "requestFailed": "リクエストに失敗しました。後でもう一度お試しください"
+    },
+    "chat": {
+      "sendFailed": "メッセージの送信に失敗しました",
+      "receiveFailed": "メッセージの受信に失敗しました",
+      "loadFailed": "チャット履歴の読み込みに失敗しました"
+    },
+    "file": {
+      "uploadFailed": "ファイルのアップロードに失敗しました",
+      "downloadFailed": "ファイルのダウンロードに失敗しました",
+      "sizeLimitExceeded": "ファイルサイズは{size}MBを超えることができません",
+      "imageOnly": "画像ファイルのみが許可されています",
+      "unsupportedFormat": "サポートされていないファイル形式です"
+    },
+    "tts": {
+      "failed": "テキストの音声変換に失敗しました",
+      "unsupported": "お使いのブラウザではテキスト読み上げがサポートされていません"
+    },
+    "common": {
+      "unauthorized": "先にログインしてください",
+      "forbidden": "このアクションを実行する権限がありません",
+      "notFound": "リソースが見つかりません",
+      "serverError": "サーバーエラーが発生しました。後でもう一度お試しください"
+    }
+  },
+  "channel": {
+    "title": "チャンネル",
+    "create": "チャンネルを作成",
+    "join": "チャンネルに参加",
+    "leave": "チャンネルを退出",
+    "delete": "チャンネルを削除",
+    "settings": "チャンネル設定",
+    "types": {
+      "text": "テキストチャンネル",
+      "voice": "ボイスチャンネル"
+    },
+    "status": {
+      "connected": "接続済み",
+      "disconnected": "切断済み",
+      "connecting": "接続中"
+    },
+    "actions": {
+      "mute": "ミュート",
+      "unmute": "ミュート解除",
+      "deafen": "スピーカーミュート",
+      "undeafen": "スピーカーミュート解除",
+      "threads": "スレッド",
+      "notifications": "通知",
+      "pinned": "ピン留めメッセージ",
+      "members": "メンバーリスト",
+      "add": "チャンネルを追加"
+    },
+    "messages": {
+      "welcome": "{channelName}へようこそ",
+      "joined": "{username}がチャンネルに参加しました",
+      "left": "{username}がチャンネルを退出しました",
+      "deleted": "チャンネルが削除されました",
+      "noPermission": "このチャンネルにアクセスする権限がありません",
+      "joinedVoice": "ボイスチャンネルに参加しました",
+      "leftVoice": "ボイスチャンネルを退出しました",
+      "micPermissionDenied": "マイクにアクセスできません。権限を確認してください",
+      "defaultDescription": "これは#{channelName}チャンネルの始まりです"
+    },
+    "form": {
+      "name": "チャンネル名",
+      "type": "チャンネルタイプ",
+      "description": "チャンネルの説明",
+      "createSuccess": "チャンネルが正常に作成されました！",
+      "createError": "必要な情報を入力してください！"
+    },
+    "placeholders": {
+      "channelName": "チャンネル名",
+      "description": "チャンネルの説明",
+      "message": "#{channelName}にメッセージを送信"
+    },
+    "default": "一般"
+  },
+  "server": {
+    "title": "テストサーバー",
+    "create": "サーバーを作成",
+    "createNew": "新しいサーバーを作成",
+    "join": "サーバーに参加",
+    "leave": "サーバーを退出",
+    "delete": "サーバーを削除",
+    "settings": "サーバー設定",
+    "form": {
+      "name": "サーバー名",
+      "nameRequired": "サーバー名を入力してください",
+      "namePlaceholder": "サーバー名を入力",
+      "description": "サーバーの説明",
+      "descriptionPlaceholder": "サーバーの説明を入力",
+      "icon": "サーバーアイコン",
+      "uploadIcon": "画像をアップロード",
+      "required": "必須",
+      "createSuccess": "サーバーが正常に作成されました！",
+      "createError": "必要な情報を入力してください！"
+    },
+    "messages": {
+      "selectChannel": "チャンネルを選択してください",
+      "welcome": "{serverName}へようこそ",
+      "joined": "{username}がサーバーに参加しました",
+      "left": "{username}がサーバーを退出しました",
+      "deleted": "サーバーが削除されました",
+      "noPermission": "このサーバーにアクセスする権限がありません"
+    },
+    "actions": {
+      "add": "新しいサーバーを追加"
+    },
+    "main": "メインサーバー",
+    "test": "テストサーバー"
+  },
+  "login": {
+    "title": "ログイン",
+    "subtitle": "おかえりなさい",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "remember": "ログイン情報を記憶する",
+    "forgotPassword": "パスワードをお忘れですか？",
+    "submit": "ログイン",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "register": "今すぐ登録",
+    "submitLog": "ログインフォームが送信されました："
+  },
+  "register": {
+    "title": "アカウント作成",
+    "subtitle": "チャットコミュニティに参加する",
+    "username": "ユーザー名",
+    "email": "メールアドレス",
+    "phone": "電話番号",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "submit": "登録",
+    "haveAccount": "すでにアカウントをお持ちですか？",
+    "login": "今すぐログイン",
+    "submitLog": "登録フォームが送信されました：",
+    "validation": {
+      "usernameRequired": "ユーザー名を入力してください！",
+      "emailRequired": "メールアドレスを入力してください！",
+      "emailValid": "有効なメールアドレスを入力してください！",
+      "phoneRequired": "電話番号を入力してください！",
+      "phoneValid": "有効な電話番号を入力してください！",
+      "passwordRequired": "パスワードを入力してください！",
+      "passwordLength": "パスワードは6文字以上である必要があります！",
+      "confirmRequired": "パスワードを確認してください！",
+      "passwordsMismatch": "パスワードが一致しません！"
+    }
+  }
+} 

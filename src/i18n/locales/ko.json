@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "채널",
+    "directMessages": "다이렉트 메시지",
+    "groups": "그룹",
+    "ai": "AI 어시스턴트",
+    "settings": "설정"
+  },
+  "common": {
+    "save": "저장",
+    "cancel": "취소",
+    "confirm": "확인",
+    "delete": "삭제",
+    "edit": "편집",
+    "send": "보내기",
+    "upload": "업로드",
+    "download": "다운로드",
+    "preview": "미리보기",
+    "close": "닫기",
+    "settings": "설정",
+    "logout": "로그아웃",
+    "system": "시스템",
+    "back": "뒤로"
+  },
+  "settings": {
+    "title": "설정",
+    "profile": {
+      "title": "프로필",
+      "name": "사용자명",
+      "email": "이메일"
+    },
+    "theme": {
+      "title": "테마 설정",
+      "dark": "다크 모드",
+      "description": "라이트/다크 테마 전환",
+      "markdown": "마크다운 모드 활성화",
+      "markdownDescription": "텍스트 필드에서 마크다운 구문 지원 활성화"
+    },
+    "language": {
+      "title": "언어 설정",
+      "description": "인터페이스 언어 선택",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "AI 설정",
+      "enable": "AI 어시스턴트 활성화",
+      "description": "AI 어시스턴트 기능 켜기/끄기",
+      "apiKey": "API 키",
+      "apiKeyDescription": "OpenAI API 키 설정"
+    },
+    "tts": {
+      "title": "텍스트 음성 변환",
+      "enable": "TTS 활성화",
+      "auto": "자동 읽기",
+      "speed": "말하기 속도",
+      "normal": "보통",
+      "service": "TTS 서비스",
+      "browser": "브라우저",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "음성",
+      "azureKey": "Azure API 키",
+      "azureRegion": "Azure 지역",
+      "googleKey": "Google API 키",
+      "gptSovitsUrl": "GPT-SoVITS URL",
+      "character": "캐릭터",
+      "emotion": "감정",
+      "textLanguage": "텍스트 언어"
+    }
+  },
+  "chat": {
+    "title": "채팅",
+    "inputPlaceholder": "메시지 입력...",
+    "sendButton": "보내기",
+    "uploadButton": "파일 업로드",
+    "emojiButton": "이모티콘 삽입",
+    "status": {
+      "sending": "전송 중...",
+      "sent": "전송됨",
+      "read": "읽음",
+      "failed": "실패",
+      "online": "온라인",
+      "offline": "오프라인"
+    },
+    "demoMessages": {
+      "welcome": "안녕하세요! AI 어시스턴트입니다. 어떻게 도와드릴까요?",
+      "question": "안녕하세요, 어떻게 지내세요?",
+      "answer": "잘 지내고 있어요, 물어봐 주셔서 감사합니다!",
+      "followup": "다행이네요! 새로운 소식 있나요?",
+      "sendingExample": "이것은 전송 중인 메시지입니다...",
+      "sentExample": "이것은 전송된 메시지입니다"
+    },
+    "fileMessages": {
+      "image": "이미지를 보냈습니다",
+      "file": "파일을 보냈습니다: {filename}",
+      "pdf": "PDF 파일을 보냈습니다: {filename}",
+      "word": "Word 문서를 보냈습니다: {filename}",
+      "excel": "Excel 스프레드시트를 보냈습니다: {filename}",
+      "ppt": "PowerPoint 프레젠테이션을 보냈습니다: {filename}",
+      "txt": "텍스트 파일을 보냈습니다: {filename}"
+    },
+    "preview": {
+      "title": "파일 미리보기",
+      "loading": "로딩 중...",
+      "error": "미리보기 실패",
+      "unsupported": "이 파일 유형은 미리보기가 지원되지 않습니다"
+    },
+    "currentUser": "현재 사용자",
+    "actions": {
+      "search": "검색",
+      "inbox": "받은 편지함",
+      "help": "도움말"
+    },
+    "search": {
+      "placeholder": "메시지 검색...",
+      "noResults": "\"{keyword}\"을(를) 포함한 메시지를 찾을 수 없습니다"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "네트워크 오류",
+      "message": "서버에 연결할 수 없습니다. 네트워크 연결을 확인하세요"
+    },
+    "api": {
+      "title": "API 오류",
+      "invalidKey": "잘못된 API 키입니다. 설정을 확인하세요",
+      "configMissing": "먼저 설정에서 OpenAI API 키를 구성하세요",
+      "requestFailed": "요청이 실패했습니다. 나중에 다시 시도하세요"
+    },
+    "chat": {
+      "sendFailed": "메시지 전송에 실패했습니다",
+      "receiveFailed": "메시지 수신에 실패했습니다",
+      "loadFailed": "채팅 기록 로드에 실패했습니다"
+    },
+    "file": {
+      "uploadFailed": "파일 업로드에 실패했습니다",
+      "downloadFailed": "파일 다운로드에 실패했습니다",
+      "sizeLimitExceeded": "파일 크기는 {size}MB를 초과할 수 없습니다",
+      "imageOnly": "이미지 파일만 허용됩니다",
+      "unsupportedFormat": "지원되지 않는 파일 형식"
+    },
+    "tts": {
+      "failed": "텍스트를 음성으로 변환하는데 실패했습니다",
+      "unsupported": "텍스트 음성 변환은 브라우저에서 지원되지 않습니다"
+    },
+    "common": {
+      "unauthorized": "먼저 로그인하세요",
+      "forbidden": "이 작업을 수행할 권한이 없습니다",
+      "notFound": "리소스를 찾을 수 없습니다",
+      "serverError": "서버 오류, 나중에 다시 시도하세요"
+    }
+  },
+  "channel": {
+    "title": "채널",
+    "create": "채널 생성",
+    "join": "채널 참여",
+    "leave": "채널 나가기",
+    "delete": "채널 삭제",
+    "settings": "채널 설정",
+    "types": {
+      "text": "텍스트 채널",
+      "voice": "음성 채널"
+    },
+    "status": {
+      "connected": "연결됨",
+      "disconnected": "연결 끊김",
+      "connecting": "연결 중"
+    },
+    "actions": {
+      "mute": "음소거",
+      "unmute": "음소거 해제",
+      "deafen": "헤드폰 음소거",
+      "undeafen": "헤드폰 음소거 해제",
+      "threads": "스레드",
+      "notifications": "알림",
+      "pinned": "고정된 메시지",
+      "members": "멤버 목록",
+      "add": "채널 추가"
+    },
+    "messages": {
+      "welcome": "{channelName}에 오신 것을 환영합니다",
+      "joined": "{username}님이 채널에 참여했습니다",
+      "left": "{username}님이 채널을 나갔습니다",
+      "deleted": "채널이 삭제되었습니다",
+      "noPermission": "이 채널에 접근할 권한이 없습니다",
+      "joinedVoice": "음성 채널에 참여했습니다",
+      "leftVoice": "음성 채널을 나갔습니다",
+      "micPermissionDenied": "마이크에 접근할 수 없습니다. 권한을 확인하세요",
+      "defaultDescription": "이것은 #{channelName} 채널의 시작입니다"
+    },
+    "form": {
+      "name": "채널 이름",
+      "type": "채널 유형",
+      "description": "채널 설명",
+      "createSuccess": "채널이 성공적으로 생성되었습니다!",
+      "createError": "필수 정보를 입력하세요!"
+    },
+    "placeholders": {
+      "channelName": "채널 이름",
+      "description": "채널 설명",
+      "message": "#{channelName}에 메시지 보내기"
+    },
+    "default": "일반"
+  },
+  "server": {
+    "title": "테스트 서버",
+    "create": "서버 생성",
+    "createNew": "새 서버 생성",
+    "join": "서버 참여",
+    "leave": "서버 나가기",
+    "delete": "서버 삭제",
+    "settings": "서버 설정",
+    "form": {
+      "name": "서버 이름",
+      "nameRequired": "서버 이름을 입력하세요",
+      "namePlaceholder": "서버 이름 입력",
+      "description": "서버 설명",
+      "descriptionPlaceholder": "서버 설명 입력",
+      "icon": "서버 아이콘",
+      "uploadIcon": "이미지 업로드",
+      "required": "필수",
+      "createSuccess": "서버가 성공적으로 생성되었습니다!",
+      "createError": "필수 정보를 입력하세요!"
+    },
+    "messages": {
+      "selectChannel": "채널을 선택하세요",
+      "welcome": "{serverName}에 오신 것을 환영합니다",
+      "joined": "{username}님이 서버에 참여했습니다",
+      "left": "{username}님이 서버를 나갔습니다",
+      "deleted": "서버가 삭제되었습니다",
+      "noPermission": "이 서버에 접근할 권한이 없습니다"
+    },
+    "actions": {
+      "add": "새 서버 추가"
+    },
+    "main": "메인 서버",
+    "test": "테스트 서버"
+  },
+  "login": {
+    "title": "로그인",
+    "subtitle": "돌아오신 것을 환영합니다",
+    "username": "사용자명",
+    "password": "비밀번호",
+    "remember": "로그인 상태 유지",
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "submit": "로그인",
+    "noAccount": "계정이 없으신가요?",
+    "register": "지금 등록하기",
+    "submitLog": "로그인 양식 제출됨:"
+  },
+  "register": {
+    "title": "계정 생성",
+    "subtitle": "채팅 커뮤니티에 가입하세요",
+    "username": "사용자명",
+    "email": "이메일",
+    "phone": "전화번호",
+    "password": "비밀번호",
+    "confirmPassword": "비밀번호 확인",
+    "submit": "등록",
+    "haveAccount": "이미 계정이 있으신가요?",
+    "login": "지금 로그인하기",
+    "submitLog": "등록 양식 제출됨:",
+    "validation": {
+      "usernameRequired": "사용자명을 입력하세요!",
+      "emailRequired": "이메일을 입력하세요!",
+      "emailValid": "유효한 이메일 주소를 입력하세요!",
+      "phoneRequired": "전화번호를 입력하세요!",
+      "phoneValid": "유효한 전화번호를 입력하세요!",
+      "passwordRequired": "비밀번호를 입력하세요!",
+      "passwordLength": "비밀번호는 최소 6자 이상이어야 합니다!",
+      "confirmRequired": "비밀번호를 확인하세요!",
+      "passwordsMismatch": "비밀번호가 일치하지 않습니다!"
+    }
+  }
+} 

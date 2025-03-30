@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Saluran",
+    "directMessages": "Pesan Langsung",
+    "groups": "Grup",
+    "ai": "Asisten AI",
+    "settings": "Pengaturan"
+  },
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "confirm": "Konfirmasi",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "send": "Kirim",
+    "upload": "Unggah",
+    "download": "Unduh",
+    "preview": "Pratinjau",
+    "close": "Tutup",
+    "settings": "Pengaturan",
+    "logout": "Keluar",
+    "system": "Sistem",
+    "back": "Kembali"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "profile": {
+      "title": "Profil",
+      "name": "Nama Pengguna",
+      "email": "Email"
+    },
+    "theme": {
+      "title": "Pengaturan Tema",
+      "dark": "Mode Gelap",
+      "description": "Beralih tema gelap/terang",
+      "markdown": "Aktifkan Mode Markdown",
+      "markdownDescription": "Aktifkan dukungan sintaks Markdown di bidang teks"
+    },
+    "language": {
+      "title": "Pengaturan Bahasa",
+      "description": "Pilih bahasa antarmuka",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "Pengaturan AI",
+      "enable": "Aktifkan Asisten AI",
+      "description": "Aktifkan/nonaktifkan fitur asisten AI",
+      "apiKey": "Kunci API",
+      "apiKeyDescription": "Atur Kunci API OpenAI"
+    },
+    "tts": {
+      "title": "Teks ke Ucapan",
+      "enable": "Aktifkan TTS",
+      "auto": "Baca Otomatis",
+      "speed": "Kecepatan Bicara",
+      "normal": "Normal",
+      "service": "Layanan TTS",
+      "browser": "Browser",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Suara",
+      "azureKey": "Kunci API Azure",
+      "azureRegion": "Wilayah Azure",
+      "googleKey": "Kunci API Google",
+      "gptSovitsUrl": "URL GPT-SoVITS",
+      "character": "Karakter",
+      "emotion": "Emosi",
+      "textLanguage": "Bahasa Teks"
+    }
+  },
+  "chat": {
+    "title": "Obrolan",
+    "inputPlaceholder": "Ketik pesan...",
+    "sendButton": "Kirim",
+    "uploadButton": "Unggah File",
+    "emojiButton": "Masukkan Emoji",
+    "status": {
+      "sending": "Mengirim...",
+      "sent": "Terkirim",
+      "read": "Dibaca",
+      "failed": "Gagal",
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "demoMessages": {
+      "welcome": "Halo! Saya asisten AI Anda. Bagaimana saya bisa membantu Anda?",
+      "question": "Hai, bagaimana kabarmu?",
+      "answer": "Saya baik-baik saja, terima kasih sudah bertanya!",
+      "followup": "Senang mendengarnya! Ada yang baru?",
+      "sendingExample": "Ini adalah pesan yang sedang dikirim...",
+      "sentExample": "Ini adalah pesan yang terkirim"
+    },
+    "fileMessages": {
+      "image": "mengirim gambar",
+      "file": "mengirim file: {filename}",
+      "pdf": "mengirim file PDF: {filename}",
+      "word": "mengirim dokumen Word: {filename}",
+      "excel": "mengirim spreadsheet Excel: {filename}",
+      "ppt": "mengirim presentasi PowerPoint: {filename}",
+      "txt": "mengirim file teks: {filename}"
+    },
+    "preview": {
+      "title": "Pratinjau File",
+      "loading": "Memuat...",
+      "error": "Pratinjau gagal",
+      "unsupported": "Pratinjau tidak didukung untuk jenis file ini"
+    },
+    "currentUser": "Pengguna Saat Ini",
+    "actions": {
+      "search": "Cari",
+      "inbox": "Kotak Masuk",
+      "help": "Bantuan"
+    },
+    "search": {
+      "placeholder": "Cari pesan...",
+      "noResults": "Tidak ditemukan pesan yang berisi \"{keyword}\""
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Kesalahan Jaringan",
+      "message": "Gagal terhubung ke server, silakan periksa koneksi jaringan Anda"
+    },
+    "api": {
+      "title": "Kesalahan API",
+      "invalidKey": "Kunci API tidak valid, silakan periksa pengaturan Anda",
+      "configMissing": "Silakan konfigurasikan kunci API OpenAI Anda di pengaturan terlebih dahulu",
+      "requestFailed": "Permintaan gagal, silakan coba lagi nanti"
+    },
+    "chat": {
+      "sendFailed": "Gagal mengirim pesan",
+      "receiveFailed": "Gagal menerima pesan",
+      "loadFailed": "Gagal memuat riwayat obrolan"
+    },
+    "file": {
+      "uploadFailed": "Gagal mengunggah file",
+      "downloadFailed": "Gagal mengunduh file",
+      "sizeLimitExceeded": "Ukuran file tidak boleh melebihi {size}MB",
+      "imageOnly": "Hanya file gambar yang diizinkan",
+      "unsupportedFormat": "Format file tidak didukung"
+    },
+    "tts": {
+      "failed": "Gagal mengonversi teks ke ucapan",
+      "unsupported": "Teks ke ucapan tidak didukung di browser Anda"
+    },
+    "common": {
+      "unauthorized": "Silakan masuk terlebih dahulu",
+      "forbidden": "Anda tidak memiliki izin untuk melakukan tindakan ini",
+      "notFound": "Sumber daya tidak ditemukan",
+      "serverError": "Kesalahan server, silakan coba lagi nanti"
+    }
+  },
+  "channel": {
+    "title": "Saluran",
+    "create": "Buat Saluran",
+    "join": "Gabung Saluran",
+    "leave": "Tinggalkan Saluran",
+    "delete": "Hapus Saluran",
+    "settings": "Pengaturan Saluran",
+    "types": {
+      "text": "Saluran Teks",
+      "voice": "Saluran Suara"
+    },
+    "status": {
+      "connected": "Terhubung",
+      "disconnected": "Terputus",
+      "connecting": "Menghubungkan"
+    },
+    "actions": {
+      "mute": "Bisu",
+      "unmute": "Suarakan",
+      "deafen": "Tulikan",
+      "undeafen": "Batalkan Tulikan",
+      "threads": "Utas",
+      "notifications": "Notifikasi",
+      "pinned": "Pesan Tersemat",
+      "members": "Daftar Anggota",
+      "add": "Tambah Saluran"
+    },
+    "messages": {
+      "welcome": "Selamat datang di {channelName}",
+      "joined": "{username} bergabung dengan saluran",
+      "left": "{username} meninggalkan saluran",
+      "deleted": "Saluran telah dihapus",
+      "noPermission": "Anda tidak memiliki izin untuk mengakses saluran ini",
+      "joinedVoice": "Bergabung dengan saluran suara",
+      "leftVoice": "Meninggalkan saluran suara",
+      "micPermissionDenied": "Tidak dapat mengakses mikrofon, silakan periksa izin",
+      "defaultDescription": "Ini adalah awal dari saluran #{channelName}"
+    },
+    "form": {
+      "name": "Nama Saluran",
+      "type": "Jenis Saluran",
+      "description": "Deskripsi Saluran",
+      "createSuccess": "Saluran berhasil dibuat!",
+      "createError": "Silakan isi informasi yang diperlukan!"
+    },
+    "placeholders": {
+      "channelName": "Nama Saluran",
+      "description": "Deskripsi Saluran",
+      "message": "Pesan #{channelName}"
+    },
+    "default": "Umum"
+  },
+  "server": {
+    "title": "Server Uji",
+    "create": "Buat Server",
+    "createNew": "Buat Server Baru",
+    "join": "Gabung Server",
+    "leave": "Tinggalkan Server",
+    "delete": "Hapus Server",
+    "settings": "Pengaturan Server",
+    "form": {
+      "name": "Nama Server",
+      "nameRequired": "Harap masukkan nama server",
+      "namePlaceholder": "Masukkan nama server",
+      "description": "Deskripsi Server",
+      "descriptionPlaceholder": "Masukkan deskripsi server",
+      "icon": "Ikon Server",
+      "uploadIcon": "Unggah Gambar",
+      "required": "Wajib",
+      "createSuccess": "Server berhasil dibuat!",
+      "createError": "Silakan isi informasi yang diperlukan!"
+    },
+    "messages": {
+      "selectChannel": "Silakan pilih saluran",
+      "welcome": "Selamat datang di {serverName}",
+      "joined": "{username} bergabung dengan server",
+      "left": "{username} meninggalkan server",
+      "deleted": "Server telah dihapus",
+      "noPermission": "Anda tidak memiliki izin untuk mengakses server ini"
+    },
+    "actions": {
+      "add": "Tambah Server Baru"
+    },
+    "main": "Server Utama",
+    "test": "Server Uji"
+  },
+  "login": {
+    "title": "Masuk",
+    "subtitle": "Selamat datang kembali",
+    "username": "Nama Pengguna",
+    "password": "Kata Sandi",
+    "remember": "Ingat saya",
+    "forgotPassword": "Lupa kata sandi?",
+    "submit": "Masuk",
+    "noAccount": "Belum punya akun?",
+    "register": "Daftar sekarang",
+    "submitLog": "Formulir masuk dikirim:"
+  },
+  "register": {
+    "title": "Buat Akun",
+    "subtitle": "Bergabunglah dengan komunitas obrolan kami",
+    "username": "Nama Pengguna",
+    "email": "Email",
+    "phone": "Nomor Telepon",
+    "password": "Kata Sandi",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "submit": "Daftar",
+    "haveAccount": "Sudah punya akun?",
+    "login": "Masuk sekarang",
+    "submitLog": "Formulir pendaftaran dikirim:",
+    "validation": {
+      "usernameRequired": "Harap masukkan nama pengguna Anda!",
+      "emailRequired": "Harap masukkan email Anda!",
+      "emailValid": "Harap masukkan alamat email yang valid!",
+      "phoneRequired": "Harap masukkan nomor telepon Anda!",
+      "phoneValid": "Harap masukkan nomor telepon yang valid!",
+      "passwordRequired": "Harap masukkan kata sandi Anda!",
+      "passwordLength": "Kata sandi harus minimal 6 karakter!",
+      "confirmRequired": "Harap konfirmasi kata sandi Anda!",
+      "passwordsMismatch": "Kedua kata sandi tidak cocok!"
+    }
+  }
+} 

@@ -133,7 +133,7 @@ const SettingsPage: React.FC = () => {
             <div className="setting-control">
               <Select
                 value={language}
-                style={{ width: 120 }}
+                style={{ width: 180 }}
                 onChange={changeLanguage}
                 dropdownMatchSelectWidth={false}
               >
@@ -147,6 +147,90 @@ const SettingsPage: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <GlobalOutlined style={{ marginRight: 8 }} />
                     {t('settings.language.en')}
+                  </div>
+                </Option>
+                <Option value="es">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.es')}
+                  </div>
+                </Option>
+                <Option value="fr">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.fr')}
+                  </div>
+                </Option>
+                <Option value="de">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.de')}
+                  </div>
+                </Option>
+                <Option value="ja">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.ja')}
+                  </div>
+                </Option>
+                <Option value="ko">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.ko')}
+                  </div>
+                </Option>
+                <Option value="ru">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.ru')}
+                  </div>
+                </Option>
+                <Option value="pt">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.pt')}
+                  </div>
+                </Option>
+                <Option value="it">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.it')}
+                  </div>
+                </Option>
+                <Option value="hi">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.hi')}
+                  </div>
+                </Option>
+                <Option value="ar">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.ar')}
+                  </div>
+                </Option>
+                <Option value="tr">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.tr')}
+                  </div>
+                </Option>
+                <Option value="th">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.th')}
+                  </div>
+                </Option>
+                <Option value="id">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.id')}
+                  </div>
+                </Option>
+                <Option value="vi">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <GlobalOutlined style={{ marginRight: 8 }} />
+                    {t('settings.language.vi')}
                   </div>
                 </Option>
               </Select>

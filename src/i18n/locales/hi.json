@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "चैनल",
+    "directMessages": "सीधे संदेश",
+    "groups": "समूह",
+    "ai": "AI सहायक",
+    "settings": "सेटिंग्स"
+  },
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "send": "भेजें",
+    "upload": "अपलोड करें",
+    "download": "डाउनलोड करें",
+    "preview": "पूर्वावलोकन",
+    "close": "बंद करें",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट",
+    "system": "सिस्टम",
+    "back": "वापस"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "profile": {
+      "title": "प्रोफ़ाइल",
+      "name": "उपयोगकर्ता नाम",
+      "email": "ईमेल"
+    },
+    "theme": {
+      "title": "थीम सेटिंग्स",
+      "dark": "डार्क मोड",
+      "description": "लाइट/डार्क थीम टॉगल करें",
+      "markdown": "मार्कडाउन मोड सक्षम करें",
+      "markdownDescription": "टेक्स्ट फ़ील्ड में मार्कडाउन सिंटैक्स का समर्थन सक्षम करें"
+    },
+    "language": {
+      "title": "भाषा सेटिंग्स",
+      "description": "इंटरफ़ेस भाषा चुनें",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "AI सेटिंग्स",
+      "enable": "AI सहायक सक्षम करें",
+      "description": "AI सहायक सुविधाओं को टॉगल करें",
+      "apiKey": "API कुंजी",
+      "apiKeyDescription": "OpenAI API कुंजी सेट करें"
+    },
+    "tts": {
+      "title": "टेक्स्ट से वाणी",
+      "enable": "TTS सक्षम करें",
+      "auto": "स्वचालित पढ़ना",
+      "speed": "वाणी की गति",
+      "normal": "सामान्य",
+      "service": "TTS सेवा",
+      "browser": "ब्राउज़र",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "आवाज़",
+      "azureKey": "Azure API कुंजी",
+      "azureRegion": "Azure क्षेत्र",
+      "googleKey": "Google API कुंजी",
+      "gptSovitsUrl": "GPT-SoVITS URL",
+      "character": "चरित्र",
+      "emotion": "भावना",
+      "textLanguage": "टेक्स्ट भाषा"
+    }
+  },
+  "chat": {
+    "title": "चैट",
+    "inputPlaceholder": "संदेश लिखें...",
+    "sendButton": "भेजें",
+    "uploadButton": "फ़ाइल अपलोड करें",
+    "emojiButton": "इमोजी डालें",
+    "status": {
+      "sending": "भेज रहा है...",
+      "sent": "भेज दिया गया",
+      "read": "पढ़ लिया गया",
+      "failed": "विफल",
+      "online": "ऑनलाइन",
+      "offline": "ऑफलाइन"
+    },
+    "demoMessages": {
+      "welcome": "नमस्ते! मैं आपका AI सहायक हूँ। मैं आपकी कैसे मदद कर सकता हूँ?",
+      "question": "नमस्ते, आप कैसे हैं?",
+      "answer": "मैं बहुत अच्छा हूँ, पूछने के लिए धन्यवाद!",
+      "followup": "यह सुनकर अच्छा लगा! कोई नई बात?",
+      "sendingExample": "यह एक संदेश है जो भेजा जा रहा है...",
+      "sentExample": "यह एक भेजा गया संदेश है"
+    },
+    "fileMessages": {
+      "image": "ने एक छवि भेजी",
+      "file": "ने एक फ़ाइल भेजी: {filename}",
+      "pdf": "ने एक PDF फ़ाइल भेजी: {filename}",
+      "word": "ने एक Word दस्तावेज़ भेजा: {filename}",
+      "excel": "ने एक Excel स्प्रेडशीट भेजी: {filename}",
+      "ppt": "ने एक PowerPoint प्रस्तुति भेजी: {filename}",
+      "txt": "ने एक टेक्स्ट फ़ाइल भेजी: {filename}"
+    },
+    "preview": {
+      "title": "फ़ाइल पूर्वावलोकन",
+      "loading": "लोड हो रहा है...",
+      "error": "पूर्वावलोकन विफल",
+      "unsupported": "इस फ़ाइल प्रकार के लिए पूर्वावलोकन समर्थित नहीं है"
+    },
+    "currentUser": "वर्तमान उपयोगकर्ता",
+    "actions": {
+      "search": "खोजें",
+      "inbox": "इनबॉक्स",
+      "help": "सहायता"
+    },
+    "search": {
+      "placeholder": "संदेश खोजें...",
+      "noResults": "\"{keyword}\" वाले कोई संदेश नहीं मिले"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "नेटवर्क त्रुटि",
+      "message": "सर्वर से कनेक्ट करने में विफल, कृपया अपने नेटवर्क कनेक्शन की जांच करें"
+    },
+    "api": {
+      "title": "API त्रुटि",
+      "invalidKey": "अमान्य API कुंजी, कृपया अपनी सेटिंग्स जाँचें",
+      "configMissing": "कृपया पहले सेटिंग्स में अपनी OpenAI API कुंजी कॉन्फ़िगर करें",
+      "requestFailed": "अनुरोध विफल हुआ, कृपया बाद में पुन: प्रयास करें"
+    },
+    "chat": {
+      "sendFailed": "संदेश भेजने में विफल",
+      "receiveFailed": "संदेश प्राप्त करने में विफल",
+      "loadFailed": "चैट इतिहास लोड करने में विफल"
+    },
+    "file": {
+      "uploadFailed": "फ़ाइल अपलोड करने में विफल",
+      "downloadFailed": "फ़ाइल डाउनलोड करने में विफल",
+      "sizeLimitExceeded": "फ़ाइल का आकार {size}MB से अधिक नहीं हो सकता",
+      "imageOnly": "केवल छवि फ़ाइलें अनुमत हैं",
+      "unsupportedFormat": "असमर्थित फ़ाइल प्रारूप"
+    },
+    "tts": {
+      "failed": "टेक्स्ट को वाणी में परिवर्तित करने में विफल",
+      "unsupported": "आपके ब्राउज़र में टेक्स्ट से वाणी समर्थित नहीं है"
+    },
+    "common": {
+      "unauthorized": "कृपया पहले लॉगिन करें",
+      "forbidden": "आपके पास यह कार्रवाई करने की अनुमति नहीं है",
+      "notFound": "संसाधन नहीं मिला",
+      "serverError": "सर्वर त्रुटि, कृपया बाद में पुन: प्रयास करें"
+    }
+  },
+  "channel": {
+    "title": "चैनल",
+    "create": "चैनल बनाएं",
+    "join": "चैनल में शामिल हों",
+    "leave": "चैनल छोड़ें",
+    "delete": "चैनल हटाएं",
+    "settings": "चैनल सेटिंग्स",
+    "types": {
+      "text": "टेक्स्ट चैनल",
+      "voice": "वॉयस चैनल"
+    },
+    "status": {
+      "connected": "कनेक्टेड",
+      "disconnected": "डिस्कनेक्टेड",
+      "connecting": "कनेक्ट हो रहा है"
+    },
+    "actions": {
+      "mute": "म्यूट करें",
+      "unmute": "अनम्यूट करें",
+      "deafen": "बधिर करें",
+      "undeafen": "अनबधिर करें",
+      "threads": "थ्रेड्स",
+      "notifications": "सूचनाएँ",
+      "pinned": "पिन किए गए संदेश",
+      "members": "सदस्य सूची",
+      "add": "चैनल जोड़ें"
+    },
+    "messages": {
+      "welcome": "{channelName} में आपका स्वागत है",
+      "joined": "{username} चैनल में शामिल हुए",
+      "left": "{username} ने चैनल छोड़ दिया",
+      "deleted": "चैनल हटा दिया गया है",
+      "noPermission": "आपके पास इस चैनल तक पहुंचने की अनुमति नहीं है",
+      "joinedVoice": "वॉयस चैनल में शामिल हुए",
+      "leftVoice": "वॉयस चैनल छोड़ दिया",
+      "micPermissionDenied": "माइक्रोफ़ोन तक पहुंच नहीं हो सकती, अनुमतियां जांचें",
+      "defaultDescription": "यह #{channelName} चैनल की शुरुआत है"
+    },
+    "form": {
+      "name": "चैनल नाम",
+      "type": "चैनल प्रकार",
+      "description": "चैनल विवरण",
+      "createSuccess": "चैनल सफलतापूर्वक बनाया गया!",
+      "createError": "कृपया आवश्यक जानकारी भरें!"
+    },
+    "placeholders": {
+      "channelName": "चैनल नाम",
+      "description": "चैनल विवरण",
+      "message": "#{channelName} में संदेश"
+    },
+    "default": "सामान्य"
+  },
+  "server": {
+    "title": "टेस्ट सर्वर",
+    "create": "सर्वर बनाएं",
+    "createNew": "नया सर्वर बनाएं",
+    "join": "सर्वर में शामिल हों",
+    "leave": "सर्वर छोड़ें",
+    "delete": "सर्वर हटाएं",
+    "settings": "सर्वर सेटिंग्स",
+    "form": {
+      "name": "सर्वर नाम",
+      "nameRequired": "कृपया सर्वर नाम दर्ज करें",
+      "namePlaceholder": "सर्वर नाम दर्ज करें",
+      "description": "सर्वर विवरण",
+      "descriptionPlaceholder": "सर्वर विवरण दर्ज करें",
+      "icon": "सर्वर आइकन",
+      "uploadIcon": "छवि अपलोड करें",
+      "required": "आवश्यक",
+      "createSuccess": "सर्वर सफलतापूर्वक बनाया गया!",
+      "createError": "कृपया आवश्यक जानकारी भरें!"
+    },
+    "messages": {
+      "selectChannel": "कृपया एक चैनल चुनें",
+      "welcome": "{serverName} में आपका स्वागत है",
+      "joined": "{username} सर्वर में शामिल हुए",
+      "left": "{username} ने सर्वर छोड़ दिया",
+      "deleted": "सर्वर हटा दिया गया है",
+      "noPermission": "आपके पास इस सर्वर तक पहुंचने की अनुमति नहीं है"
+    },
+    "actions": {
+      "add": "नया सर्वर जोड़ें"
+    },
+    "main": "मुख्य सर्वर",
+    "test": "टेस्ट सर्वर"
+  },
+  "login": {
+    "title": "लॉगिन",
+    "subtitle": "वापसी पर स्वागत है",
+    "username": "उपयोगकर्ता नाम",
+    "password": "पासवर्ड",
+    "remember": "मुझे याद रखें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "submit": "लॉगिन",
+    "noAccount": "खाता नहीं है?",
+    "register": "अभी रजिस्टर करें",
+    "submitLog": "लॉगिन फॉर्म जमा किया गया:"
+  },
+  "register": {
+    "title": "खाता बनाएं",
+    "subtitle": "हमारे चैट समुदाय में शामिल हों",
+    "username": "उपयोगकर्ता नाम",
+    "email": "ईमेल",
+    "phone": "फोन नंबर",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "submit": "रजिस्टर",
+    "haveAccount": "पहले से ही एक खाता है?",
+    "login": "अभी लॉगिन करें",
+    "submitLog": "रजिस्टर फॉर्म जमा किया गया:",
+    "validation": {
+      "usernameRequired": "कृपया अपना उपयोगकर्ता नाम दर्ज करें!",
+      "emailRequired": "कृपया अपना ईमेल दर्ज करें!",
+      "emailValid": "कृपया एक वैध ईमेल पता दर्ज करें!",
+      "phoneRequired": "कृपया अपना फोन नंबर दर्ज करें!",
+      "phoneValid": "कृपया एक वैध फोन नंबर दर्ज करें!",
+      "passwordRequired": "कृपया अपना पासवर्ड दर्ज करें!",
+      "passwordLength": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए!",
+      "confirmRequired": "कृपया अपने पासवर्ड की पुष्टि करें!",
+      "passwordsMismatch": "दोनों पासवर्ड मेल नहीं खाते!"
+    }
+  }
+} 

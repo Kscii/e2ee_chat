@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Kanallar",
+    "directMessages": "Direkt Mesajlar",
+    "groups": "Gruplar",
+    "ai": "AI Asistanı",
+    "settings": "Ayarlar"
+  },
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "confirm": "Onayla",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "send": "Gönder",
+    "upload": "Yükle",
+    "download": "İndir",
+    "preview": "Önizleme",
+    "close": "Kapat",
+    "settings": "Ayarlar",
+    "logout": "Çıkış Yap",
+    "system": "Sistem",
+    "back": "Geri"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "profile": {
+      "title": "Profil",
+      "name": "Kullanıcı adı",
+      "email": "E-posta"
+    },
+    "theme": {
+      "title": "Tema Ayarları",
+      "dark": "Karanlık Mod",
+      "description": "Açık/koyu tema arasında geçiş yap",
+      "markdown": "Markdown Modunu Etkinleştir",
+      "markdownDescription": "Metin alanlarında Markdown sözdizimi desteğini etkinleştir"
+    },
+    "language": {
+      "title": "Dil Ayarları",
+      "description": "Arayüz dilini seç",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "AI Ayarları",
+      "enable": "AI Asistanını Etkinleştir",
+      "description": "AI asistan özelliklerini aç/kapat",
+      "apiKey": "API Anahtarı",
+      "apiKeyDescription": "OpenAI API anahtarını ayarla"
+    },
+    "tts": {
+      "title": "Metinden Sese",
+      "enable": "TTS'i Etkinleştir",
+      "auto": "Otomatik Okuma",
+      "speed": "Konuşma Hızı",
+      "normal": "Normal",
+      "service": "TTS Servisi",
+      "browser": "Tarayıcı",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Ses",
+      "azureKey": "Azure API Anahtarı",
+      "azureRegion": "Azure Bölgesi",
+      "googleKey": "Google API Anahtarı",
+      "gptSovitsUrl": "GPT-SoVITS URL",
+      "character": "Karakter",
+      "emotion": "Duygu",
+      "textLanguage": "Metin Dili"
+    }
+  },
+  "chat": {
+    "title": "Sohbet",
+    "inputPlaceholder": "Bir mesaj yazın...",
+    "sendButton": "Gönder",
+    "uploadButton": "Dosya Yükle",
+    "emojiButton": "Emoji Ekle",
+    "status": {
+      "sending": "Gönderiliyor...",
+      "sent": "Gönderildi",
+      "read": "Okundu",
+      "failed": "Başarısız",
+      "online": "Çevrimiçi",
+      "offline": "Çevrimdışı"
+    },
+    "demoMessages": {
+      "welcome": "Merhaba! Ben AI asistanınızım. Size nasıl yardımcı olabilirim?",
+      "question": "Merhaba, nasılsın?",
+      "answer": "Çok iyiyim, sorduğun için teşekkürler!",
+      "followup": "Bunu duymak güzel! Yeni bir şey var mı?",
+      "sendingExample": "Bu gönderilmekte olan bir mesaj...",
+      "sentExample": "Bu gönderilmiş bir mesaj"
+    },
+    "fileMessages": {
+      "image": "bir resim gönderdi",
+      "file": "bir dosya gönderdi: {filename}",
+      "pdf": "bir PDF dosyası gönderdi: {filename}",
+      "word": "bir Word belgesi gönderdi: {filename}",
+      "excel": "bir Excel elektronik tablosu gönderdi: {filename}",
+      "ppt": "bir PowerPoint sunumu gönderdi: {filename}",
+      "txt": "bir metin dosyası gönderdi: {filename}"
+    },
+    "preview": {
+      "title": "Dosya Önizleme",
+      "loading": "Yükleniyor...",
+      "error": "Önizleme başarısız",
+      "unsupported": "Bu dosya türü için önizleme desteklenmiyor"
+    },
+    "currentUser": "Mevcut Kullanıcı",
+    "actions": {
+      "search": "Ara",
+      "inbox": "Gelen Kutusu",
+      "help": "Yardım"
+    },
+    "search": {
+      "placeholder": "Mesajları ara...",
+      "noResults": "\"{keyword}\" içeren mesaj bulunamadı"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Ağ Hatası",
+      "message": "Sunucuya bağlanılamadı, lütfen ağ bağlantınızı kontrol edin"
+    },
+    "api": {
+      "title": "API Hatası",
+      "invalidKey": "Geçersiz API anahtarı, lütfen ayarlarınızı kontrol edin",
+      "configMissing": "Lütfen önce ayarlarda OpenAI API anahtarınızı yapılandırın",
+      "requestFailed": "İstek başarısız oldu, lütfen daha sonra tekrar deneyin"
+    },
+    "chat": {
+      "sendFailed": "Mesaj gönderilemedi",
+      "receiveFailed": "Mesaj alınamadı",
+      "loadFailed": "Sohbet geçmişi yüklenemedi"
+    },
+    "file": {
+      "uploadFailed": "Dosya yüklenemedi",
+      "downloadFailed": "Dosya indirilemedi",
+      "sizeLimitExceeded": "Dosya boyutu {size}MB'ı aşamaz",
+      "imageOnly": "Sadece resim dosyalarına izin verilir",
+      "unsupportedFormat": "Desteklenmeyen dosya formatı"
+    },
+    "tts": {
+      "failed": "Metinden sese dönüştürme başarısız oldu",
+      "unsupported": "Metinden sese dönüştürme tarayıcınızda desteklenmiyor"
+    },
+    "common": {
+      "unauthorized": "Lütfen önce giriş yapın",
+      "forbidden": "Bu işlemi gerçekleştirme izniniz yok",
+      "notFound": "Kaynak bulunamadı",
+      "serverError": "Sunucu hatası, lütfen daha sonra tekrar deneyin"
+    }
+  },
+  "channel": {
+    "title": "Kanal",
+    "create": "Kanal Oluştur",
+    "join": "Kanala Katıl",
+    "leave": "Kanaldan Ayrıl",
+    "delete": "Kanalı Sil",
+    "settings": "Kanal Ayarları",
+    "types": {
+      "text": "Metin Kanalı",
+      "voice": "Ses Kanalı"
+    },
+    "status": {
+      "connected": "Bağlandı",
+      "disconnected": "Bağlantı Kesildi",
+      "connecting": "Bağlanıyor"
+    },
+    "actions": {
+      "mute": "Sessize Al",
+      "unmute": "Sesi Aç",
+      "deafen": "Sesleri Kapat",
+      "undeafen": "Sesleri Aç",
+      "threads": "Diziler",
+      "notifications": "Bildirimler",
+      "pinned": "Sabitlenmiş Mesajlar",
+      "members": "Üye Listesi",
+      "add": "Kanal Ekle"
+    },
+    "messages": {
+      "welcome": "{channelName} kanalına hoş geldiniz",
+      "joined": "{username} kanala katıldı",
+      "left": "{username} kanaldan ayrıldı",
+      "deleted": "Kanal silindi",
+      "noPermission": "Bu kanala erişim izniniz yok",
+      "joinedVoice": "Ses kanalına katıldı",
+      "leftVoice": "Ses kanalından ayrıldı",
+      "micPermissionDenied": "Mikrofona erişilemiyor, lütfen izinleri kontrol edin",
+      "defaultDescription": "Bu, #{channelName} kanalının başlangıcıdır"
+    },
+    "form": {
+      "name": "Kanal Adı",
+      "type": "Kanal Türü",
+      "description": "Kanal Açıklaması",
+      "createSuccess": "Kanal başarıyla oluşturuldu!",
+      "createError": "Lütfen gerekli bilgileri doldurun!"
+    },
+    "placeholders": {
+      "channelName": "Kanal Adı",
+      "description": "Kanal Açıklaması",
+      "message": "#{channelName} kanalında mesaj"
+    },
+    "default": "Genel"
+  },
+  "server": {
+    "title": "Test Sunucusu",
+    "create": "Sunucu Oluştur",
+    "createNew": "Yeni Sunucu Oluştur",
+    "join": "Sunucuya Katıl",
+    "leave": "Sunucudan Ayrıl",
+    "delete": "Sunucuyu Sil",
+    "settings": "Sunucu Ayarları",
+    "form": {
+      "name": "Sunucu Adı",
+      "nameRequired": "Lütfen sunucu adını girin",
+      "namePlaceholder": "Sunucu adını girin",
+      "description": "Sunucu Açıklaması",
+      "descriptionPlaceholder": "Sunucu açıklamasını girin",
+      "icon": "Sunucu Simgesi",
+      "uploadIcon": "Resim Yükle",
+      "required": "Gerekli",
+      "createSuccess": "Sunucu başarıyla oluşturuldu!",
+      "createError": "Lütfen gerekli bilgileri doldurun!"
+    },
+    "messages": {
+      "selectChannel": "Lütfen bir kanal seçin",
+      "welcome": "{serverName} sunucusuna hoş geldiniz",
+      "joined": "{username} sunucuya katıldı",
+      "left": "{username} sunucudan ayrıldı",
+      "deleted": "Sunucu silindi",
+      "noPermission": "Bu sunucuya erişim izniniz yok"
+    },
+    "actions": {
+      "add": "Yeni Sunucu Ekle"
+    },
+    "main": "Ana Sunucu",
+    "test": "Test Sunucusu"
+  },
+  "login": {
+    "title": "Giriş",
+    "subtitle": "Tekrar hoş geldiniz",
+    "username": "Kullanıcı adı",
+    "password": "Parola",
+    "remember": "Beni hatırla",
+    "forgotPassword": "Parolanızı mı unuttunuz?",
+    "submit": "Giriş Yap",
+    "noAccount": "Hesabınız yok mu?",
+    "register": "Şimdi kaydolun",
+    "submitLog": "Giriş formu gönderildi:"
+  },
+  "register": {
+    "title": "Hesap Oluştur",
+    "subtitle": "Sohbet topluluğumuza katılın",
+    "username": "Kullanıcı adı",
+    "email": "E-posta",
+    "phone": "Telefon numarası",
+    "password": "Parola",
+    "confirmPassword": "Parolayı Onayla",
+    "submit": "Kaydol",
+    "haveAccount": "Zaten hesabınız var mı?",
+    "login": "Şimdi giriş yapın",
+    "submitLog": "Kayıt formu gönderildi:",
+    "validation": {
+      "usernameRequired": "Lütfen kullanıcı adınızı girin!",
+      "emailRequired": "Lütfen e-postanızı girin!",
+      "emailValid": "Lütfen geçerli bir e-posta adresi girin!",
+      "phoneRequired": "Lütfen telefon numaranızı girin!",
+      "phoneValid": "Lütfen geçerli bir telefon numarası girin!",
+      "passwordRequired": "Lütfen parolanızı girin!",
+      "passwordLength": "Parola en az 6 karakter olmalıdır!",
+      "confirmRequired": "Lütfen parolanızı onaylayın!",
+      "passwordsMismatch": "İki parola uyuşmuyor!"
+    }
+  }
+} 

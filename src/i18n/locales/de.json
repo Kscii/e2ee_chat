@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Kanäle",
+    "directMessages": "Direktnachrichten",
+    "groups": "Gruppen",
+    "ai": "KI-Assistent",
+    "settings": "Einstellungen"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "send": "Senden",
+    "upload": "Hochladen",
+    "download": "Herunterladen",
+    "preview": "Vorschau",
+    "close": "Schließen",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "system": "System",
+    "back": "Zurück"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "profile": {
+      "title": "Profil",
+      "name": "Benutzername",
+      "email": "E-Mail"
+    },
+    "theme": {
+      "title": "Design-Einstellungen",
+      "dark": "Dunkler Modus",
+      "description": "Zwischen hellem/dunklem Design wechseln",
+      "markdown": "Markdown-Modus aktivieren",
+      "markdownDescription": "Unterstützung für Markdown-Syntax in Textfeldern aktivieren"
+    },
+    "language": {
+      "title": "Spracheinstellungen",
+      "description": "Oberflächen-Sprache wählen",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "KI-Einstellungen",
+      "enable": "KI-Assistent aktivieren",
+      "description": "KI-Assistentenfunktionen ein-/ausschalten",
+      "apiKey": "API-Schlüssel",
+      "apiKeyDescription": "OpenAI API-Schlüssel festlegen"
+    },
+    "tts": {
+      "title": "Text zu Sprache",
+      "enable": "TTS aktivieren",
+      "auto": "Automatisches Vorlesen",
+      "speed": "Sprechgeschwindigkeit",
+      "normal": "Normal",
+      "service": "TTS-Dienst",
+      "browser": "Browser",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Stimme",
+      "azureKey": "Azure API-Schlüssel",
+      "azureRegion": "Azure-Region",
+      "googleKey": "Google API-Schlüssel",
+      "gptSovitsUrl": "GPT-SoVITS URL",
+      "character": "Charakter",
+      "emotion": "Emotion",
+      "textLanguage": "Textsprache"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Nachricht eingeben...",
+    "sendButton": "Senden",
+    "uploadButton": "Datei hochladen",
+    "emojiButton": "Emoji einfügen",
+    "status": {
+      "sending": "Senden...",
+      "sent": "Gesendet",
+      "read": "Gelesen",
+      "failed": "Fehlgeschlagen",
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "demoMessages": {
+      "welcome": "Hallo! Ich bin dein KI-Assistent. Wie kann ich dir helfen?",
+      "question": "Hallo, wie geht es dir?",
+      "answer": "Mir geht es gut, danke der Nachfrage!",
+      "followup": "Das freut mich zu hören! Gibt es etwas Neues?",
+      "sendingExample": "Dies ist eine Nachricht, die gesendet wird...",
+      "sentExample": "Dies ist eine gesendete Nachricht"
+    },
+    "fileMessages": {
+      "image": "hat ein Bild gesendet",
+      "file": "hat eine Datei gesendet: {filename}",
+      "pdf": "hat eine PDF-Datei gesendet: {filename}",
+      "word": "hat ein Word-Dokument gesendet: {filename}",
+      "excel": "hat eine Excel-Tabelle gesendet: {filename}",
+      "ppt": "hat eine PowerPoint-Präsentation gesendet: {filename}",
+      "txt": "hat eine Textdatei gesendet: {filename}"
+    },
+    "preview": {
+      "title": "Dateivorschau",
+      "loading": "Wird geladen...",
+      "error": "Vorschau fehlgeschlagen",
+      "unsupported": "Vorschau für diesen Dateityp nicht unterstützt"
+    },
+    "currentUser": "Aktueller Benutzer",
+    "actions": {
+      "search": "Suchen",
+      "inbox": "Posteingang",
+      "help": "Hilfe"
+    },
+    "search": {
+      "placeholder": "Nachrichten durchsuchen...",
+      "noResults": "Keine Nachrichten gefunden, die \"{keyword}\" enthalten"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Netzwerkfehler",
+      "message": "Verbindung zum Server fehlgeschlagen, bitte überprüfe deine Netzwerkverbindung"
+    },
+    "api": {
+      "title": "API-Fehler",
+      "invalidKey": "Ungültiger API-Schlüssel, bitte überprüfe deine Einstellungen",
+      "configMissing": "Bitte konfiguriere zuerst deinen OpenAI API-Schlüssel in den Einstellungen",
+      "requestFailed": "Anfrage fehlgeschlagen, bitte versuche es später erneut"
+    },
+    "chat": {
+      "sendFailed": "Nachricht konnte nicht gesendet werden",
+      "receiveFailed": "Nachricht konnte nicht empfangen werden",
+      "loadFailed": "Chat-Verlauf konnte nicht geladen werden"
+    },
+    "file": {
+      "uploadFailed": "Datei konnte nicht hochgeladen werden",
+      "downloadFailed": "Datei konnte nicht heruntergeladen werden",
+      "sizeLimitExceeded": "Dateigröße darf {size}MB nicht überschreiten",
+      "imageOnly": "Nur Bilddateien sind erlaubt",
+      "unsupportedFormat": "Nicht unterstütztes Dateiformat"
+    },
+    "tts": {
+      "failed": "Text konnte nicht in Sprache umgewandelt werden",
+      "unsupported": "Text-zu-Sprache wird in deinem Browser nicht unterstützt"
+    },
+    "common": {
+      "unauthorized": "Bitte melde dich zuerst an",
+      "forbidden": "Du hast keine Berechtigung, diese Aktion auszuführen",
+      "notFound": "Ressource nicht gefunden",
+      "serverError": "Serverfehler, bitte versuche es später erneut"
+    }
+  },
+  "channel": {
+    "title": "Kanal",
+    "create": "Kanal erstellen",
+    "join": "Kanal beitreten",
+    "leave": "Kanal verlassen",
+    "delete": "Kanal löschen",
+    "settings": "Kanal-Einstellungen",
+    "types": {
+      "text": "Textkanal",
+      "voice": "Sprachkanal"
+    },
+    "status": {
+      "connected": "Verbunden",
+      "disconnected": "Getrennt",
+      "connecting": "Verbinde"
+    },
+    "actions": {
+      "mute": "Stummschalten",
+      "unmute": "Stummschaltung aufheben",
+      "deafen": "Ton ausschalten",
+      "undeafen": "Ton einschalten",
+      "threads": "Threads",
+      "notifications": "Benachrichtigungen",
+      "pinned": "Angepinnte Nachrichten",
+      "members": "Mitgliederliste",
+      "add": "Kanal hinzufügen"
+    },
+    "messages": {
+      "welcome": "Willkommen bei {channelName}",
+      "joined": "{username} ist dem Kanal beigetreten",
+      "left": "{username} hat den Kanal verlassen",
+      "deleted": "Der Kanal wurde gelöscht",
+      "noPermission": "Du hast keine Berechtigung, auf diesen Kanal zuzugreifen",
+      "joinedVoice": "Sprachkanal beigetreten",
+      "leftVoice": "Sprachkanal verlassen",
+      "micPermissionDenied": "Kann nicht auf das Mikrofon zugreifen, bitte überprüfe die Berechtigungen",
+      "defaultDescription": "Dies ist der Anfang des #{channelName} Kanals"
+    },
+    "form": {
+      "name": "Kanalname",
+      "type": "Kanaltyp",
+      "description": "Kanalbeschreibung",
+      "createSuccess": "Kanal erfolgreich erstellt!",
+      "createError": "Bitte fülle die erforderlichen Informationen aus!"
+    },
+    "placeholders": {
+      "channelName": "Kanalname",
+      "description": "Kanalbeschreibung",
+      "message": "Nachricht in #{channelName}"
+    },
+    "default": "Allgemein"
+  },
+  "server": {
+    "title": "Test-Server",
+    "create": "Server erstellen",
+    "createNew": "Neuen Server erstellen",
+    "join": "Server beitreten",
+    "leave": "Server verlassen",
+    "delete": "Server löschen",
+    "settings": "Server-Einstellungen",
+    "form": {
+      "name": "Servername",
+      "nameRequired": "Bitte gib einen Servernamen ein",
+      "namePlaceholder": "Servername eingeben",
+      "description": "Serverbeschreibung",
+      "descriptionPlaceholder": "Serverbeschreibung eingeben",
+      "icon": "Serversymbol",
+      "uploadIcon": "Bild hochladen",
+      "required": "Erforderlich",
+      "createSuccess": "Server erfolgreich erstellt!",
+      "createError": "Bitte fülle die erforderlichen Informationen aus!"
+    },
+    "messages": {
+      "selectChannel": "Bitte wähle einen Kanal aus",
+      "welcome": "Willkommen bei {serverName}",
+      "joined": "{username} ist dem Server beigetreten",
+      "left": "{username} hat den Server verlassen",
+      "deleted": "Der Server wurde gelöscht",
+      "noPermission": "Du hast keine Berechtigung, auf diesen Server zuzugreifen"
+    },
+    "actions": {
+      "add": "Neuen Server hinzufügen"
+    },
+    "main": "Hauptserver",
+    "test": "Testserver"
+  },
+  "login": {
+    "title": "Anmelden",
+    "subtitle": "Willkommen zurück",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "remember": "Angemeldet bleiben",
+    "forgotPassword": "Passwort vergessen?",
+    "submit": "Anmelden",
+    "noAccount": "Noch kein Konto?",
+    "register": "Jetzt registrieren",
+    "submitLog": "Anmeldeformular abgeschickt:"
+  },
+  "register": {
+    "title": "Konto erstellen",
+    "subtitle": "Tritt unserer Chat-Community bei",
+    "username": "Benutzername",
+    "email": "E-Mail",
+    "phone": "Telefonnummer",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "submit": "Registrieren",
+    "haveAccount": "Hast du bereits ein Konto?",
+    "login": "Jetzt anmelden",
+    "submitLog": "Registrierungsformular abgeschickt:",
+    "validation": {
+      "usernameRequired": "Bitte gib deinen Benutzernamen ein!",
+      "emailRequired": "Bitte gib deine E-Mail-Adresse ein!",
+      "emailValid": "Bitte gib eine gültige E-Mail-Adresse ein!",
+      "phoneRequired": "Bitte gib deine Telefonnummer ein!",
+      "phoneValid": "Bitte gib eine gültige Telefonnummer ein!",
+      "passwordRequired": "Bitte gib dein Passwort ein!",
+      "passwordLength": "Das Passwort muss mindestens 6 Zeichen lang sein!",
+      "confirmRequired": "Bitte bestätige dein Passwort!",
+      "passwordsMismatch": "Die Passwörter stimmen nicht überein!"
+    }
+  }
+} 

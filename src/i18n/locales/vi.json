@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Kênh",
+    "directMessages": "Tin nhắn trực tiếp",
+    "groups": "Nhóm",
+    "ai": "Trợ lý AI",
+    "settings": "Cài đặt"
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "send": "Gửi",
+    "upload": "Tải lên",
+    "download": "Tải xuống",
+    "preview": "Xem trước",
+    "close": "Đóng",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất",
+    "system": "Hệ thống",
+    "back": "Quay lại"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "profile": {
+      "title": "Hồ sơ",
+      "name": "Tên người dùng",
+      "email": "Email"
+    },
+    "theme": {
+      "title": "Cài đặt giao diện",
+      "dark": "Chế độ tối",
+      "description": "Chuyển đổi giao diện sáng/tối",
+      "markdown": "Bật chế độ Markdown",
+      "markdownDescription": "Bật hỗ trợ cú pháp Markdown trong trường văn bản"
+    },
+    "language": {
+      "title": "Cài đặt ngôn ngữ",
+      "description": "Chọn ngôn ngữ giao diện",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "Cài đặt AI",
+      "enable": "Bật Trợ lý AI",
+      "description": "Bật/tắt tính năng trợ lý AI",
+      "apiKey": "Khóa API",
+      "apiKeyDescription": "Đặt Khóa API OpenAI"
+    },
+    "tts": {
+      "title": "Chuyển văn bản thành giọng nói",
+      "enable": "Bật TTS",
+      "auto": "Đọc tự động",
+      "speed": "Tốc độ nói",
+      "normal": "Bình thường",
+      "service": "Dịch vụ TTS",
+      "browser": "Trình duyệt",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Giọng nói",
+      "azureKey": "Khóa API Azure",
+      "azureRegion": "Khu vực Azure",
+      "googleKey": "Khóa API Google",
+      "gptSovitsUrl": "URL GPT-SoVITS",
+      "character": "Nhân vật",
+      "emotion": "Cảm xúc",
+      "textLanguage": "Ngôn ngữ văn bản"
+    }
+  },
+  "chat": {
+    "title": "Trò chuyện",
+    "inputPlaceholder": "Nhập tin nhắn...",
+    "sendButton": "Gửi",
+    "uploadButton": "Tải tệp lên",
+    "emojiButton": "Chèn biểu tượng cảm xúc",
+    "status": {
+      "sending": "Đang gửi...",
+      "sent": "Đã gửi",
+      "read": "Đã đọc",
+      "failed": "Thất bại",
+      "online": "Trực tuyến",
+      "offline": "Ngoại tuyến"
+    },
+    "demoMessages": {
+      "welcome": "Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp gì cho bạn?",
+      "question": "Xin chào, bạn khỏe không?",
+      "answer": "Tôi khỏe, cảm ơn đã hỏi!",
+      "followup": "Rất vui khi nghe điều đó! Có gì mới không?",
+      "sendingExample": "Đây là tin nhắn đang được gửi...",
+      "sentExample": "Đây là tin nhắn đã gửi"
+    },
+    "fileMessages": {
+      "image": "đã gửi một hình ảnh",
+      "file": "đã gửi một tệp: {filename}",
+      "pdf": "đã gửi một tệp PDF: {filename}",
+      "word": "đã gửi một tài liệu Word: {filename}",
+      "excel": "đã gửi một bảng tính Excel: {filename}",
+      "ppt": "đã gửi một bài thuyết trình PowerPoint: {filename}",
+      "txt": "đã gửi một tệp văn bản: {filename}"
+    },
+    "preview": {
+      "title": "Xem trước tệp",
+      "loading": "Đang tải...",
+      "error": "Xem trước thất bại",
+      "unsupported": "Không hỗ trợ xem trước cho loại tệp này"
+    },
+    "currentUser": "Người dùng hiện tại",
+    "actions": {
+      "search": "Tìm kiếm",
+      "inbox": "Hộp thư đến",
+      "help": "Trợ giúp"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm tin nhắn...",
+      "noResults": "Không tìm thấy tin nhắn nào chứa \"{keyword}\""
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Lỗi mạng",
+      "message": "Không thể kết nối đến máy chủ, vui lòng kiểm tra kết nối mạng của bạn"
+    },
+    "api": {
+      "title": "Lỗi API",
+      "invalidKey": "Khóa API không hợp lệ, vui lòng kiểm tra cài đặt của bạn",
+      "configMissing": "Vui lòng cấu hình khóa API OpenAI trong cài đặt trước",
+      "requestFailed": "Yêu cầu thất bại, vui lòng thử lại sau"
+    },
+    "chat": {
+      "sendFailed": "Không thể gửi tin nhắn",
+      "receiveFailed": "Không thể nhận tin nhắn",
+      "loadFailed": "Không thể tải lịch sử trò chuyện"
+    },
+    "file": {
+      "uploadFailed": "Không thể tải tệp lên",
+      "downloadFailed": "Không thể tải tệp xuống",
+      "sizeLimitExceeded": "Kích thước tệp không thể vượt quá {size}MB",
+      "imageOnly": "Chỉ cho phép tệp hình ảnh",
+      "unsupportedFormat": "Định dạng tệp không được hỗ trợ"
+    },
+    "tts": {
+      "failed": "Không thể chuyển đổi văn bản thành giọng nói",
+      "unsupported": "Chuyển văn bản thành giọng nói không được hỗ trợ trong trình duyệt của bạn"
+    },
+    "common": {
+      "unauthorized": "Vui lòng đăng nhập trước",
+      "forbidden": "Bạn không có quyền thực hiện hành động này",
+      "notFound": "Không tìm thấy tài nguyên",
+      "serverError": "Lỗi máy chủ, vui lòng thử lại sau"
+    }
+  },
+  "channel": {
+    "title": "Kênh",
+    "create": "Tạo kênh",
+    "join": "Tham gia kênh",
+    "leave": "Rời kênh",
+    "delete": "Xóa kênh",
+    "settings": "Cài đặt kênh",
+    "types": {
+      "text": "Kênh văn bản",
+      "voice": "Kênh thoại"
+    },
+    "status": {
+      "connected": "Đã kết nối",
+      "disconnected": "Đã ngắt kết nối",
+      "connecting": "Đang kết nối"
+    },
+    "actions": {
+      "mute": "Tắt tiếng",
+      "unmute": "Bật tiếng",
+      "deafen": "Tắt âm thanh",
+      "undeafen": "Bật âm thanh",
+      "threads": "Chủ đề",
+      "notifications": "Thông báo",
+      "pinned": "Tin nhắn ghim",
+      "members": "Danh sách thành viên",
+      "add": "Thêm kênh"
+    },
+    "messages": {
+      "welcome": "Chào mừng đến với {channelName}",
+      "joined": "{username} đã tham gia kênh",
+      "left": "{username} đã rời kênh",
+      "deleted": "Kênh đã bị xóa",
+      "noPermission": "Bạn không có quyền truy cập kênh này",
+      "joinedVoice": "Đã tham gia kênh thoại",
+      "leftVoice": "Đã rời kênh thoại",
+      "micPermissionDenied": "Không thể truy cập micrô, vui lòng kiểm tra quyền",
+      "defaultDescription": "Đây là phần đầu của kênh #{channelName}"
+    },
+    "form": {
+      "name": "Tên kênh",
+      "type": "Loại kênh",
+      "description": "Mô tả kênh",
+      "createSuccess": "Tạo kênh thành công!",
+      "createError": "Vui lòng điền thông tin bắt buộc!"
+    },
+    "placeholders": {
+      "channelName": "Tên kênh",
+      "description": "Mô tả kênh",
+      "message": "Tin nhắn #{channelName}"
+    },
+    "default": "Chung"
+  },
+  "server": {
+    "title": "Máy chủ thử nghiệm",
+    "create": "Tạo máy chủ",
+    "createNew": "Tạo máy chủ mới",
+    "join": "Tham gia máy chủ",
+    "leave": "Rời máy chủ",
+    "delete": "Xóa máy chủ",
+    "settings": "Cài đặt máy chủ",
+    "form": {
+      "name": "Tên máy chủ",
+      "nameRequired": "Vui lòng nhập tên máy chủ",
+      "namePlaceholder": "Nhập tên máy chủ",
+      "description": "Mô tả máy chủ",
+      "descriptionPlaceholder": "Nhập mô tả máy chủ",
+      "icon": "Biểu tượng máy chủ",
+      "uploadIcon": "Tải ảnh lên",
+      "required": "Bắt buộc",
+      "createSuccess": "Tạo máy chủ thành công!",
+      "createError": "Vui lòng điền thông tin bắt buộc!"
+    },
+    "messages": {
+      "selectChannel": "Vui lòng chọn một kênh",
+      "welcome": "Chào mừng đến với {serverName}",
+      "joined": "{username} đã tham gia máy chủ",
+      "left": "{username} đã rời máy chủ",
+      "deleted": "Máy chủ đã bị xóa",
+      "noPermission": "Bạn không có quyền truy cập máy chủ này"
+    },
+    "actions": {
+      "add": "Thêm máy chủ mới"
+    },
+    "main": "Máy chủ chính",
+    "test": "Máy chủ thử nghiệm"
+  },
+  "login": {
+    "title": "Đăng nhập",
+    "subtitle": "Chào mừng trở lại",
+    "username": "Tên người dùng",
+    "password": "Mật khẩu",
+    "remember": "Ghi nhớ tôi",
+    "forgotPassword": "Quên mật khẩu?",
+    "submit": "Đăng nhập",
+    "noAccount": "Chưa có tài khoản?",
+    "register": "Đăng ký ngay",
+    "submitLog": "Biểu mẫu đăng nhập đã gửi:"
+  },
+  "register": {
+    "title": "Tạo tài khoản",
+    "subtitle": "Tham gia cộng đồng trò chuyện của chúng tôi",
+    "username": "Tên người dùng",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "submit": "Đăng ký",
+    "haveAccount": "Đã có tài khoản?",
+    "login": "Đăng nhập ngay",
+    "submitLog": "Biểu mẫu đăng ký đã gửi:",
+    "validation": {
+      "usernameRequired": "Vui lòng nhập tên người dùng của bạn!",
+      "emailRequired": "Vui lòng nhập email của bạn!",
+      "emailValid": "Vui lòng nhập địa chỉ email hợp lệ!",
+      "phoneRequired": "Vui lòng nhập số điện thoại của bạn!",
+      "phoneValid": "Vui lòng nhập số điện thoại hợp lệ!",
+      "passwordRequired": "Vui lòng nhập mật khẩu của bạn!",
+      "passwordLength": "Mật khẩu phải có ít nhất 6 ký tự!",
+      "confirmRequired": "Vui lòng xác nhận mật khẩu của bạn!",
+      "passwordsMismatch": "Hai mật khẩu không khớp!"
+    }
+  }
+} 

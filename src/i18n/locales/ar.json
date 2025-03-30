@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "القنوات",
+    "directMessages": "الرسائل المباشرة",
+    "groups": "المجموعات",
+    "ai": "مساعد الذكاء الاصطناعي",
+    "settings": "الإعدادات"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "send": "إرسال",
+    "upload": "رفع",
+    "download": "تنزيل",
+    "preview": "معاينة",
+    "close": "إغلاق",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "system": "النظام",
+    "back": "رجوع"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "profile": {
+      "title": "الملف الشخصي",
+      "name": "اسم المستخدم",
+      "email": "البريد الإلكتروني"
+    },
+    "theme": {
+      "title": "إعدادات المظهر",
+      "dark": "الوضع الداكن",
+      "description": "تبديل المظهر الفاتح/الداكن",
+      "markdown": "تفعيل وضع Markdown",
+      "markdownDescription": "تمكين دعم بناء Markdown في حقول النص"
+    },
+    "language": {
+      "title": "إعدادات اللغة",
+      "description": "اختر لغة الواجهة",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "إعدادات الذكاء الاصطناعي",
+      "enable": "تفعيل مساعد الذكاء الاصطناعي",
+      "description": "تبديل ميزات مساعد الذكاء الاصطناعي",
+      "apiKey": "مفتاح API",
+      "apiKeyDescription": "تعيين مفتاح API للـ OpenAI"
+    },
+    "tts": {
+      "title": "تحويل النص إلى كلام",
+      "enable": "تفعيل تحويل النص إلى كلام",
+      "auto": "القراءة التلقائية",
+      "speed": "سرعة الكلام",
+      "normal": "عادي",
+      "service": "خدمة تحويل النص إلى كلام",
+      "browser": "المتصفح",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "الصوت",
+      "azureKey": "مفتاح API لـ Azure",
+      "azureRegion": "منطقة Azure",
+      "googleKey": "مفتاح API لـ Google",
+      "gptSovitsUrl": "رابط GPT-SoVITS",
+      "character": "الشخصية",
+      "emotion": "العاطفة",
+      "textLanguage": "لغة النص"
+    }
+  },
+  "chat": {
+    "title": "الدردشة",
+    "inputPlaceholder": "اكتب رسالة...",
+    "sendButton": "إرسال",
+    "uploadButton": "رفع ملف",
+    "emojiButton": "إدراج رمز تعبيري",
+    "status": {
+      "sending": "جاري الإرسال...",
+      "sent": "تم الإرسال",
+      "read": "تمت القراءة",
+      "failed": "فشل",
+      "online": "متصل",
+      "offline": "غير متصل"
+    },
+    "demoMessages": {
+      "welcome": "مرحبا! أنا مساعد الذكاء الاصطناعي. كيف يمكنني مساعدتك؟",
+      "question": "مرحبا، كيف حالك؟",
+      "answer": "أنا بخير، شكرا على السؤال!",
+      "followup": "يسعدني سماع ذلك! أي جديد؟",
+      "sendingExample": "هذه رسالة يتم إرسالها...",
+      "sentExample": "هذه رسالة تم إرسالها"
+    },
+    "fileMessages": {
+      "image": "أرسل صورة",
+      "file": "أرسل ملفا: {filename}",
+      "pdf": "أرسل ملف PDF: {filename}",
+      "word": "أرسل مستند Word: {filename}",
+      "excel": "أرسل جدول بيانات Excel: {filename}",
+      "ppt": "أرسل عرض تقديمي PowerPoint: {filename}",
+      "txt": "أرسل ملف نصي: {filename}"
+    },
+    "preview": {
+      "title": "معاينة الملف",
+      "loading": "جاري التحميل...",
+      "error": "فشلت المعاينة",
+      "unsupported": "المعاينة غير مدعومة لهذا النوع من الملفات"
+    },
+    "currentUser": "المستخدم الحالي",
+    "actions": {
+      "search": "بحث",
+      "inbox": "صندوق الوارد",
+      "help": "مساعدة"
+    },
+    "search": {
+      "placeholder": "البحث في الرسائل...",
+      "noResults": "لم يتم العثور على رسائل تحتوي على \"{keyword}\""
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "خطأ في الشبكة",
+      "message": "فشل الاتصال بالخادم، يرجى التحقق من اتصال الشبكة"
+    },
+    "api": {
+      "title": "خطأ في API",
+      "invalidKey": "مفتاح API غير صالح، يرجى التحقق من إعداداتك",
+      "configMissing": "يرجى تكوين مفتاح API للـ OpenAI في الإعدادات أولاً",
+      "requestFailed": "فشل الطلب، يرجى المحاولة مرة أخرى لاحقاً"
+    },
+    "chat": {
+      "sendFailed": "فشل إرسال الرسالة",
+      "receiveFailed": "فشل استلام الرسالة",
+      "loadFailed": "فشل تحميل سجل الدردشة"
+    },
+    "file": {
+      "uploadFailed": "فشل رفع الملف",
+      "downloadFailed": "فشل تنزيل الملف",
+      "sizeLimitExceeded": "لا يمكن أن يتجاوز حجم الملف {size} ميجابايت",
+      "imageOnly": "يُسمح فقط بملفات الصور",
+      "unsupportedFormat": "تنسيق ملف غير مدعوم"
+    },
+    "tts": {
+      "failed": "فشل تحويل النص إلى كلام",
+      "unsupported": "تحويل النص إلى كلام غير مدعوم في متصفحك"
+    },
+    "common": {
+      "unauthorized": "يرجى تسجيل الدخول أولاً",
+      "forbidden": "ليس لديك إذن لتنفيذ هذا الإجراء",
+      "notFound": "لم يتم العثور على المورد",
+      "serverError": "خطأ في الخادم، يرجى المحاولة مرة أخرى لاحقاً"
+    }
+  },
+  "channel": {
+    "title": "قناة",
+    "create": "إنشاء قناة",
+    "join": "الانضمام إلى القناة",
+    "leave": "مغادرة القناة",
+    "delete": "حذف القناة",
+    "settings": "إعدادات القناة",
+    "types": {
+      "text": "قناة نصية",
+      "voice": "قناة صوتية"
+    },
+    "status": {
+      "connected": "متصل",
+      "disconnected": "غير متصل",
+      "connecting": "جاري الاتصال"
+    },
+    "actions": {
+      "mute": "كتم الصوت",
+      "unmute": "إلغاء كتم الصوت",
+      "deafen": "كتم سماعة الرأس",
+      "undeafen": "إلغاء كتم سماعة الرأس",
+      "threads": "المحادثات الفرعية",
+      "notifications": "الإشعارات",
+      "pinned": "الرسائل المثبتة",
+      "members": "قائمة الأعضاء",
+      "add": "إضافة قناة"
+    },
+    "messages": {
+      "welcome": "مرحباً بك في {channelName}",
+      "joined": "{username} انضم إلى القناة",
+      "left": "{username} غادر القناة",
+      "deleted": "تم حذف القناة",
+      "noPermission": "ليس لديك إذن للوصول إلى هذه القناة",
+      "joinedVoice": "انضم إلى القناة الصوتية",
+      "leftVoice": "غادر القناة الصوتية",
+      "micPermissionDenied": "لا يمكن الوصول إلى الميكروفون، يرجى التحقق من الأذونات",
+      "defaultDescription": "هذه بداية قناة #{channelName}"
+    },
+    "form": {
+      "name": "اسم القناة",
+      "type": "نوع القناة",
+      "description": "وصف القناة",
+      "createSuccess": "تم إنشاء القناة بنجاح!",
+      "createError": "يرجى ملء المعلومات المطلوبة!"
+    },
+    "placeholders": {
+      "channelName": "اسم القناة",
+      "description": "وصف القناة",
+      "message": "رسالة في #{channelName}"
+    },
+    "default": "عام"
+  },
+  "server": {
+    "title": "خادم الاختبار",
+    "create": "إنشاء خادم",
+    "createNew": "إنشاء خادم جديد",
+    "join": "الانضمام إلى الخادم",
+    "leave": "مغادرة الخادم",
+    "delete": "حذف الخادم",
+    "settings": "إعدادات الخادم",
+    "form": {
+      "name": "اسم الخادم",
+      "nameRequired": "يرجى إدخال اسم الخادم",
+      "namePlaceholder": "أدخل اسم الخادم",
+      "description": "وصف الخادم",
+      "descriptionPlaceholder": "أدخل وصف الخادم",
+      "icon": "أيقونة الخادم",
+      "uploadIcon": "رفع صورة",
+      "required": "مطلوب",
+      "createSuccess": "تم إنشاء الخادم بنجاح!",
+      "createError": "يرجى ملء المعلومات المطلوبة!"
+    },
+    "messages": {
+      "selectChannel": "يرجى اختيار قناة",
+      "welcome": "مرحباً بك في {serverName}",
+      "joined": "{username} انضم إلى الخادم",
+      "left": "{username} غادر الخادم",
+      "deleted": "تم حذف الخادم",
+      "noPermission": "ليس لديك إذن للوصول إلى هذا الخادم"
+    },
+    "actions": {
+      "add": "إضافة خادم جديد"
+    },
+    "main": "الخادم الرئيسي",
+    "test": "خادم الاختبار"
+  },
+  "login": {
+    "title": "تسجيل الدخول",
+    "subtitle": "مرحباً بعودتك",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "remember": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "submit": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب؟",
+    "register": "سجل الآن",
+    "submitLog": "تم إرسال نموذج تسجيل الدخول:"
+  },
+  "register": {
+    "title": "إنشاء حساب",
+    "subtitle": "انضم إلى مجتمع الدردشة لدينا",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "submit": "تسجيل",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "login": "سجل الدخول الآن",
+    "submitLog": "تم إرسال نموذج التسجيل:",
+    "validation": {
+      "usernameRequired": "يرجى إدخال اسم المستخدم الخاص بك!",
+      "emailRequired": "يرجى إدخال بريدك الإلكتروني!",
+      "emailValid": "يرجى إدخال عنوان بريد إلكتروني صالح!",
+      "phoneRequired": "يرجى إدخال رقم هاتفك!",
+      "phoneValid": "يرجى إدخال رقم هاتف صالح!",
+      "passwordRequired": "يرجى إدخال كلمة المرور الخاصة بك!",
+      "passwordLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل!",
+      "confirmRequired": "يرجى تأكيد كلمة المرور الخاصة بك!",
+      "passwordsMismatch": "كلمتا المرور غير متطابقتين!"
+    }
+  }
+} 

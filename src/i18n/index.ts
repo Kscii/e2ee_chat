@@ -4,6 +4,20 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import enTranslation from './locales/en.json';
 import zhTranslation from './locales/zh.json';
+import esTranslation from './locales/es.json';
+import frTranslation from './locales/fr.json';
+import deTranslation from './locales/de.json';
+import jaTranslation from './locales/ja.json';
+import koTranslation from './locales/ko.json';
+import ruTranslation from './locales/ru.json';
+import ptTranslation from './locales/pt.json';
+import itTranslation from './locales/it.json';
+import hiTranslation from './locales/hi.json';
+import arTranslation from './locales/ar.json';
+import trTranslation from './locales/tr.json';
+import thTranslation from './locales/th.json';
+import idTranslation from './locales/id.json';
+import viTranslation from './locales/vi.json';
 
 // 初始化 i18next
 i18n
@@ -19,6 +33,48 @@ i18n
       },
       zh: {
         translation: zhTranslation
+      },
+      es: {
+        translation: esTranslation
+      },
+      fr: {
+        translation: frTranslation
+      },
+      de: {
+        translation: deTranslation
+      },
+      ja: {
+        translation: jaTranslation
+      },
+      ko: {
+        translation: koTranslation
+      },
+      ru: {
+        translation: ruTranslation
+      },
+      pt: {
+        translation: ptTranslation
+      },
+      it: {
+        translation: itTranslation
+      },
+      hi: {
+        translation: hiTranslation
+      },
+      ar: {
+        translation: arTranslation
+      },
+      tr: {
+        translation: trTranslation
+      },
+      th: {
+        translation: thTranslation
+      },
+      id: {
+        translation: idTranslation
+      },
+      vi: {
+        translation: viTranslation
       }
     },
     fallbackLng: 'en',

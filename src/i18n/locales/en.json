@@ -40,7 +40,21 @@
       "title": "Language Settings",
       "description": "Choose interface language",
       "zh": "中文",
-      "en": "English"
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
     },
     "ai": {
       "title": "AI Settings",

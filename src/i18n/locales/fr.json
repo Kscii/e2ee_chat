@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Chaînes",
+    "directMessages": "Messages Directs",
+    "groups": "Groupes",
+    "ai": "Assistant IA",
+    "settings": "Paramètres"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "send": "Envoyer",
+    "upload": "Télécharger",
+    "download": "Télécharger",
+    "preview": "Aperçu",
+    "close": "Fermer",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "system": "Système",
+    "back": "Retour"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "profile": {
+      "title": "Profil",
+      "name": "Nom d'utilisateur",
+      "email": "E-mail"
+    },
+    "theme": {
+      "title": "Paramètres de thème",
+      "dark": "Mode sombre",
+      "description": "Basculer entre thème clair/sombre",
+      "markdown": "Activer le mode Markdown",
+      "markdownDescription": "Activer la prise en charge de la syntaxe Markdown dans les champs de texte"
+    },
+    "language": {
+      "title": "Paramètres de langue",
+      "description": "Choisir la langue de l'interface",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "Paramètres IA",
+      "enable": "Activer l'Assistant IA",
+      "description": "Activer/désactiver les fonctionnalités de l'assistant IA",
+      "apiKey": "Clé API",
+      "apiKeyDescription": "Définir la clé API OpenAI"
+    },
+    "tts": {
+      "title": "Synthèse Vocale",
+      "enable": "Activer la synthèse vocale",
+      "auto": "Lecture automatique",
+      "speed": "Vitesse de parole",
+      "normal": "Normal",
+      "service": "Service de synthèse vocale",
+      "browser": "Navigateur",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Voix",
+      "azureKey": "Clé API Azure",
+      "azureRegion": "Région Azure",
+      "googleKey": "Clé API Google",
+      "gptSovitsUrl": "URL GPT-SoVITS",
+      "character": "Personnage",
+      "emotion": "Émotion",
+      "textLanguage": "Langue du texte"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Tapez un message...",
+    "sendButton": "Envoyer",
+    "uploadButton": "Télécharger un fichier",
+    "emojiButton": "Insérer un emoji",
+    "status": {
+      "sending": "Envoi en cours...",
+      "sent": "Envoyé",
+      "read": "Lu",
+      "failed": "Échec",
+      "online": "En ligne",
+      "offline": "Hors ligne"
+    },
+    "demoMessages": {
+      "welcome": "Bonjour ! Je suis votre assistant IA. Comment puis-je vous aider ?",
+      "question": "Salut, comment allez-vous ?",
+      "answer": "Je vais très bien, merci de demander !",
+      "followup": "C'est bien à entendre ! Quoi de neuf ?",
+      "sendingExample": "Voici un message en cours d'envoi...",
+      "sentExample": "Voici un message envoyé"
+    },
+    "fileMessages": {
+      "image": "a envoyé une image",
+      "file": "a envoyé un fichier : {filename}",
+      "pdf": "a envoyé un fichier PDF : {filename}",
+      "word": "a envoyé un document Word : {filename}",
+      "excel": "a envoyé une feuille de calcul Excel : {filename}",
+      "ppt": "a envoyé une présentation PowerPoint : {filename}",
+      "txt": "a envoyé un fichier texte : {filename}"
+    },
+    "preview": {
+      "title": "Aperçu du fichier",
+      "loading": "Chargement...",
+      "error": "Échec de l'aperçu",
+      "unsupported": "Aperçu non pris en charge pour ce type de fichier"
+    },
+    "currentUser": "Utilisateur actuel",
+    "actions": {
+      "search": "Rechercher",
+      "inbox": "Boîte de réception",
+      "help": "Aide"
+    },
+    "search": {
+      "placeholder": "Rechercher des messages...",
+      "noResults": "Aucun message contenant \"{keyword}\" trouvé"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Erreur réseau",
+      "message": "Échec de connexion au serveur, veuillez vérifier votre connexion réseau"
+    },
+    "api": {
+      "title": "Erreur API",
+      "invalidKey": "Clé API invalide, veuillez vérifier vos paramètres",
+      "configMissing": "Veuillez d'abord configurer votre clé API OpenAI dans les paramètres",
+      "requestFailed": "La demande a échoué, veuillez réessayer plus tard"
+    },
+    "chat": {
+      "sendFailed": "Échec de l'envoi du message",
+      "receiveFailed": "Échec de la réception du message",
+      "loadFailed": "Échec du chargement de l'historique du chat"
+    },
+    "file": {
+      "uploadFailed": "Échec du téléchargement du fichier",
+      "downloadFailed": "Échec du téléchargement du fichier",
+      "sizeLimitExceeded": "La taille du fichier ne peut pas dépasser {size}MB",
+      "imageOnly": "Seuls les fichiers image sont autorisés",
+      "unsupportedFormat": "Format de fichier non pris en charge"
+    },
+    "tts": {
+      "failed": "Échec de la conversion du texte en parole",
+      "unsupported": "La synthèse vocale n'est pas prise en charge dans votre navigateur"
+    },
+    "common": {
+      "unauthorized": "Veuillez d'abord vous connecter",
+      "forbidden": "Vous n'avez pas la permission d'effectuer cette action",
+      "notFound": "Ressource non trouvée",
+      "serverError": "Erreur serveur, veuillez réessayer plus tard"
+    }
+  },
+  "channel": {
+    "title": "Chaîne",
+    "create": "Créer une Chaîne",
+    "join": "Rejoindre la Chaîne",
+    "leave": "Quitter la Chaîne",
+    "delete": "Supprimer la Chaîne",
+    "settings": "Paramètres de la Chaîne",
+    "types": {
+      "text": "Chaîne Textuelle",
+      "voice": "Chaîne Vocale"
+    },
+    "status": {
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "connecting": "Connexion en cours"
+    },
+    "actions": {
+      "mute": "Muet",
+      "unmute": "Activer le son",
+      "deafen": "Désactiver le son",
+      "undeafen": "Activer le son",
+      "threads": "Fils de discussion",
+      "notifications": "Notifications",
+      "pinned": "Messages épinglés",
+      "members": "Liste des membres",
+      "add": "Ajouter une Chaîne"
+    },
+    "messages": {
+      "welcome": "Bienvenue sur {channelName}",
+      "joined": "{username} a rejoint la chaîne",
+      "left": "{username} a quitté la chaîne",
+      "deleted": "La chaîne a été supprimée",
+      "noPermission": "Vous n'avez pas la permission d'accéder à cette chaîne",
+      "joinedVoice": "A rejoint la chaîne vocale",
+      "leftVoice": "A quitté la chaîne vocale",
+      "micPermissionDenied": "Impossible d'accéder au microphone, veuillez vérifier les permissions",
+      "defaultDescription": "Ceci est le début de la chaîne #{channelName}"
+    },
+    "form": {
+      "name": "Nom de la Chaîne",
+      "type": "Type de Chaîne",
+      "description": "Description de la Chaîne",
+      "createSuccess": "Chaîne créée avec succès !",
+      "createError": "Veuillez remplir les informations requises !"
+    },
+    "placeholders": {
+      "channelName": "Nom de la Chaîne",
+      "description": "Description de la Chaîne",
+      "message": "Message dans #{channelName}"
+    },
+    "default": "Général"
+  },
+  "server": {
+    "title": "Serveur de Test",
+    "create": "Créer un Serveur",
+    "createNew": "Créer un Nouveau Serveur",
+    "join": "Rejoindre le Serveur",
+    "leave": "Quitter le Serveur",
+    "delete": "Supprimer le Serveur",
+    "settings": "Paramètres du Serveur",
+    "form": {
+      "name": "Nom du Serveur",
+      "nameRequired": "Veuillez entrer le nom du serveur",
+      "namePlaceholder": "Entrez le nom du serveur",
+      "description": "Description du Serveur",
+      "descriptionPlaceholder": "Entrez la description du serveur",
+      "icon": "Icône du Serveur",
+      "uploadIcon": "Télécharger une Image",
+      "required": "Obligatoire",
+      "createSuccess": "Serveur créé avec succès !",
+      "createError": "Veuillez remplir les informations requises !"
+    },
+    "messages": {
+      "selectChannel": "Veuillez sélectionner une chaîne",
+      "welcome": "Bienvenue sur {serverName}",
+      "joined": "{username} a rejoint le serveur",
+      "left": "{username} a quitté le serveur",
+      "deleted": "Le serveur a été supprimé",
+      "noPermission": "Vous n'avez pas la permission d'accéder à ce serveur"
+    },
+    "actions": {
+      "add": "Ajouter un Nouveau Serveur"
+    },
+    "main": "Serveur Principal",
+    "test": "Serveur de Test"
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Bon retour",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "remember": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "submit": "Connexion",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "register": "S'inscrire maintenant",
+    "submitLog": "Formulaire de connexion soumis :"
+  },
+  "register": {
+    "title": "Créer un Compte",
+    "subtitle": "Rejoignez notre communauté de chat",
+    "username": "Nom d'utilisateur",
+    "email": "E-mail",
+    "phone": "Numéro de téléphone",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "submit": "S'inscrire",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "login": "Se connecter maintenant",
+    "submitLog": "Formulaire d'inscription soumis :",
+    "validation": {
+      "usernameRequired": "Veuillez saisir votre nom d'utilisateur !",
+      "emailRequired": "Veuillez saisir votre e-mail !",
+      "emailValid": "Veuillez saisir une adresse e-mail valide !",
+      "phoneRequired": "Veuillez saisir votre numéro de téléphone !",
+      "phoneValid": "Veuillez saisir un numéro de téléphone valide !",
+      "passwordRequired": "Veuillez saisir votre mot de passe !",
+      "passwordLength": "Le mot de passe doit comporter au moins 6 caractères !",
+      "confirmRequired": "Veuillez confirmer votre mot de passe !",
+      "passwordsMismatch": "Les deux mots de passe ne correspondent pas !"
+    }
+  }
+} 

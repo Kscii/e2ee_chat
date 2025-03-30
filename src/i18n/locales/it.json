@@ -1,0 +1,291 @@
+{
+  "navigation": {
+    "channels": "Canali",
+    "directMessages": "Messaggi Diretti",
+    "groups": "Gruppi",
+    "ai": "Assistente IA",
+    "settings": "Impostazioni"
+  },
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "send": "Invia",
+    "upload": "Carica",
+    "download": "Scarica",
+    "preview": "Anteprima",
+    "close": "Chiudi",
+    "settings": "Impostazioni",
+    "logout": "Esci",
+    "system": "Sistema",
+    "back": "Indietro"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "profile": {
+      "title": "Profilo",
+      "name": "Nome utente",
+      "email": "Email"
+    },
+    "theme": {
+      "title": "Impostazioni tema",
+      "dark": "Modalità scura",
+      "description": "Attiva/disattiva tema chiaro/scuro",
+      "markdown": "Attiva modalità Markdown",
+      "markdownDescription": "Abilita il supporto per la sintassi Markdown nei campi di testo"
+    },
+    "language": {
+      "title": "Impostazioni lingua",
+      "description": "Scegli la lingua dell'interfaccia",
+      "zh": "中文",
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ko": "한국어",
+      "ru": "Русский",
+      "pt": "Português",
+      "it": "Italiano",
+      "hi": "हिन्दी",
+      "ar": "العربية",
+      "tr": "Türkçe",
+      "th": "ไทย",
+      "id": "Bahasa Indonesia",
+      "vi": "Tiếng Việt"
+    },
+    "ai": {
+      "title": "Impostazioni IA",
+      "enable": "Attiva Assistente IA",
+      "description": "Attiva/disattiva funzionalità assistente IA",
+      "apiKey": "Chiave API",
+      "apiKeyDescription": "Imposta chiave API OpenAI"
+    },
+    "tts": {
+      "title": "Sintesi Vocale",
+      "enable": "Attiva TTS",
+      "auto": "Lettura automatica",
+      "speed": "Velocità di lettura",
+      "normal": "Normale",
+      "service": "Servizio TTS",
+      "browser": "Browser",
+      "azure": "Azure",
+      "google": "Google",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "Voce",
+      "azureKey": "Chiave API Azure",
+      "azureRegion": "Regione Azure",
+      "googleKey": "Chiave API Google",
+      "gptSovitsUrl": "URL GPT-SoVITS",
+      "character": "Personaggio",
+      "emotion": "Emozione",
+      "textLanguage": "Lingua del testo"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Scrivi un messaggio...",
+    "sendButton": "Invia",
+    "uploadButton": "Carica file",
+    "emojiButton": "Inserisci emoji",
+    "status": {
+      "sending": "Invio in corso...",
+      "sent": "Inviato",
+      "read": "Letto",
+      "failed": "Non riuscito",
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "demoMessages": {
+      "welcome": "Ciao! Sono il tuo assistente IA. Come posso aiutarti?",
+      "question": "Ciao, come stai?",
+      "answer": "Sto benissimo, grazie per averlo chiesto!",
+      "followup": "Mi fa piacere! Novità?",
+      "sendingExample": "Questo è un messaggio in fase di invio...",
+      "sentExample": "Questo è un messaggio inviato"
+    },
+    "fileMessages": {
+      "image": "ha inviato un'immagine",
+      "file": "ha inviato un file: {filename}",
+      "pdf": "ha inviato un file PDF: {filename}",
+      "word": "ha inviato un documento Word: {filename}",
+      "excel": "ha inviato un foglio Excel: {filename}",
+      "ppt": "ha inviato una presentazione PowerPoint: {filename}",
+      "txt": "ha inviato un file di testo: {filename}"
+    },
+    "preview": {
+      "title": "Anteprima file",
+      "loading": "Caricamento...",
+      "error": "Anteprima fallita",
+      "unsupported": "Anteprima non supportata per questo tipo di file"
+    },
+    "currentUser": "Utente attuale",
+    "actions": {
+      "search": "Cerca",
+      "inbox": "Posta in arrivo",
+      "help": "Aiuto"
+    },
+    "search": {
+      "placeholder": "Cerca messaggi...",
+      "noResults": "Nessun messaggio trovato contenente \"{keyword}\""
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Errore di rete",
+      "message": "Impossibile connettersi al server, verifica la tua connessione di rete"
+    },
+    "api": {
+      "title": "Errore API",
+      "invalidKey": "Chiave API non valida, controlla le tue impostazioni",
+      "configMissing": "Configura prima la tua chiave API OpenAI nelle impostazioni",
+      "requestFailed": "Richiesta fallita, riprova più tardi"
+    },
+    "chat": {
+      "sendFailed": "Invio messaggio fallito",
+      "receiveFailed": "Ricezione messaggio fallita",
+      "loadFailed": "Caricamento cronologia chat fallito"
+    },
+    "file": {
+      "uploadFailed": "Caricamento file fallito",
+      "downloadFailed": "Download file fallito",
+      "sizeLimitExceeded": "La dimensione del file non può superare {size}MB",
+      "imageOnly": "Sono consentiti solo file immagine",
+      "unsupportedFormat": "Formato file non supportato"
+    },
+    "tts": {
+      "failed": "Conversione testo in voce fallita",
+      "unsupported": "La sintesi vocale non è supportata nel tuo browser"
+    },
+    "common": {
+      "unauthorized": "Effettua prima il login",
+      "forbidden": "Non hai il permesso di eseguire questa azione",
+      "notFound": "Risorsa non trovata",
+      "serverError": "Errore del server, riprova più tardi"
+    }
+  },
+  "channel": {
+    "title": "Canale",
+    "create": "Crea Canale",
+    "join": "Unisciti al Canale",
+    "leave": "Lascia Canale",
+    "delete": "Elimina Canale",
+    "settings": "Impostazioni Canale",
+    "types": {
+      "text": "Canale Testuale",
+      "voice": "Canale Vocale"
+    },
+    "status": {
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "connecting": "Connessione in corso"
+    },
+    "actions": {
+      "mute": "Silenzia",
+      "unmute": "Riattiva audio",
+      "deafen": "Disattiva cuffie",
+      "undeafen": "Riattiva cuffie",
+      "threads": "Discussioni",
+      "notifications": "Notifiche",
+      "pinned": "Messaggi fissati",
+      "members": "Elenco membri",
+      "add": "Aggiungi Canale"
+    },
+    "messages": {
+      "welcome": "Benvenuto in {channelName}",
+      "joined": "{username} è entrato nel canale",
+      "left": "{username} ha lasciato il canale",
+      "deleted": "Il canale è stato eliminato",
+      "noPermission": "Non hai il permesso di accedere a questo canale",
+      "joinedVoice": "Entrato nel canale vocale",
+      "leftVoice": "Uscito dal canale vocale",
+      "micPermissionDenied": "Impossibile accedere al microfono, verifica i permessi",
+      "defaultDescription": "Questo è l'inizio del canale #{channelName}"
+    },
+    "form": {
+      "name": "Nome Canale",
+      "type": "Tipo Canale",
+      "description": "Descrizione Canale",
+      "createSuccess": "Canale creato con successo!",
+      "createError": "Compila le informazioni richieste!"
+    },
+    "placeholders": {
+      "channelName": "Nome Canale",
+      "description": "Descrizione Canale",
+      "message": "Messaggio in #{channelName}"
+    },
+    "default": "Generale"
+  },
+  "server": {
+    "title": "Server di Test",
+    "create": "Crea Server",
+    "createNew": "Crea Nuovo Server",
+    "join": "Unisciti al Server",
+    "leave": "Lascia Server",
+    "delete": "Elimina Server",
+    "settings": "Impostazioni Server",
+    "form": {
+      "name": "Nome Server",
+      "nameRequired": "Inserisci il nome del server",
+      "namePlaceholder": "Inserisci nome server",
+      "description": "Descrizione Server",
+      "descriptionPlaceholder": "Inserisci descrizione server",
+      "icon": "Icona Server",
+      "uploadIcon": "Carica Immagine",
+      "required": "Obbligatorio",
+      "createSuccess": "Server creato con successo!",
+      "createError": "Compila le informazioni richieste!"
+    },
+    "messages": {
+      "selectChannel": "Seleziona un canale",
+      "welcome": "Benvenuto in {serverName}",
+      "joined": "{username} è entrato nel server",
+      "left": "{username} ha lasciato il server",
+      "deleted": "Il server è stato eliminato",
+      "noPermission": "Non hai il permesso di accedere a questo server"
+    },
+    "actions": {
+      "add": "Aggiungi Nuovo Server"
+    },
+    "main": "Server Principale",
+    "test": "Server di Test"
+  },
+  "login": {
+    "title": "Accesso",
+    "subtitle": "Bentornato",
+    "username": "Nome utente",
+    "password": "Password",
+    "remember": "Ricordami",
+    "forgotPassword": "Password dimenticata?",
+    "submit": "Accedi",
+    "noAccount": "Non hai un account?",
+    "register": "Registrati ora",
+    "submitLog": "Modulo di accesso inviato:"
+  },
+  "register": {
+    "title": "Crea Account",
+    "subtitle": "Unisciti alla nostra comunità di chat",
+    "username": "Nome utente",
+    "email": "Email",
+    "phone": "Numero di telefono",
+    "password": "Password",
+    "confirmPassword": "Conferma Password",
+    "submit": "Registrati",
+    "haveAccount": "Hai già un account?",
+    "login": "Accedi ora",
+    "submitLog": "Modulo di registrazione inviato:",
+    "validation": {
+      "usernameRequired": "Inserisci il tuo nome utente!",
+      "emailRequired": "Inserisci la tua email!",
+      "emailValid": "Inserisci un indirizzo email valido!",
+      "phoneRequired": "Inserisci il tuo numero di telefono!",
+      "phoneValid": "Inserisci un numero di telefono valido!",
+      "passwordRequired": "Inserisci la tua password!",
+      "passwordLength": "La password deve essere di almeno 6 caratteri!",
+      "confirmRequired": "Conferma la tua password!",
+      "passwordsMismatch": "Le due password non corrispondono!"
+    }
+  }
+} 
