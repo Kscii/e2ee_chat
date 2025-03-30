@@ -8,7 +8,8 @@
     "save": "保存",
     "loading": "加载中...",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "system": "系统"
   },
   "chat": {
     "inputPlaceholder": "输入消息...",
@@ -19,7 +20,104 @@
     "download": "下载",
     "fileTooBig": "文件大小不能超过{{size}}MB！",
     "imageTooBig": "图片大小不能超过{{size}}MB！",
-    "onlyImage": "只能上传图片文件！"
+    "onlyImage": "只能上传图片文件！",
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "sending": "发送中",
+      "sent": "已发送",
+      "read": "已读"
+    },
+    "currentUser": "我",
+    "actions": {
+      "search": "搜索消息"
+    },
+    "search": {
+      "noResults": "没有找到包含 \"{{keyword}}\" 的消息"
+    },
+    "demoMessages": {
+      "welcome": "欢迎使用聊天系统！",
+      "question": "有什么可以帮到您的？",
+      "answer": "我想了解一下最新的功能。",
+      "followup": "当然可以，我们最近添加了语音通话和文件分享功能。",
+      "sendingExample": "这是一条发送中的消息示例。",
+      "sentExample": "这是一条已发送的消息示例。"
+    }
+  },
+  "channel": {
+    "addServer": "添加新服务器",
+    "default": "常规",
+    "form": {
+      "createSuccess": "频道创建成功",
+      "createError": "创建频道时出错",
+      "name": "频道名称",
+      "description": "描述",
+      "type": "频道类型",
+      "nameRequired": "请输入频道名称"
+    },
+    "messages": {
+      "welcome": "欢迎来到 {{channelName}} 频道",
+      "joinedVoice": "已加入语音频道",
+      "leftVoice": "已离开语音频道",
+      "defaultDescription": "这是 {{channelName}} 频道的开始"
+    },
+    "actions": {
+      "mute": "已静音",
+      "unmute": "已取消静音",
+      "add": "添加频道",
+      "notifications": "通知设置",
+      "pinned": "已固定消息",
+      "members": "成员列表"
+    },
+    "status": {
+      "connected": "已连接"
+    },
+    "settings": "设置",
+    "leave": "离开",
+    "types": {
+      "text": "文字频道",
+      "voice": "语音频道"
+    },
+    "create": "创建频道",
+    "placeholders": {
+      "message": "发送消息到 {{channelName}}",
+      "channelName": "输入频道名称",
+      "description": "输入频道描述"
+    }
+  },
+  "server": {
+    "form": {
+      "createSuccess": "服务器创建成功",
+      "createError": "创建服务器时出错",
+      "name": "服务器名称",
+      "description": "服务器描述",
+      "icon": "服务器图标",
+      "uploadIcon": "上传图标",
+      "namePlaceholder": "输入服务器名称",
+      "descriptionPlaceholder": "输入服务器描述",
+      "nameRequired": "请输入服务器名称"
+    },
+    "main": "主服务器",
+    "mainDescription": "这是主要的服务器",
+    "test": "测试服务器",
+    "testDescription": "用于测试的服务器",
+    "createNew": "创建新服务器",
+    "actions": {
+      "add": "添加服务器"
+    },
+    "messages": {
+      "selectChannel": "请选择一个频道"
+    }
+  },
+  "upload": {
+    "file": "上传文件",
+    "image": "上传图片",
+    "message": "发送消息"
+  },
+  "errors": {
+    "chat": {
+      "sendFailed": "发送消息失败"
+    }
   },
   "settings": {
     "title": "设置",
@@ -48,6 +146,89 @@
       "enable": "启用 AI 助手",
       "apiKey": "API 密钥",
       "model": "模型"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "欢迎回来",
+      "subtitle": "登录您的聊天账号",
+      "username": "用户名",
+      "password": "密码",
+      "usernameRequired": "请输入用户名!",
+      "passwordRequired": "请输入密码!",
+      "rememberMe": "记住我",
+      "forgotPassword": "忘记密码?",
+      "loginButton": "登录",
+      "noAccount": "还没有账号?",
+      "register": "立即注册",
+      "loginSuccess": "登录成功",
+      "loginFailed": "登录失败"
+    },
+    "register": {
+      "title": "创建账号",
+      "subtitle": "加入我们的聊天社区",
+      "username": "用户名",
+      "email": "邮箱",
+      "phone": "手机号",
+      "password": "密码",
+      "confirmPassword": "确认密码",
+      "usernameRequired": "请输入用户名!",
+      "emailRequired": "请输入邮箱!",
+      "emailInvalid": "请输入有效的邮箱地址!",
+      "phoneRequired": "请输入手机号!",
+      "phoneInvalid": "请输入有效的手机号!",
+      "passwordRequired": "请输入密码!",
+      "passwordMinLength": "密码至少为6个字符!",
+      "confirmPasswordRequired": "请确认密码!",
+      "passwordMismatch": "两次输入的密码不匹配!",
+      "registerButton": "注册",
+      "hasAccount": "已有账号?",
+      "login": "立即登录",
+      "registerSuccess": "注册成功",
+      "registerFailed": "注册失败"
+    }
+  },
+  "profile": {
+    "tabs": {
+      "info": "个人资料",
+      "account": "账户设置",
+      "notification": "通知设置"
+    },
+    "info": {
+      "name": "姓名",
+      "email": "邮箱",
+      "phone": "手机号",
+      "bio": "个人简介",
+      "editProfile": "编辑资料",
+      "changeAvatar": "更换头像",
+      "nameRequired": "请输入姓名!",
+      "emailRequired": "请输入邮箱!",
+      "emailInvalid": "请输入有效的邮箱地址!",
+      "bioPlaceholder": "写一些关于你自己的介绍..."
+    },
+    "password": {
+      "title": "密码修改",
+      "current": "当前密码",
+      "new": "新密码",
+      "confirm": "确认新密码",
+      "currentRequired": "请输入当前密码!",
+      "newRequired": "请输入新密码!",
+      "confirmRequired": "请确认新密码!",
+      "mismatch": "两次输入的密码不匹配!",
+      "changeButton": "修改密码"
+    },
+    "notification": {
+      "title": "通知设置",
+      "content": "通知设置内容..."
+    }
+  },
+  "user": {
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "idle": "闲置",
+      "dnd": "请勿打扰",
+      "change": "更改状态"
     }
   }
 } 

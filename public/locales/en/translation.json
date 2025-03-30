@@ -8,7 +8,8 @@
     "save": "Save",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "system": "System"
   },
   "chat": {
     "inputPlaceholder": "Type a message...",
@@ -19,7 +20,104 @@
     "download": "Download",
     "fileTooBig": "File size cannot exceed {{size}}MB!",
     "imageTooBig": "Image size cannot exceed {{size}}MB!",
-    "onlyImage": "Only image files are allowed!"
+    "onlyImage": "Only image files are allowed!",
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "sending": "Sending",
+      "sent": "Sent",
+      "read": "Read"
+    },
+    "currentUser": "Me",
+    "actions": {
+      "search": "Search messages"
+    },
+    "search": {
+      "noResults": "No messages found containing \"{{keyword}}\""
+    },
+    "demoMessages": {
+      "welcome": "Welcome to the chat system!",
+      "question": "How can I help you today?",
+      "answer": "I'd like to know about the latest features.",
+      "followup": "Sure, we recently added voice calls and file sharing capabilities.",
+      "sendingExample": "This is an example of a sending message.",
+      "sentExample": "This is an example of a sent message."
+    }
+  },
+  "channel": {
+    "addServer": "Add New Server",
+    "default": "General",
+    "form": {
+      "createSuccess": "Channel created successfully",
+      "createError": "Error creating channel",
+      "name": "Channel Name",
+      "description": "Description",
+      "type": "Channel Type",
+      "nameRequired": "Please enter a channel name"
+    },
+    "messages": {
+      "welcome": "Welcome to {{channelName}} channel",
+      "joinedVoice": "Joined voice channel",
+      "leftVoice": "Left voice channel",
+      "defaultDescription": "This is the beginning of the {{channelName}} channel"
+    },
+    "actions": {
+      "mute": "Muted",
+      "unmute": "Unmuted",
+      "add": "Add Channel",
+      "notifications": "Notification Settings",
+      "pinned": "Pinned Messages",
+      "members": "Member List"
+    },
+    "status": {
+      "connected": "Connected"
+    },
+    "settings": "Settings",
+    "leave": "Leave",
+    "types": {
+      "text": "Text Channel",
+      "voice": "Voice Channel"
+    },
+    "create": "Create Channel",
+    "placeholders": {
+      "message": "Message {{channelName}}",
+      "channelName": "Enter channel name",
+      "description": "Enter channel description"
+    }
+  },
+  "server": {
+    "form": {
+      "createSuccess": "Server created successfully",
+      "createError": "Error creating server",
+      "name": "Server Name",
+      "description": "Server Description",
+      "icon": "Server Icon",
+      "uploadIcon": "Upload Icon",
+      "namePlaceholder": "Enter server name",
+      "descriptionPlaceholder": "Enter server description",
+      "nameRequired": "Please enter a server name"
+    },
+    "main": "Main Server",
+    "mainDescription": "This is the main server",
+    "test": "Test Server",
+    "testDescription": "Server for testing purposes",
+    "createNew": "Create New Server",
+    "actions": {
+      "add": "Add Server"
+    },
+    "messages": {
+      "selectChannel": "Please select a channel"
+    }
+  },
+  "upload": {
+    "file": "Upload File",
+    "image": "Upload Image",
+    "message": "Send a message"
+  },
+  "errors": {
+    "chat": {
+      "sendFailed": "Failed to send message"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -48,6 +146,89 @@
       "enable": "Enable AI Assistant",
       "apiKey": "API Key",
       "model": "Model"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your chat account",
+      "username": "Username",
+      "password": "Password",
+      "usernameRequired": "Please enter your username!",
+      "passwordRequired": "Please enter your password!",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "loginButton": "Login",
+      "noAccount": "Don't have an account?",
+      "register": "Register now",
+      "loginSuccess": "Login successful",
+      "loginFailed": "Login failed"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join our chat community",
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "usernameRequired": "Please enter your username!",
+      "emailRequired": "Please enter your email!",
+      "emailInvalid": "Please enter a valid email address!",
+      "phoneRequired": "Please enter your phone number!",
+      "phoneInvalid": "Please enter a valid phone number!",
+      "passwordRequired": "Please enter your password!",
+      "passwordMinLength": "Password must be at least 6 characters!",
+      "confirmPasswordRequired": "Please confirm your password!",
+      "passwordMismatch": "The two passwords do not match!",
+      "registerButton": "Register",
+      "hasAccount": "Already have an account?",
+      "login": "Login now",
+      "registerSuccess": "Registration successful",
+      "registerFailed": "Registration failed"
+    }
+  },
+  "profile": {
+    "tabs": {
+      "info": "Personal Information",
+      "account": "Account Settings",
+      "notification": "Notification Settings"
+    },
+    "info": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "bio": "Bio",
+      "editProfile": "Edit Profile",
+      "changeAvatar": "Change Avatar",
+      "nameRequired": "Please enter your name!",
+      "emailRequired": "Please enter your email!",
+      "emailInvalid": "Please enter a valid email address!",
+      "bioPlaceholder": "Write something about yourself..."
+    },
+    "password": {
+      "title": "Change Password",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "currentRequired": "Please enter your current password!",
+      "newRequired": "Please enter a new password!",
+      "confirmRequired": "Please confirm your new password!",
+      "mismatch": "The two passwords do not match!",
+      "changeButton": "Change Password"
+    },
+    "notification": {
+      "title": "Notification Settings",
+      "content": "Notification settings content..."
+    }
+  },
+  "user": {
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "idle": "Idle",
+      "dnd": "Do Not Disturb",
+      "change": "Change Status"
     }
   }
 } 
