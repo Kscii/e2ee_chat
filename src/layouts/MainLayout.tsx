@@ -43,8 +43,10 @@ const MainLayout: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { aiEnabled } = useAI();
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
-  const [siderWidth, setSiderWidth] = useState(240);
+  const isChannelsPage = location.pathname === '/channels';
+
+  const [collapsed, setCollapsed] = useState(isChannelsPage || false);
+  const [siderWidth, setSiderWidth] = useState(isChannelsPage ? 80 : 240);
   const [lastNormalWidth, setLastNormalWidth] = useState(240);
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -79,19 +81,27 @@ const MainLayout: React.FC = () => {
     return () => window.removeEventListener('resize', checkWidth);
   }, [lastNormalWidth]);
 
-  // 处理折叠状态变化
-  const handleCollapse = (newCollapsed: boolean) => {
-    if (isMobile) {
-      setShowMobileMenu(!showMobileMenu);
-      setSiderWidth(showMobileMenu ? 0 : 80);
+  // 监听路径变化，强制channels页面折叠
+  useEffect(() => {
+    if (isChannelsPage) {
+      setCollapsed(true);
+      setSiderWidth(80); // 折叠宽度
+    }
+  }, [location.pathname, isChannelsPage]);
+
+  // 修改handleCollapse函数
+  const handleCollapse = (value: boolean) => {
+    // 如果是channels页面，且尝试展开，则阻止操作
+    if (isChannelsPage && !value) {
+      return;
+    }
+    
+    setCollapsed(value);
+    if (value) {
+      setLastNormalWidth(siderWidth);
+      setSiderWidth(80);
     } else {
-      setCollapsed(newCollapsed);
-      if (newCollapsed) {
-        setLastNormalWidth(siderWidth);
-        setSiderWidth(80);
-      } else {
-        setSiderWidth(lastNormalWidth);
-      }
+      setSiderWidth(lastNormalWidth);
     }
   };
 
@@ -144,6 +154,7 @@ const MainLayout: React.FC = () => {
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'channels') {
       navigate('/channels');
+      handleCollapse(true);
     } else if (e.key.startsWith('user-') || e.key.startsWith('group-')) {
       navigate(`/chat/${e.key}`);
     } else if (e.key === 'settings') {
@@ -184,7 +195,7 @@ const MainLayout: React.FC = () => {
           height: '100vh',
         }}
         onResize={(sizes: number[]) => {
-          if (!collapsed && !isMobile) {
+          if (!collapsed && !isMobile && !isChannelsPage) {
             setSiderWidth(sizes[0]);
             setLastNormalWidth(sizes[0]);
           }
