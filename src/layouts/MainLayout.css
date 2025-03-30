@@ -224,6 +224,13 @@
 
   .app-sider.show {
     left: 0;
+    width: 80px !important;
+  }
+
+  .app-sider.show .ant-menu-item .anticon,
+  .app-sider.show .ant-menu-submenu-title .anticon {
+    display: inline-block !important;
+    margin-right: 0;
   }
 
   .main-layout {
@@ -241,6 +248,14 @@
 
   .ant-menu-inline {
     padding: 12px;
+  }
+
+  .mobile-menu-button {
+    z-index: 1001;
+  }
+
+  .app-sider.show + .mobile-menu-button {
+    right: 20px;
   }
 }
 

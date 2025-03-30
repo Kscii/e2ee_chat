@@ -103,6 +103,11 @@ const MainLayout: React.FC = () => {
     } else {
       setSiderWidth(lastNormalWidth);
     }
+    
+    // 在非移动设备上才设置折叠状态
+    if (!isMobile) {
+      setCollapsed(value);
+    }
   };
 
   // 当AI功能被关闭时，如果当前在AI页面，则重定向到聊天页面
@@ -180,7 +185,17 @@ const MainLayout: React.FC = () => {
       <Button
         type="text"
         icon={showMobileMenu ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-        onClick={() => handleCollapse(!collapsed)}
+        onClick={() => {
+          // 在移动设备上，更新showMobileMenu状态
+          if (isMobile) {
+            const newState = !showMobileMenu;
+            setShowMobileMenu(newState);
+            setSiderWidth(newState ? 80 : 0);
+          } else {
+            // 非移动设备使用原有逻辑
+            handleCollapse(!collapsed);
+          }
+        }}
         className={`mobile-menu-button ${isMobile ? 'show' : ''}`}
       />
       <Splitter
@@ -201,7 +216,7 @@ const MainLayout: React.FC = () => {
           defaultSize={siderWidth}
           size={siderWidth}
         >
-          <Flex vertical className={`app-sider ${showMobileMenu ? 'show' : ''}`}>
+          <Flex vertical className={`app-sider ${(showMobileMenu && isMobile) ? 'show' : ''}`}>
             <div className="user-profile">
               <Dropdown menu={{ items: userMenuItems }} placement="topRight">
                 <div className="user-info">

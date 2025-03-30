@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Layout, Button, Input, Tooltip, Modal, Form, Upload, message, Menu, Dropdown, Radio, Avatar } from 'antd';
 import { 
   UserOutlined, 
@@ -20,7 +20,8 @@ import {
   GiftOutlined,
   PictureOutlined,
   SendOutlined,
-  FileOutlined
+  FileOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useServer } from '../../contexts/ServerContext';
 import type { Server, Channel } from '../../types/server';
@@ -30,6 +31,7 @@ import ChatBox from '../../components/ChatBox';
 import { useAvatar } from '../../contexts/AvatarContext';
 import './ChannelPage.css';
 import { useTranslation } from 'react-i18next';
+import { useRef } from 'react';
 
 const { Content, Sider } = Layout;
 
@@ -67,6 +69,9 @@ const ChannelPage: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   // 使用语音通话hook
   const { stream, error: voiceError, isStreaming } = useVoiceChat({
@@ -101,6 +106,82 @@ const ChannelPage: React.FC = () => {
     }
   }, [selectedChannel, t]);
 
+  // 检测屏幕尺寸
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // 控制MainLayout菜单的显示与隐藏
+  useLayoutEffect(() => {
+    if (isMobile) {
+      // 获取MainLayout的侧边栏元素
+      const mainSider = document.querySelector('.app-sider') as HTMLElement;
+      const mobileMenuButton = document.querySelector('.mobile-menu-button') as HTMLElement;
+      
+      if (mainSider && mobileMenuButton) {
+        // 隐藏MainLayout的侧边栏
+        mainSider.style.left = '-100%';
+        
+        // 保留移动菜单按钮并调整位置
+        mobileMenuButton.style.display = 'flex';
+        mobileMenuButton.style.top = '10px';
+        mobileMenuButton.style.right = '10px';
+        mobileMenuButton.style.zIndex = '1002';
+        
+        // 创建点击事件处理函数
+        const handleMenuClick = () => {
+          // 切换MainLayout侧边栏的显示状态
+          if (mainSider.style.left === '-100%') {
+            mainSider.style.left = '0';
+            mainSider.classList.add('show');
+            
+            // 当打开MainLayout菜单时，临时隐藏Channel页面内容
+            const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
+            if (channelPageElement) {
+              channelPageElement.style.opacity = '0.3';
+              channelPageElement.style.pointerEvents = 'none';
+            }
+          } else {
+            mainSider.style.left = '-100%';
+            mainSider.classList.remove('show');
+            
+            // 恢复Channel页面内容
+            const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
+            if (channelPageElement) {
+              channelPageElement.style.opacity = '1';
+              channelPageElement.style.pointerEvents = 'auto';
+            }
+          }
+        };
+        
+        // 添加点击事件监听
+        mobileMenuButton.addEventListener('click', handleMenuClick);
+        
+        // 返回清理函数，移除事件监听
+        return () => {
+          mobileMenuButton.removeEventListener('click', handleMenuClick);
+          mainSider.style.removeProperty('left');
+          mainSider.classList.remove('show');
+          
+          // 恢复Channel页面内容
+          const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
+          if (channelPageElement) {
+            channelPageElement.style.removeProperty('opacity');
+            channelPageElement.style.removeProperty('pointer-events');
+          }
+        };
+      }
+    }
+    
+    return undefined;
+  }, [isMobile]);
+
   const handleServerSelect = (serverId: string) => {
     setCurrentServer(serverId);
     setSelectedChannel(null);
@@ -108,6 +189,11 @@ const ChannelPage: React.FC = () => {
 
   const handleChannelSelect = (channel: Channel) => {
     setSelectedChannel(channel);
+    
+    // 在移动端选择频道后显示内容区域
+    if (isMobile) {
+      setShowContent(true);
+    }
   };
 
   const handleAddServer = () => {
@@ -275,6 +361,11 @@ const ChannelPage: React.FC = () => {
     }
   };
 
+  // 添加返回按钮的处理函数
+  const handleBackToChannels = () => {
+    setShowContent(false);
+  };
+
   const renderChannelItem = (channel: Channel) => {
     const isVoice = channel.type === 'voice';
     const isJoined = joinedVoiceChannel === channel.id;
@@ -348,50 +439,63 @@ const ChannelPage: React.FC = () => {
   };
 
   return (
-    <Layout className="channel-page">
-      <div className="server-list">
-        {servers.map(server => (
-          <Tooltip key={server.id} title={server.name} placement="right">
-            <div
-              className={`server-item ${server.id === currentServer?.id ? 'active' : ''}`}
-              onClick={() => handleServerSelect(server.id)}
-            >
-              {server.avatar ? (
-                <img src={server.avatar} alt={server.name} className="server-avatar" />
-              ) : (
-                <div className="server-avatar">
-                  {server.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-          </Tooltip>
-        ))}
-        <Tooltip title={t('server.actions.add')} placement="right">
-          <div className="add-server-button" onClick={handleAddServer}>
-            <PlusOutlined />
-          </div>
-        </Tooltip>
-      </div>
-
-      {currentServer && (
-        <Sider className="channel-list" width={300}>
-          <div className="server-header">
-            <h3>{currentServer.name}</h3>
-          </div>
-          <div className="channels">
-            {currentServer.channels.map(channel => renderChannelItem(channel))}
-            <Tooltip title={t('channel.actions.add')} placement="right">
-              <div className="add-channel-button" onClick={handleAddChannel}>
-                <PlusOutlined />
+    <Layout className={`channel-page ${isMobile ? 'mobile' : ''} ${showContent ? 'show-content' : ''}`}>
+      <div className="server-list-container">
+        <div className="server-list">
+          {servers.map(server => (
+            <Tooltip key={server.id} title={server.name} placement="right">
+              <div
+                className={`server-item ${server.id === currentServer?.id ? 'active' : ''}`}
+                onClick={() => handleServerSelect(server.id)}
+              >
+                {server.avatar ? (
+                  <img src={server.avatar} alt={server.name} className="server-avatar" />
+                ) : (
+                  <div className="server-avatar">
+                    {server.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             </Tooltip>
-          </div>
-        </Sider>
-      )}
+          ))}
+          <Tooltip title={t('server.actions.add')} placement="right">
+            <div className="add-server-button" onClick={handleAddServer}>
+              <PlusOutlined />
+            </div>
+          </Tooltip>
+        </div>
+
+        {currentServer && (
+          <Sider className="channel-list" width={isMobile ? "calc(100% - 70px)" : 300}>
+            <div className="server-header">
+              <h3>{currentServer.name}</h3>
+            </div>
+            <div className="channels">
+              {currentServer.channels.map(channel => renderChannelItem(channel))}
+              <Tooltip title={t('channel.actions.add')} placement="right">
+                <div className="add-channel-button" onClick={handleAddChannel}>
+                  <PlusOutlined />
+                </div>
+              </Tooltip>
+            </div>
+          </Sider>
+        )}
+      </div>
 
       <Content className="channel-content">
         {selectedChannel ? (
           <>
+            {/* 在移动端和内容区域添加返回按钮 */}
+            {isMobile && (
+              <Button 
+                type="text" 
+                className="back-to-channels-btn"
+                icon={<ArrowLeftOutlined />} 
+                onClick={handleBackToChannels}
+              >
+                {t('common.back')}
+              </Button>
+            )}
             <div className="channel-header">
               <h2>{selectedChannel.name}</h2>
               <div className="channel-header-actions">

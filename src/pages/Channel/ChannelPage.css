@@ -5,6 +5,11 @@
 }
 
 /* 服务器列表样式 */
+.server-list-container {
+  display: flex;
+  height: 100%;
+}
+
 .server-list {
   display: flex;
   flex-direction: column;
@@ -514,4 +519,123 @@
 .channel-list .voice-users .ant-avatar {
   background: var(--background-floating);
   border: 2px solid var(--background-secondary);
+}
+
+/* 添加移动端响应式样式 */
+@media screen and (max-width: 768px) {
+  /* 确保Channel页面在移动端占满整个屏幕 */
+  .channel-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000; /* 高于MainLayout但低于菜单按钮 */
+  }
+  
+  /* 隐藏MainLayout的内容区域 */
+  .main-content > .channel-page {
+    position: fixed;
+    background: var(--background-primary);
+  }
+  
+  /* 确保服务器列表容器全屏显示 */
+  .channel-page.mobile .server-list-container {
+    width: 100%;
+    height: 100vh;
+    z-index: 1001; /* 需要高于channel-page本身但低于菜单按钮 */
+  }
+  
+  /* 调整菜单按钮在Channel页面的位置 */
+  .channel-page ~ .mobile-menu-button {
+    z-index: 1002; /* 确保菜单按钮在最上层 */
+  }
+  
+  /* 修复移动端按钮和Channel内容的层级关系 */
+  .channel-page.mobile.show-content .channel-content {
+    z-index: 1001;
+  }
+  
+  .channel-page {
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .channel-page.mobile .server-list-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    transition: transform 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+  
+  .channel-page.mobile.show-content .server-list-container {
+    transform: translateX(-100%);
+  }
+  
+  .channel-page.mobile .server-list {
+    width: 70px;
+    flex-shrink: 0;
+  }
+  
+  .channel-page.mobile .channel-list {
+    flex: 1;
+  }
+  
+  .channel-page.mobile .channel-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 9;
+  }
+  
+  .channel-page.mobile.show-content .channel-content {
+    transform: translateX(0);
+  }
+  
+  /* 返回按钮样式 */
+  .back-to-channels-btn {
+    margin: 12px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* 调整移动端的频道内容区域 */
+  .channel-page.mobile .channel-header {
+    padding: 0 12px;
+    margin-top: 10px;
+  }
+  
+  /* 隐藏无用元素 */
+  .channel-page.mobile.show-content .no-channel-selected {
+    display: none;
+  }
+  
+  /* 为MainLayout侧边栏添加过渡效果 */
+  .app-sider {
+    transition: left 0.3s ease !important;
+  }
+  
+  /* 当菜单展开时，确保它在Channel页面上方 */
+  .app-sider.show {
+    z-index: 1003 !important;
+  }
+  
+  /* 确保Channel页面在过渡时平滑 */
+  .channel-page {
+    transition: opacity 0.3s ease;
+  }
+  
+  /* 当MainLayout菜单打开时让Channel页面后退一点 */
+  .channel-page.dimmed {
+    opacity: 0.3;
+    pointer-events: none;
+  }
 } 
