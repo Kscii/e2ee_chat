@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Server } from '../types/server';
+import { useTranslation } from 'react-i18next';
 
 interface ServerContextProps {
   servers: Server[];
@@ -10,40 +11,42 @@ interface ServerContextProps {
 
 const ServerContext = createContext<ServerContextProps | undefined>(undefined);
 
-// 示例数据
-const initialServers: Server[] = [
-  {
-    id: '1',
-    name: '主服务器',
-    description: '这是主要的服务器',
-    ownerId: 'user1',
-    members: ['user1', 'user2'],
-    channels: [
-      {
-        id: 'channel1',
-        name: '常规',
-        type: 'text',
-        serverId: '1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: '测试服务器',
-    description: '用于测试的服务器',
-    ownerId: 'user1',
-    members: ['user1'],
-    channels: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-];
-
 export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { t } = useTranslation();
+  
+  // 示例数据
+  const initialServers: Server[] = [
+    {
+      id: '1',
+      name: t('server.main'),
+      description: t('server.mainDescription'),
+      ownerId: 'user1',
+      members: ['user1', 'user2'],
+      channels: [
+        {
+          id: 'channel1',
+          name: t('channel.default'),
+          type: 'text',
+          serverId: '1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: t('server.test'),
+      description: t('server.testDescription'),
+      ownerId: 'user1',
+      members: ['user1'],
+      channels: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  ];
+
   const [servers, setServers] = useState<Server[]>(initialServers);
   const [currentServer, setCurrentServerState] = useState<Server | undefined>(servers[0]);
 

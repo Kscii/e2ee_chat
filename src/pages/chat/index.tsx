@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Input, Button, Avatar, Typography, Divider, Tooltip, Upload, message, Modal, Dropdown, Menu } from 'antd';
+import { Input, Button, Avatar, Typography, Divider, Tooltip, Upload, message, Modal } from 'antd';
 import { 
   SendOutlined, 
   UserOutlined, 
@@ -16,8 +16,7 @@ import {
   DownloadOutlined,
   CheckOutlined,
   CheckCircleOutlined,
-  SmileOutlined,
-  DownOutlined
+  SmileOutlined
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
@@ -35,8 +34,6 @@ import { useAPI } from '../../contexts/APIContext';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { UserStatus } from '../../types/user';
-import UserAvatar from '../../components/UserAvatar';
 
 const { Text } = Typography;
 
@@ -108,11 +105,7 @@ const ChatPage: React.FC = () => {
   // 模拟的聊天消息数据
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [currentContact, setCurrentContact] = useState({ 
-    name: '', 
-    isOnline: true,
-    status: 'online' as UserStatus 
-  });
+  const [currentContact, setCurrentContact] = useState({ name: '', isOnline: true });
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -121,51 +114,8 @@ const ChatPage: React.FC = () => {
   const [previewFile, setPreviewFile] = useState<Message['fileInfo']>();
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [showEmoji, setShowEmoji] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | undefined>(undefined);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // 添加状态下拉菜单
-  const statusOptions = [
-    { key: 'online', label: t('user.status.online') },
-    { key: 'idle', label: t('user.status.idle') },
-    { key: 'dnd', label: t('user.status.dnd') },
-    { key: 'offline', label: t('user.status.offline') }
-  ];
-  
-  const handleStatusChange = (status: UserStatus) => {
-    setCurrentContact(prev => ({
-      ...prev,
-      status,
-      isOnline: status !== 'offline'
-    }));
-  };
-  
-  // 添加状态下拉菜单
-  const statusMenu = (
-    <Menu 
-      onClick={({ key }) => handleStatusChange(key as UserStatus)} 
-      selectedKeys={[currentContact.status]}
-    >
-      {statusOptions.map(option => (
-        <Menu.Item key={option.key}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ 
-              width: '10px', 
-              height: '10px', 
-              borderRadius: '50%', 
-              background: 
-                option.key === 'online' ? '#3ba55d' : 
-                option.key === 'idle' ? '#faa81a' : 
-                option.key === 'dnd' ? '#ed4245' : 
-                '#747f8d',
-              display: 'inline-block' 
-            }} />
-            {option.label}
-          </div>
-        </Menu.Item>
-      ))}
-    </Menu>
-  );
-
   // 添加表情选择器
   const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
                  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
@@ -183,8 +133,7 @@ const ChatPage: React.FC = () => {
     if (isAIChat) {
       setCurrentContact({
         name: aiEnabled ? 'AI Assistant' : 'Chat Bot',
-        isOnline: true,
-        status: 'online'
+        isOnline: true
       });
       setMessages([
         {
@@ -238,8 +187,7 @@ const ChatPage: React.FC = () => {
 
       setCurrentContact({
         name: 'Demo User',
-        isOnline: true,
-        status: 'online'
+        isOnline: true
       });
       setMessages(mockMessages);
     }
@@ -520,7 +468,7 @@ const ChatPage: React.FC = () => {
   };
   
   const handleCloseImagePreview = () => {
-    setImagePreview(undefined);
+    setImagePreview(null);
   };
 
   // 渲染消息内容
@@ -610,29 +558,12 @@ const ChatPage: React.FC = () => {
       <div className="chat-main">
         <div className="chat-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {isAIChat ? (
-              <Avatar icon={<RobotOutlined />} />
-            ) : (
-              <UserAvatar 
-                avatar={undefined}
-                username={currentContact.name}
-                status={currentContact.status}
-                size="large"
-              />
-            )}
+            <Avatar icon={isAIChat ? <RobotOutlined /> : <UserOutlined />} />
             <div className="chat-info">
               <Text strong>{currentContact.name}</Text>
-              <Text type="secondary">{t(`user.status.${currentContact.status}`)}</Text>
+              <Text type="secondary">{currentContact.isOnline ? t('chat.status.online') : t('chat.status.offline')}</Text>
             </div>
           </div>
-          
-          {!isAIChat && (
-            <Dropdown overlay={statusMenu} trigger={['click']}>
-              <Button type="text" className="status-dropdown">
-                {t('user.status.change')} <DownOutlined />
-              </Button>
-            </Dropdown>
-          )}
         </div>
         <Divider style={{ margin: '0 0 16px 0' }} />
         <div className="message-container" ref={messageContainerRef}>
@@ -646,24 +577,11 @@ const ChatPage: React.FC = () => {
               }}
             >
               <div className="message-avatar">
-                {msg.sender === 'user' ? (
-                  <UserAvatar 
-                    avatar={avatar}
-                    status={currentContact.status}
-                    size={40}
-                  />
-                ) : (
-                  isAIChat ? (
-                    <Avatar size={40} icon={<RobotOutlined />} />
-                  ) : (
-                    <UserAvatar 
-                      avatar={undefined}
-                      username={currentContact.name}
-                      status={currentContact.status}
-                      size={40}
-                    />
-                  )
-                )}
+                <Avatar 
+                  size={40} 
+                  src={msg.sender === 'user' ? avatar : undefined}
+                  icon={msg.sender === 'user' ? <UserOutlined /> : (isAIChat ? <RobotOutlined /> : <UserOutlined />)}
+                />
               </div>
               <div className="message-content">
                 <div className="message-text">

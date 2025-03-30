@@ -1,7 +1,8 @@
 import React from 'react';
-import { List, Avatar, Typography, Tooltip } from 'antd';
+import { List, Avatar, Tooltip } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import './ChannelList.css';
+import { useTranslation } from 'react-i18next';
 
 export interface Channel {
   id: string;
@@ -23,6 +24,8 @@ const ChannelList: React.FC<ChannelListProps> = ({
   onChannelSelect,
   onAddChannel,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="channel-list">
       <List
@@ -45,7 +48,7 @@ const ChannelList: React.FC<ChannelListProps> = ({
         )}
       />
       {onAddChannel && (
-        <Tooltip title="添加新服务器" placement="right">
+        <Tooltip title={t('channel.addServer')} placement="right">
           <div className="add-channel-button" onClick={onAddChannel}>
             <PlusOutlined />
           </div>

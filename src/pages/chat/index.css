@@ -710,15 +710,4 @@
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.status-dropdown {
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-dropdown:hover {
-  color: var(--text-normal);
 } 

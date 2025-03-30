@@ -7,6 +7,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { useTranslation } from 'react-i18next';
 import './style.css';
 
 interface Message {
@@ -36,10 +37,11 @@ interface ChatBoxProps {
 const ChatBox: React.FC<ChatBoxProps> = ({
   messages,
   onSendMessage,
-  placeholder = '发送消息',
+  placeholder,
   showAvatar = true,
   showUsername = true,
 }) => {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -47,7 +49,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [previewTitle, setPreviewTitle] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -104,7 +106,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   return (
     <div className="chat-box">
       <div className="messages">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <div key={message.id} className="message">
             {showAvatar && (
               <Avatar
@@ -120,8 +122,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               <div className="text">{message.content}</div>
               {message.files && message.files.length > 0 && (
                 <div className="message-files">
-                  {message.files.map((file, index) => (
-                    <div key={index} className="file-item">
+                  {message.files.map((file, fileIndex) => (
+                    <div key={fileIndex} className="file-item">
                       {file.type.startsWith('image/') ? (
                         <img src={file.url} alt={file.name} onClick={() => {
                           setPreviewImage(file.url);
@@ -150,7 +152,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={placeholder}
+            placeholder={placeholder || t('upload.message')}
             autoSize={{ minRows: 1, maxRows: 6 }}
             className="chat-input"
           />
@@ -163,7 +165,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               multiple
               beforeUpload={() => false}
             >
-              <Tooltip title="上传文件">
+              <Tooltip title={t('upload.file')}>
                 <Button type="text" icon={<FileOutlined />} />
               </Tooltip>
             </Upload>
@@ -175,7 +177,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
               multiple
               beforeUpload={() => false}
             >
-              <Tooltip title="上传图片">
+              <Tooltip title={t('upload.image')}>
                 <Button type="text" icon={<PictureOutlined />} />
               </Tooltip>
             </Upload>

@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/login';
 import ChatPage from './pages/chat';
-import ProfilePage from './pages/profile';
 import RegisterPage from './pages/register';
 import SettingsPage from './pages/settings';
 import ChannelPage from './pages/Channel/ChannelPage';
@@ -74,7 +73,6 @@ const AppContent = () => {
               <Route index element={<Navigate to="/chat" replace />} />
               <Route path="chat/:id?" element={<ChatPage />} />
               <Route path="channels" element={<ChannelPage />} />
-              <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="ai" element={<ChatPage />} />
             </Route>

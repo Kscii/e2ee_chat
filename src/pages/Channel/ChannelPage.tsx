@@ -252,8 +252,8 @@ const ChannelPage: React.FC = () => {
 
       setMessages(prev => [...prev, newMessage]);
     } catch (error) {
-      console.error('发送消息失败:', error);
-      message.error('发送消息失败');
+      console.error(t('errors.chat.sendFailed'), error);
+      message.error(t('errors.chat.sendFailed'));
     } finally {
       setLoading(false);
     }

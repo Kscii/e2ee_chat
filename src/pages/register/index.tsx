@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Input, Button, Card, Typography, Divider, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.css';
 
 const { Title, Text } = Typography;
@@ -16,9 +17,10 @@ interface RegisterFormValues {
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const onFinish = (values: RegisterFormValues) => {
-    console.log('注册表单提交:', values);
+    console.log(t('register.submitLog'), values);
     // 模拟注册成功
     navigate('/login');
   };
@@ -27,8 +29,8 @@ const RegisterPage: React.FC = () => {
     <div className="register-container">
       <Card bordered={false} className="register-card">
         <div className="register-header">
-          <Title level={2} style={{ margin: '0 0 8px 0' }}>创建账号</Title>
-          <Text type="secondary">加入我们的聊天社区</Text>
+          <Title level={2} style={{ margin: '0 0 8px 0' }}>{t('register.title')}</Title>
+          <Text type="secondary">{t('register.subtitle')}</Text>
         </div>
 
         <Form
@@ -41,11 +43,11 @@ const RegisterPage: React.FC = () => {
             <Col span={24}>
               <Form.Item
                 name="username"
-                rules={[{ required: true, message: '请输入用户名!' }]}
+                rules={[{ required: true, message: t('register.validation.usernameRequired') }]}
               >
                 <Input 
                   prefix={<UserOutlined className="site-form-item-icon" />} 
-                  placeholder="用户名" 
+                  placeholder={t('register.username')} 
                 />
               </Form.Item>
             </Col>
@@ -56,13 +58,13 @@ const RegisterPage: React.FC = () => {
               <Form.Item
                 name="email"
                 rules={[
-                  { required: true, message: '请输入邮箱!' },
-                  { type: 'email', message: '请输入有效的邮箱地址!' }
+                  { required: true, message: t('register.validation.emailRequired') },
+                  { type: 'email', message: t('register.validation.emailValid') }
                 ]}
               >
                 <Input 
                   prefix={<MailOutlined className="site-form-item-icon" />} 
-                  placeholder="邮箱" 
+                  placeholder={t('register.email')} 
                 />
               </Form.Item>
             </Col>
@@ -70,13 +72,13 @@ const RegisterPage: React.FC = () => {
               <Form.Item
                 name="phone"
                 rules={[
-                  { required: true, message: '请输入手机号!' },
-                  { pattern: /^1\d{10}$/, message: '请输入有效的手机号!' }
+                  { required: true, message: t('register.validation.phoneRequired') },
+                  { pattern: /^1\d{10}$/, message: t('register.validation.phoneValid') }
                 ]}
               >
                 <Input 
                   prefix={<PhoneOutlined className="site-form-item-icon" />} 
-                  placeholder="手机号" 
+                  placeholder={t('register.phone')} 
                 />
               </Form.Item>
             </Col>
@@ -85,13 +87,13 @@ const RegisterPage: React.FC = () => {
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: '请输入密码!' },
-              { min: 6, message: '密码至少为6个字符!' }
+              { required: true, message: t('register.validation.passwordRequired') },
+              { min: 6, message: t('register.validation.passwordLength') }
             ]}
           >
             <Input.Password
               prefix={<LockOutlined className="site-form-item-icon" />}
-              placeholder="密码"
+              placeholder={t('register.password')}
             />
           </Form.Item>
 
@@ -99,33 +101,33 @@ const RegisterPage: React.FC = () => {
             name="confirmPassword"
             dependencies={['password']}
             rules={[
-              { required: true, message: '请确认密码!' },
+              { required: true, message: t('register.validation.confirmRequired') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('两次输入的密码不匹配!'));
+                  return Promise.reject(new Error(t('register.validation.passwordsMismatch')));
                 },
               }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined className="site-form-item-icon" />}
-              placeholder="确认密码"
+              placeholder={t('register.confirmPassword')}
             />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
-              注册
+              {t('register.submit')}
             </Button>
           </Form.Item>
 
           <Divider />
 
           <div style={{ textAlign: 'center' }}>
-            <Text type="secondary">已有账号? <Link to="/login">立即登录</Link></Text>
+            <Text type="secondary">{t('register.haveAccount')} <Link to="/login">{t('register.login')}</Link></Text>
           </div>
         </Form>
       </Card>

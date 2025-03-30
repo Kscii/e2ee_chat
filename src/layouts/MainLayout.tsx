@@ -131,12 +131,6 @@ const MainLayout: React.FC = () => {
   // 用户下拉菜单项
   const userMenuItems = [
     {
-      key: 'theme',
-      label: isDarkMode ? '切换到亮色模式' : '切换到暗色模式',
-      icon: <BulbOutlined />,
-      onClick: toggleTheme,
-    },
-    {
       key: 'settings',
       label: t('common.settings'),
       icon: <SettingOutlined />,

@@ -19,10 +19,6 @@
     "close": "Close",
     "settings": "Settings",
     "logout": "Logout",
-    "status": {
-      "online": "Online",
-      "offline": "Offline"
-    },
     "system": "System"
   },
   "settings": {
@@ -83,7 +79,9 @@
       "sending": "Sending...",
       "sent": "Sent",
       "read": "Read",
-      "failed": "Failed"
+      "failed": "Failed",
+      "online": "Online",
+      "offline": "Offline"
     },
     "demoMessages": {
       "welcome": "Hello! I'm your AI assistant. How can I help you?",
@@ -235,6 +233,44 @@
     },
     "actions": {
       "add": "Add New Server"
+    },
+    "main": "Main Server",
+    "test": "Test Server"
+  },
+  "login": {
+    "title": "Login",
+    "subtitle": "Welcome back",
+    "username": "Username",
+    "password": "Password",
+    "remember": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "submit": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register now",
+    "submitLog": "Login form submitted:"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Join our chat community",
+    "username": "Username",
+    "email": "Email",
+    "phone": "Phone Number",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Register",
+    "haveAccount": "Already have an account?",
+    "login": "Login now",
+    "submitLog": "Register form submitted:",
+    "validation": {
+      "usernameRequired": "Please input your username!",
+      "emailRequired": "Please input your email!",
+      "emailValid": "Please input a valid email address!",
+      "phoneRequired": "Please input your phone number!",
+      "phoneValid": "Please input a valid phone number!",
+      "passwordRequired": "Please input your password!",
+      "passwordLength": "Password must be at least 6 characters!",
+      "confirmRequired": "Please confirm your password!",
+      "passwordsMismatch": "The two passwords don't match!"
     }
   }
 } 
