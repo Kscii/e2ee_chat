@@ -1,0 +1,295 @@
+{
+  "navigation": {
+    "channels": "频道",
+    "directMessages": "私信",
+    "groups": "群组",
+    "ai": "AI 助手",
+    "settings": "设置"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "send": "发送",
+    "upload": "上传",
+    "download": "下载",
+    "preview": "预览",
+    "close": "关闭",
+    "settings": "设置",
+    "logout": "退出登录",
+    "system": "系统",
+    "back": "返回"
+  },
+  "settings": {
+    "title": "设置",
+    "profile": {
+      "title": "个人资料",
+      "name": "用户名",
+      "email": "邮箱"
+    },
+    "theme": {
+      "title": "主题设置",
+      "dark": "深色模式",
+      "description": "切换深色/浅色主题",
+      "markdown": "启用Markdown模式",
+      "markdownDescription": "在文本框中启用Markdown语法支持"
+    },
+    "language": {
+      "title": "语言设置",
+      "description": "选择界面语言",
+      "zh": "中文",
+      "en": "English",
+      "es": "西班牙语",
+      "fr": "法语",
+      "de": "德语",
+      "ja": "日语",
+      "ko": "韩语",
+      "ru": "俄语",
+      "pt": "葡萄牙语",
+      "it": "意大利语",
+      "hi": "印地语",
+      "ar": "阿拉伯语",
+      "tr": "土耳其语",
+      "th": "泰语",
+      "id": "印尼语",
+      "vi": "越南语"
+    },
+    "ai": {
+      "title": "AI 设置",
+      "enable": "启用 AI 助手",
+      "description": "开启/关闭 AI 助手功能",
+      "apiKey": "API 密钥",
+      "apiKeyDescription": "设置 OpenAI API 密钥"
+    },
+    "tts": {
+      "title": "语音合成",
+      "enable": "启用语音",
+      "auto": "自动朗读",
+      "speed": "语速",
+      "normal": "正常",
+      "service": "语音服务",
+      "browser": "浏览器",
+      "azure": "Azure",
+      "google": "谷歌",
+      "gptSovits": "GPT-SoVITS",
+      "voice": "语音",
+      "azureKey": "Azure API密钥",
+      "azureRegion": "Azure区域",
+      "googleKey": "谷歌API密钥",
+      "gptSovitsUrl": "GPT-SoVITS地址",
+      "character": "角色",
+      "emotion": "情感",
+      "textLanguage": "文本语言"
+    }
+  },
+  "chat": {
+    "title": "聊天",
+    "inputPlaceholder": "输入消息...",
+    "sendButton": "发送",
+    "uploadButton": "上传文件",
+    "emojiButton": "插入表情",
+    "status": {
+      "sending": "发送中...",
+      "sent": "已发送",
+      "read": "已读",
+      "failed": "发送失败",
+      "online": "在线",
+      "offline": "离线"
+    },
+    "demoMessages": {
+      "welcome": "你好！我是 AI 助手，有什么可以帮你的吗？",
+      "question": "你好，最近过得怎么样？",
+      "answer": "挺好的，谢谢关心！",
+      "followup": "那就好，有什么新鲜事吗？",
+      "sendingExample": "这是一条正在发送中的消息...",
+      "sentExample": "这是一条已发送的消息"
+    },
+    "fileMessages": {
+      "image": "发送了一张图片",
+      "file": "发送了一个文件：{filename}",
+      "pdf": "发送了一个 PDF 文件：{filename}",
+      "word": "发送了一个 Word 文档：{filename}",
+      "excel": "发送了一个 Excel 表格：{filename}",
+      "ppt": "发送了一个 PPT 文件：{filename}",
+      "txt": "发送了一个文本文件：{filename}"
+    },
+    "preview": {
+      "title": "文件预览",
+      "loading": "加载中...",
+      "error": "预览失败",
+      "unsupported": "不支持预览此类型的文件"
+    },
+    "currentUser": "当前用户",
+    "actions": {
+      "search": "搜索",
+      "inbox": "收件箱",
+      "help": "帮助"
+    },
+    "search": {
+      "placeholder": "搜索消息...",
+      "noResults": "没有找到包含 \"{keyword}\" 的消息"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "网络错误",
+      "message": "无法连接到服务器，请检查网络连接"
+    },
+    "api": {
+      "title": "API错误",
+      "invalidKey": "无效的API密钥，请检查设置",
+      "configMissing": "请先在设置页面配置OpenAI API密钥",
+      "requestFailed": "请求失败，请稍后重试"
+    },
+    "chat": {
+      "sendFailed": "发送消息失败",
+      "receiveFailed": "接收消息失败",
+      "loadFailed": "加载聊天记录失败"
+    },
+    "file": {
+      "uploadFailed": "文件上传失败",
+      "downloadFailed": "文件下载失败",
+      "sizeLimitExceeded": "文件大小不能超过{size}MB",
+      "imageOnly": "只能上传图片文件",
+      "unsupportedFormat": "不支持的文件格式"
+    },
+    "tts": {
+      "failed": "语音转换失败",
+      "unsupported": "您的浏览器不支持语音功能"
+    },
+    "common": {
+      "unauthorized": "请先登录",
+      "forbidden": "您没有执行此操作的权限",
+      "notFound": "资源未找到",
+      "serverError": "服务器错误，请稍后重试"
+    }
+  },
+  "channel": {
+    "title": "频道",
+    "create": "创建频道",
+    "join": "加入频道",
+    "leave": "退出频道",
+    "delete": "删除频道",
+    "settings": "频道设置",
+    "types": {
+      "text": "文字频道",
+      "voice": "语音频道"
+    },
+    "status": {
+      "connected": "已连接",
+      "disconnected": "未连接",
+      "connecting": "连接中"
+    },
+    "actions": {
+      "mute": "静音",
+      "unmute": "取消静音",
+      "deafen": "耳机静音",
+      "undeafen": "取消耳机静音",
+      "threads": "线程",
+      "notifications": "通知设置",
+      "pinned": "置顶消息",
+      "members": "成员列表",
+      "add": "添加频道"
+    },
+    "messages": {
+      "welcome": "欢迎来到 {channelName}",
+      "joined": "{username} 加入了频道",
+      "left": "{username} 退出了频道",
+      "deleted": "频道已被删除",
+      "noPermission": "你没有权限访问此频道",
+      "joinedVoice": "已加入语音频道",
+      "leftVoice": "已退出语音频道",
+      "micPermissionDenied": "无法访问麦克风，请检查权限设置",
+      "defaultDescription": "这是 #{channelName} 频道的开始"
+    },
+    "form": {
+      "name": "频道名称",
+      "type": "频道类型",
+      "description": "频道描述",
+      "createSuccess": "频道创建成功！",
+      "createError": "请填写必要的信息！"
+    },
+    "placeholders": {
+      "channelName": "频道名称",
+      "description": "频道描述",
+      "message": "在 #{channelName} 中发送消息"
+    },
+    "default": "常规"
+  },
+  "server": {
+    "title": "测试服务器",
+    "create": "创建新服务器",
+    "createNew": "创建新服务器",
+    "join": "加入服务器",
+    "leave": "退出服务器",
+    "delete": "删除服务器",
+    "settings": "服务器设置",
+    "form": {
+      "name": "服务器名称",
+      "nameRequired": "请输入服务器名称",
+      "namePlaceholder": "输入服务器名称",
+      "description": "服务器描述",
+      "descriptionPlaceholder": "输入服务器描述",
+      "icon": "服务器图标",
+      "uploadIcon": "上传图片",
+      "required": "必填项",
+      "createSuccess": "服务器创建成功！",
+      "createError": "请填写必要的信息！"
+    },
+    "messages": {
+      "selectChannel": "请选择一个频道",
+      "welcome": "欢迎来到 {serverName}",
+      "joined": "{username} 加入了服务器",
+      "left": "{username} 退出了服务器",
+      "deleted": "服务器已被删除",
+      "noPermission": "你没有权限访问此服务器"
+    },
+    "actions": {
+      "add": "添加新服务器"
+    },
+    "main": "主服务器",
+    "test": "测试服务器"
+  },
+  "login": {
+    "title": "登录",
+    "subtitle": "欢迎回来",
+    "username": "用户名",
+    "password": "密码",
+    "remember": "记住我",
+    "forgotPassword": "忘记密码？",
+    "submit": "登录",
+    "noAccount": "还没有账号？",
+    "register": "立即注册",
+    "submitLog": "登录表单已提交：",
+    "success": "登录成功",
+    "error": "登录失败"
+  },
+  "register": {
+    "title": "创建账号",
+    "subtitle": "加入我们的聊天社区",
+    "username": "用户名",
+    "email": "邮箱",
+    "phone": "手机号",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "submit": "注册",
+    "haveAccount": "已有账号？",
+    "login": "立即登录",
+    "submitLog": "注册表单已提交：",
+    "success": "注册成功",
+    "error": "注册失败",
+    "validation": {
+      "usernameRequired": "请输入用户名！",
+      "emailRequired": "请输入邮箱！",
+      "emailValid": "请输入有效的邮箱地址！",
+      "phoneRequired": "请输入手机号！",
+      "phoneValid": "请输入有效的手机号！",
+      "passwordRequired": "请输入密码！",
+      "passwordLength": "密码长度至少为6个字符！",
+      "confirmRequired": "请确认密码！",
+      "passwordsMismatch": "两次输入的密码不一致！"
+    }
+  }
+}
