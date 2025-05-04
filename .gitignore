@@ -5,6 +5,7 @@ __pycache__/
 
 # 忽略虚拟环境
 venv/
+backend/venv/
 
 # 忽略环境变量配置
 .env
