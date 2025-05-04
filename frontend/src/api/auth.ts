@@ -15,6 +15,19 @@ interface LoginResponse {
   token: string;
 }
 
+interface User {
+  id: number;
+  username: string;
+  email?: string;
+  phone?: string;
+  created_at?: string;
+  last_login?: string;
+}
+
+interface UsersResponse {
+  users: User[];
+}
+
 // 创建axios实例
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -94,6 +107,26 @@ export const login = async (username: string, password: string) => {
       }
     }
     throw new Error('网络错误，请稍后重试');
+  }
+};
+
+// 获取所有用户列表
+export const getAllUsers = async (): Promise<User[]> => {
+  try {
+    const response = await apiClient.get<UsersResponse>('/users');
+    return response.data.users;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response && axiosError.response.status === 401) {
+        // 如果token失效，清除本地存储
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        throw new Error('登录已过期，请重新登录');
+      }
+    }
+    console.error('获取用户列表失败:', error);
+    return []; // 返回空数组而不是抛出错误，使应用更健壮
   }
 };
 

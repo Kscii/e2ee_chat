@@ -1,4 +1,4 @@
-#!/home/ubuntu/INFO2222-group/backend/venv/bin/python3
+#!/Users/kscii/Documents/Code/INFO2222-group/backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys

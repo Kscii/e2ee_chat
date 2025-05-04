@@ -90,6 +90,7 @@
     "sendButton": "Send",
     "uploadButton": "Upload File",
     "emojiButton": "Insert Emoji",
+    "emptyMessages": "No messages",
     "status": {
       "sending": "Sending...",
       "sent": "Sent",

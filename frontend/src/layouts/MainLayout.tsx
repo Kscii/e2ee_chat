@@ -5,19 +5,20 @@ import {
   MessageOutlined,
   UserOutlined,
   SettingOutlined,
-  TeamOutlined,
   LogoutOutlined,
   RobotOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   AppstoreOutlined,
-  BulbOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import type { MenuProps } from 'antd';
 import './MainLayout.css';
 import { useAI } from '../contexts/AIContext';
+import { useAuth } from '../contexts/AuthContext';
+import { getAllUsers } from '../api/auth';
 
 const { Content } = Layout;
 
@@ -40,17 +41,19 @@ function getItem(
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode } = useTheme();
   const { aiEnabled } = useAI();
   const { t } = useTranslation();
+  const { user } = useAuth(); // 获取当前登录的用户信息
   const isChannelsPage = location.pathname === '/channels';
+  const [users, setUsers] = useState<{ id: number, username: string }[]>([]);
 
   const [collapsed, setCollapsed] = useState(isChannelsPage || false);
   const [siderWidth, setSiderWidth] = useState(isChannelsPage ? 80 : 240);
   const [lastNormalWidth, setLastNormalWidth] = useState(240);
   const [isMobile, setIsMobile] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  
+
   // 从 localStorage 初始化 openKeys
   const [openKeys, setOpenKeys] = useState<string[]>(() => {
     const savedOpenKeys = localStorage.getItem('menuOpenKeys');
@@ -95,7 +98,7 @@ const MainLayout: React.FC = () => {
     if (isChannelsPage && !value) {
       return;
     }
-    
+
     setCollapsed(value);
     if (value) {
       setLastNormalWidth(siderWidth);
@@ -103,7 +106,7 @@ const MainLayout: React.FC = () => {
     } else {
       setSiderWidth(lastNormalWidth);
     }
-    
+
     // 在非移动设备上才设置折叠状态
     if (!isMobile) {
       setCollapsed(value);
@@ -117,21 +120,49 @@ const MainLayout: React.FC = () => {
     }
   }, [aiEnabled, location.pathname, navigate]);
 
+  // 获取所有用户
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userList = await getAllUsers();
+        // 过滤掉当前登录用户
+        if (user && user.username) {
+          const filteredUsers = userList.filter(u => u.username !== user.username);
+          setUsers(filteredUsers);
+        } else {
+          setUsers(userList);
+        }
+      } catch (error) {
+        console.error('获取用户列表失败:', error);
+      }
+    };
+
+    fetchUsers();
+  }, [user]); // 添加user作为依赖，确保用户登录状态变化时重新获取
+
+  // 生成用户菜单项
+  const generateUserItems = (): MenuItem[] => {
+    if (!users || users.length === 0) {
+      return [];
+    }
+
+    return users
+      .filter(u => user?.username !== u.username) // 确保再次过滤掉当前用户
+      .map(u => getItem(u.username, `user-${u.id}`));
+  };
+
   // 菜单项配置
-  const items: MenuItem[] = [
-    getItem(t('navigation.channels'), 'channels', <AppstoreOutlined />),
-    getItem(t('navigation.directMessages'), 'direct-messages', <MessageOutlined />, [
-      getItem('Alice', 'user-1'),
-      getItem('Bob', 'user-2'),
-      getItem('Charlie', 'user-3'),
-    ]),
-    getItem(t('navigation.groups'), 'groups', <TeamOutlined />, [
-      getItem('Development Team', 'group-1'),
-      getItem('General Chat', 'group-2'),
-    ]),
-    ...(aiEnabled ? [getItem(t('navigation.ai'), 'ai', <RobotOutlined />)] : []),
-    getItem(t('navigation.settings'), 'settings', <SettingOutlined />),
-  ];
+  const getMenuItems = (): MenuItem[] => {
+    const items: MenuItem[] = [
+      getItem(t('navigation.channels'), 'channels', <AppstoreOutlined />),
+      getItem(t('navigation.directMessages'), 'direct-messages', <MessageOutlined />, generateUserItems()),
+      getItem(t('navigation.groups'), 'groups', <TeamOutlined />),
+      ...(aiEnabled ? [getItem(t('navigation.ai'), 'ai', <RobotOutlined />)] : []),
+      getItem(t('navigation.settings'), 'settings', <SettingOutlined />),
+    ];
+
+    return items;
+  };
 
   // 用户下拉菜单项
   const userMenuItems = [
@@ -151,6 +182,7 @@ const MainLayout: React.FC = () => {
 
   // 处理菜单点击
   const handleMenuClick: MenuProps['onClick'] = (e) => {
+    console.log('点击菜单项:', e.key);
     if (e.key === 'channels') {
       navigate('/channels');
       handleCollapse(true);
@@ -160,6 +192,9 @@ const MainLayout: React.FC = () => {
       navigate('/settings');
     } else if (e.key === 'ai') {
       navigate('/ai');
+    } else if (e.key === 'groups') {
+      console.log('导航到群组聊天');
+      navigate('/chat/groups');
     }
 
     // 在移动设备上点击菜单项后收起菜单
@@ -221,7 +256,7 @@ const MainLayout: React.FC = () => {
               <Dropdown menu={{ items: userMenuItems }} placement="topRight">
                 <div className="user-info">
                   <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />} />
-                  {!collapsed && <span className="username">{t('settings.profile.name')}</span>}
+                  {!collapsed && <span className="username">{user?.username || t('settings.profile.name')}</span>}
                 </div>
               </Dropdown>
             </div>
@@ -238,7 +273,7 @@ const MainLayout: React.FC = () => {
               defaultSelectedKeys={['direct-messages']}
               selectedKeys={getSelectedKey()}
               mode="inline"
-              items={items}
+              items={getMenuItems()}
               onClick={handleMenuClick}
               openKeys={openKeys}
               onOpenChange={handleOpenChange}

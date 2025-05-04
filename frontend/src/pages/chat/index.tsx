@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input, Button, Avatar, Typography, Divider, Tooltip, Upload, message, Modal } from 'antd';
-import { 
-  SendOutlined, 
-  UserOutlined, 
-  SoundOutlined, 
+import {
+  SendOutlined,
+  UserOutlined,
+  SoundOutlined,
   RobotOutlined,
   PaperClipOutlined,
   PictureOutlined,
@@ -16,7 +16,8 @@ import {
   DownloadOutlined,
   CheckOutlined,
   CheckCircleOutlined,
-  SmileOutlined
+  SmileOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
@@ -26,7 +27,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
@@ -34,6 +35,9 @@ import { useAPI } from '../../contexts/APIContext';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { useAuth } from '../../contexts/AuthContext';
+import { sendMessage, getMessages, sendGroupMessage, getGroupMessages, GroupMessage } from '../../api/message';
+import { getAllUsers } from '../../api/auth';
 
 const { Text } = Typography;
 
@@ -96,18 +100,39 @@ const ChatPage: React.FC = () => {
   const { markdownMode } = useMarkdown();
   const { avatar } = useAvatar();
   const { ttsEnabled, autoRead, speak } = useTTS();
-  const { aiEnabled, sendMessage } = useAI();
+  const { aiEnabled, sendMessage: sendAiMessage } = useAI();
+  const { user } = useAuth();
   const { apiKey } = useAPI();
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+  const params = useParams<{ id?: string }>();
   const isAIChat = location.pathname === '/ai';
 
-  // 模拟的聊天消息数据
+  // 获取聊天对象ID或用户名
+  const chatId = params.id || 'ai';
+  const chatType = chatId.startsWith('user-') ? 'user' : (chatId === 'groups' ? 'groups' : 'ai');
+  const chatUserId = chatType === 'user' ? chatId.replace('user-', '') : null;
+  const isGroupChat = chatType === 'groups';
+
+  // 重定向非法聊天ID
+  useEffect(() => {
+    if (chatId.startsWith('group-')) {
+      navigate('/chat', { replace: true });
+    }
+  }, [chatId, navigate]);
+
+  // 聊天状态
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [currentContact, setCurrentContact] = useState({ name: '', isOnline: true });
+  const [currentContact, setCurrentContact] = useState({ id: '', name: '', isOnline: true });
   const [loading, setLoading] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: number, username: string }[]>([]);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [loadingGroupMessages, setLoadingGroupMessages] = useState(false);
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -115,23 +140,58 @@ const ChatPage: React.FC = () => {
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
+
   // 添加表情选择器
-  const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', 
-                 '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', 
-                 '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
-                 '👍', '👎', '👏', '🙌', '👋', '🤝', '❤️', '💔', '😢', '😭'];
-  
+  const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+    '👍', '👎', '👏', '🙌', '👋', '🤝', '❤️', '💔', '😢', '😭'];
+
   const handleEmojiClick = (emoji: string) => {
     setInputValue(prev => prev + emoji);
     setShowEmoji(false);
     inputRef.current?.focus();
   };
 
+  // 获取所有用户列表
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error('获取用户列表失败:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // 获取群组消息
+  const fetchGroupMessages = async () => {
+    if (!user) return;
+
+    setLoadingGroupMessages(true);
+    try {
+      console.log('开始获取群组消息');
+      const messagesData = await getGroupMessages(100, 0);
+      console.log('获取到群组消息:', messagesData);
+
+      setGroupMessages(messagesData);
+      console.log('群组消息设置完成');
+    } catch (error) {
+      console.error('获取群组消息失败详情:', error);
+      message.error('获取群组消息失败');
+    } finally {
+      setLoadingGroupMessages(false);
+    }
+  };
+
   // 根据chatId加载对应的聊天记录和联系人信息
   useEffect(() => {
     if (isAIChat) {
       setCurrentContact({
+        id: 'ai',
         name: aiEnabled ? 'AI Assistant' : 'Chat Bot',
         isOnline: true
       });
@@ -144,57 +204,75 @@ const ChatPage: React.FC = () => {
           status: 'read'
         }
       ]);
-    } else {
-      // 这里模拟从API获取数据
-      // 实际应用中，这里应该调用后端API获取真实数据
-      const mockMessages = [
-        {
-          id: '1',
-          content: t('chat.demoMessages.question'),
-          sender: 'other',
-          timestamp: new Date(Date.now() - 3600000),
-          status: 'read'
-        },
-        {
-          id: '2',
-          content: t('chat.demoMessages.answer'),
-          sender: 'user',
-          timestamp: new Date(Date.now() - 3500000),
-          status: 'read'
-        },
-        {
-          id: '3',
-          content: t('chat.demoMessages.followup'),
-          sender: 'other',
-          timestamp: new Date(Date.now() - 60000),
-          status: 'read'
-        },
-        {
-          id: '4',
-          content: t('chat.demoMessages.sendingExample'),
-          sender: 'user',
-          timestamp: new Date(),
-          status: 'sending'
-        },
-        {
-          id: '5',
-          content: t('chat.demoMessages.sentExample'),
-          sender: 'user',
-          timestamp: new Date(Date.now() - 10000),
-          status: 'sent'
-        }
-      ] as Message[];
+    } else if (chatType === 'user' && chatUserId) {
+      // 获取用户信息
+      const contactUser = allUsers.find(u => u.id.toString() === chatUserId);
 
+      if (contactUser) {
+        setCurrentContact({
+          id: chatUserId,
+          name: contactUser.username,
+          isOnline: true
+        });
+
+        // 加载与该用户的消息历史
+        fetchMessages(contactUser.username);
+      }
+    } else if (isGroupChat) {
+      // 群组聊天页面
       setCurrentContact({
+        id: 'groups',
+        name: t('navigation.groups'),
+        isOnline: true
+      });
+
+      // 加载群组消息
+      fetchGroupMessages();
+    } else {
+      // 默认示例数据
+      setCurrentContact({
+        id: 'demo',
         name: 'Demo User',
         isOnline: true
       });
-      setMessages(mockMessages);
+      // 保留示例消息
     }
-  }, [isAIChat, aiEnabled, t]);
+  }, [isAIChat, aiEnabled, t, chatId, chatType, chatUserId, allUsers, isGroupChat]);
+
+  // 获取消息历史
+  const fetchMessages = async (otherUsername: string) => {
+    if (!user) return;
+
+    setLoadingMessages(true);
+    try {
+      const messagesData = await getMessages(otherUsername);
+
+      // 转换API消息格式为UI消息格式
+      const uiMessages: Message[] = messagesData.map(msg => ({
+        id: msg.id.toString(),
+        content: msg.content,
+        sender: msg.sender_username === user.username ? 'user' : 'other',
+        timestamp: new Date(msg.created_at),
+        status: msg.is_read ? 'read' : 'sent'
+      }));
+
+      setMessages(uiMessages);
+    } catch (error) {
+      console.error('获取消息失败:', error);
+      message.error('获取历史消息失败');
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
+    if (!user) {
+      message.error('请先登录');
+      return;
+    }
+
+    console.log('开始发送消息，聊天类型:', isGroupChat ? 'groups' : chatType);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -220,7 +298,7 @@ const ChatPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        
+
         // 创建一个临时的AI消息，用于显示打字效果
         const tempId = (Date.now() + 1).toString();
         const tempMessage: Message = {
@@ -229,33 +307,131 @@ const ChatPage: React.FC = () => {
           sender: 'other',
           timestamp: new Date(),
         };
-        
+
         setMessages(prev => [...prev, tempMessage]);
         setTypingMessageId(tempId);
-        
+
         // 获取AI回复
-        const aiResponse = await sendMessage(inputValue.trim());
-        
+        const aiResponse = await sendAiMessage(inputValue.trim());
+
         if (aiResponse) {
           // 更新消息内容
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === tempId 
-                ? { ...msg, content: aiResponse } 
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === tempId
+                ? { ...msg, content: aiResponse }
                 : msg
             )
           );
-          
+
           // 自动朗读接收到的消息
           if (autoRead) {
             speak(aiResponse);
           }
         }
-        
+
         // 打字效果完成后清除typing状态
         setTimeout(() => {
           setTypingMessageId(null);
         }, aiResponse.length * 30 + 500);
+      } else if (isGroupChat) {
+        // 发送群组消息
+        try {
+          setMessages(prev => [...prev, userMessage]);
+          await sendGroupMessage(userMessage.content);
+
+          // 发送成功后刷新群组消息
+          fetchGroupMessages();
+
+          // 更新消息状态为已发送
+          setTimeout(() => {
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === userMessage.id
+                  ? { ...msg, status: 'sent' as const }
+                  : msg
+              )
+            );
+
+            // 2秒后更新为已读状态
+            setTimeout(() => {
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === userMessage.id
+                    ? { ...msg, status: 'read' as const }
+                    : msg
+                )
+              );
+            }, 2000);
+          }, 1000);
+        } catch (error) {
+          console.error('发送群组消息失败:', error);
+          message.error('发送群组消息失败');
+
+          // 更新消息状态为发送失败
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === userMessage.id
+                ? { ...msg, status: 'failed' as const }
+                : msg
+            )
+          );
+        }
+      } else if (chatType === 'user' && currentContact.name) {
+        // 发送消息到后端
+        try {
+          const response = await sendMessage(currentContact.name, userMessage.content);
+
+          // 防止页面崩溃的安全处理
+          console.log('后端响应:', response);
+
+          // 安全地更新消息状态为已发送
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === userMessage.id
+                ? {
+                  ...msg,
+                  status: 'sent' as const,
+                  // 安全地使用响应中的ID，如果不存在则保留原ID
+                  id: (response && response.id) ? response.id.toString() : msg.id
+                }
+                : msg
+            )
+          );
+
+          // 安全地获取消息ID用于后续更新
+          const messageId = (response && response.id) ? response.id.toString() : userMessage.id;
+
+          // 2秒后更新为已读状态
+          setTimeout(() => {
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === messageId
+                  ? { ...msg, status: 'read' as const }
+                  : msg
+              )
+            );
+          }, 2000);
+
+          // 在发送消息后主动刷新消息列表
+          if (currentContact.name) {
+            setTimeout(() => {
+              fetchMessages(currentContact.name);
+            }, 2500);
+          }
+        } catch (error) {
+          console.error('发送消息失败:', error);
+          message.error('发送消息失败');
+
+          // 更新消息状态为发送失败
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === userMessage.id
+                ? { ...msg, status: 'failed' as const }
+                : msg
+            )
+          );
+        }
       } else {
         // 非AI聊天时，模拟一个简单的自动回复
         setTimeout(() => {
@@ -268,65 +444,65 @@ const ChatPage: React.FC = () => {
             status: 'sending'
           };
           setMessages(prev => [...prev, pendingMessage]);
-          
+
           // 1秒后更新为"已发送"状态
           setTimeout(() => {
-            setMessages(prev => 
-              prev.map(msg => 
-                msg.id === pendingMessage.id 
-                  ? { ...msg, status: 'sent' as const } 
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === pendingMessage.id
+                  ? { ...msg, status: 'sent' as const }
                   : msg
               )
             );
-            
+
             // 再过1秒更新为"已读"状态
             setTimeout(() => {
-              setMessages(prev => 
-                prev.map(msg => 
-                  msg.id === pendingMessage.id 
-                    ? { ...msg, status: 'read' as const } 
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === pendingMessage.id
+                    ? { ...msg, status: 'read' as const }
                     : msg
                 )
               );
-              
+
               if (autoRead) {
                 speak(pendingMessage.content);
               }
             }, 1000);
           }, 1000);
         }, 1000);
-      }
-      
-      // 更新消息状态为已发送
-      setTimeout(() => {
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === userMessage.id 
-              ? { ...msg, status: 'sent' as const } 
-              : msg
-          )
-        );
-        
-        // 2秒后更新为已读状态
+
+        // 更新消息状态为已发送
         setTimeout(() => {
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === userMessage.id 
-                ? { ...msg, status: 'read' as const } 
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === userMessage.id
+                ? { ...msg, status: 'sent' as const }
                 : msg
             )
           );
-        }, 2000);
-      }, 1000);
+
+          // 2秒后更新为已读状态
+          setTimeout(() => {
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === userMessage.id
+                  ? { ...msg, status: 'read' as const }
+                  : msg
+              )
+            );
+          }, 2000);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       message.error(t('errors.chat.sendFailed'));
-      
+
       // 更新消息状态为发送失败
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === userMessage.id 
-            ? { ...msg, status: 'failed' as const } 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === userMessage.id
+            ? { ...msg, status: 'failed' as const }
             : msg
         )
       );
@@ -382,7 +558,7 @@ const ChatPage: React.FC = () => {
     const url = URL.createObjectURL(file);
     const type = getFileType(file);
     const content = t(`chat.fileMessages.${type}`, { filename: file.name });
-    
+
     // 如果是文本文件，创建预览URL
     let previewUrl;
     if (type === 'txt') {
@@ -390,7 +566,7 @@ const ChatPage: React.FC = () => {
       const blob = new Blob([text], { type: 'text/plain' });
       previewUrl = URL.createObjectURL(blob);
     }
-    
+
     const newMessage: Message = {
       id: Date.now().toString(),
       content: content,
@@ -466,7 +642,7 @@ const ChatPage: React.FC = () => {
   const handleImagePreview = (url: string) => {
     setImagePreview(url);
   };
-  
+
   const handleCloseImagePreview = () => {
     setImagePreview(null);
   };
@@ -477,12 +653,12 @@ const ChatPage: React.FC = () => {
     if (message.id === typingMessageId) {
       return <TypewriterEffect text={message.content} />;
     }
-    
+
     if (message.type === 'image') {
       return (
-        <img 
-          src={message.fileInfo?.url} 
-          alt="图片消息" 
+        <img
+          src={message.fileInfo?.url}
+          alt="图片消息"
           style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px', cursor: 'pointer' }}
           onClick={() => handleImagePreview(message.fileInfo?.url || '')}
         />
@@ -520,7 +696,7 @@ const ChatPage: React.FC = () => {
         </ReactMarkdown>
       );
     }
-    
+
     return message.content.split('\n').map((line, i) => (
       <React.Fragment key={i}>
         {line}
@@ -558,7 +734,7 @@ const ChatPage: React.FC = () => {
       <div className="chat-main">
         <div className="chat-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Avatar icon={isAIChat ? <RobotOutlined /> : <UserOutlined />} />
+            <Avatar icon={isAIChat ? <RobotOutlined /> : (isGroupChat ? <TeamOutlined /> : <UserOutlined />)} />
             <div className="chat-info">
               <Text strong>{currentContact.name}</Text>
               <Text type="secondary">{currentContact.isOnline ? t('chat.status.online') : t('chat.status.offline')}</Text>
@@ -567,99 +743,161 @@ const ChatPage: React.FC = () => {
         </div>
         <Divider style={{ margin: '0 0 16px 0' }} />
         <div className="message-container" ref={messageContainerRef}>
-          {messages.map((msg, index) => (
-            <div 
-              key={msg.id} 
-              className={`message-bubble ${msg.sender === 'user' ? 'user-message' : 'other-message'}`}
-              style={{ 
-                animationDelay: `${index * 0.1}s`,
-                animationDuration: '0.5s'
-              }}
-            >
-              <div className="message-avatar">
-                <Avatar 
-                  size={40} 
-                  src={msg.sender === 'user' ? avatar : undefined}
-                  icon={msg.sender === 'user' ? <UserOutlined /> : (isAIChat ? <RobotOutlined /> : <UserOutlined />)}
-                />
-              </div>
-              <div className="message-content">
-                <div className="message-text">
-                  {renderMessageContent(msg)}
-                </div>
-                <div className="message-footer">
-                  <span className="message-time">
-                    {msg.timestamp.toLocaleTimeString()}
-                  </span>
-                  {msg.sender === 'user' && msg.status && (
-                    <span className="message-status">
-                      {msg.status === 'sending' && (
-                        <>
-                          <span className="sending-indicator"></span>
-                          {t('chat.status.sending')}
-                        </>
-                      )}
-                      {msg.status === 'sent' && (
-                        <>
-                          <CheckOutlined />
-                          {t('chat.status.sent')}
-                        </>
-                      )}
-                      {msg.status === 'read' && (
-                        <>
-                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                          {t('chat.status.read')}
-                        </>
-                      )}
-                      {msg.status === 'failed' && (
-                        <>
-                          <span style={{ color: '#ff4d4f' }}>!</span>
-                          {t('chat.status.failed')}
-                        </>
-                      )}
-                    </span>
-                  )}
-                  {msg.sender === 'other' && msg.status && (
-                    <span className="message-status other-status">
-                      {msg.status === 'sending' && (
-                        <>
-                          <span className="sending-indicator"></span>
-                          {t('chat.status.sending')}
-                        </>
-                      )}
-                      {msg.status === 'sent' && (
-                        <>
-                          <CheckOutlined />
-                          {t('chat.status.sent')}
-                        </>
-                      )}
-                      {msg.status === 'read' && (
-                        <>
-                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                          {t('chat.status.read')}
-                        </>
-                      )}
-                    </span>
-                  )}
-                  {ttsEnabled && msg.type !== 'image' && msg.type !== 'file' && (
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<SoundOutlined />}
-                      onClick={() => speak(msg.content)}
-                      className="tts-button"
-                    />
-                  )}
-                </div>
-              </div>
+          {loadingMessages || loadingGroupMessages ? (
+            <div className="loading-center">
+              <LoadingAnimation />
             </div>
-          ))}
+          ) : messages.length === 0 && (!isGroupChat || groupMessages.length === 0) ? (
+            <div className="empty-messages">
+              <Text type="secondary">{t('chat.emptyMessages')}</Text>
+            </div>
+          ) : (
+            <>
+              {isGroupChat ? (
+                // 渲染群组消息
+                groupMessages.map((msg, index) => (
+                  <div
+                    key={msg.id}
+                    className={`message-bubble ${msg.sender_username === user?.username ? 'user-message' : 'other-message'}`}
+                    style={{
+                      animationDelay: `${index * 0.1}s`,
+                      animationDuration: '0.5s'
+                    }}
+                  >
+                    <div className="message-avatar">
+                      <Avatar
+                        size={40}
+                        src={msg.sender_username === user?.username ? avatar : undefined}
+                        icon={msg.sender_username === user?.username ? <UserOutlined /> : <UserOutlined />}
+                      />
+                    </div>
+                    <div className="message-content">
+                      <div className="message-sender">
+                        <Text strong>{msg.sender_username}</Text>
+                      </div>
+                      <div className="message-text">
+                        {msg.content}
+                      </div>
+                      <div className="message-footer">
+                        <span className="message-time">
+                          {new Date(msg.created_at).toLocaleTimeString()}
+                        </span>
+                        {ttsEnabled && (
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<SoundOutlined />}
+                            onClick={() => speak(msg.content)}
+                            className="tts-button"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // 渲染普通消息
+                messages.map((msg, index) => (
+                  <div
+                    key={msg.id}
+                    className={`message-bubble ${msg.sender === 'user' ? 'user-message' : 'other-message'}`}
+                    style={{
+                      animationDelay: `${index * 0.1}s`,
+                      animationDuration: '0.5s'
+                    }}
+                  >
+                    <div className="message-avatar">
+                      <Avatar
+                        size={40}
+                        src={msg.sender === 'user' ? avatar : undefined}
+                        icon={msg.sender === 'user' ?
+                          <UserOutlined /> :
+                          (isAIChat ? <RobotOutlined /> :
+                            (isGroupChat ? <TeamOutlined /> : <UserOutlined />)
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="message-content">
+                      <div className="message-text">
+                        {renderMessageContent(msg)}
+                      </div>
+                      <div className="message-footer">
+                        <span className="message-time">
+                          {msg.timestamp.toLocaleTimeString()}
+                        </span>
+                        {msg.sender === 'user' && msg.status && (
+                          <span className="message-status">
+                            {msg.status === 'sending' && (
+                              <>
+                                <span className="sending-indicator"></span>
+                                {t('chat.status.sending')}
+                              </>
+                            )}
+                            {msg.status === 'sent' && (
+                              <>
+                                <CheckOutlined />
+                                {t('chat.status.sent')}
+                              </>
+                            )}
+                            {msg.status === 'read' && (
+                              <>
+                                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                {t('chat.status.read')}
+                              </>
+                            )}
+                            {msg.status === 'failed' && (
+                              <>
+                                <span style={{ color: '#ff4d4f' }}>!</span>
+                                {t('chat.status.failed')}
+                              </>
+                            )}
+                          </span>
+                        )}
+                        {msg.sender === 'other' && msg.status && (
+                          <span className="message-status other-status">
+                            {msg.status === 'sending' && (
+                              <>
+                                <span className="sending-indicator"></span>
+                                {t('chat.status.sending')}
+                              </>
+                            )}
+                            {msg.status === 'sent' && (
+                              <>
+                                <CheckOutlined />
+                                {t('chat.status.sent')}
+                              </>
+                            )}
+                            {msg.status === 'read' && (
+                              <>
+                                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                {t('chat.status.read')}
+                              </>
+                            )}
+                          </span>
+                        )}
+                        {ttsEnabled && msg.type !== 'image' && msg.type !== 'file' && (
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<SoundOutlined />}
+                            onClick={() => speak(msg.content)}
+                            className="tts-button"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
           {loading && (
             <div className="message-bubble other-message">
               <div className="message-avatar">
-                <Avatar 
-                  size={40} 
-                  icon={isAIChat ? <RobotOutlined /> : <UserOutlined />}
+                <Avatar
+                  size={40}
+                  icon={isAIChat ? <RobotOutlined /> : (isGroupChat ? <TeamOutlined /> : <UserOutlined />)}
                 />
               </div>
               <div className="message-content">
@@ -711,8 +949,8 @@ const ChatPage: React.FC = () => {
                   }, 0);
                 }}
               >
-                <Button 
-                  type="text" 
+                <Button
+                  type="text"
                   icon={<PaperClipOutlined />}
                   title={t('chat.uploadButton')}
                 />
@@ -745,15 +983,15 @@ const ChatPage: React.FC = () => {
                   }, 0);
                 }}
               >
-                <Button 
-                  type="text" 
+                <Button
+                  type="text"
                   icon={<PictureOutlined />}
                   title={t('chat.uploadButton')}
                 />
               </Upload>
-              <Button 
-                type="primary" 
-                icon={<SendOutlined />} 
+              <Button
+                type="primary"
+                icon={<SendOutlined />}
                 onClick={handleSend}
                 loading={loading}
               />
@@ -761,9 +999,9 @@ const ChatPage: React.FC = () => {
             {showEmoji && (
               <div className="emoji-picker">
                 {emojis.map(emoji => (
-                  <span 
-                    key={emoji} 
-                    className="emoji-item" 
+                  <span
+                    key={emoji}
+                    className="emoji-item"
                     onClick={() => handleEmojiClick(emoji)}
                   >
                     {emoji}
@@ -798,8 +1036,8 @@ const ChatPage: React.FC = () => {
         className="image-preview-modal"
       >
         {imagePreview && (
-          <img 
-            src={imagePreview} 
+          <img
+            src={imagePreview}
             alt={t('chat.preview.title')}
             style={{ maxWidth: '100%', maxHeight: '80vh' }}
           />

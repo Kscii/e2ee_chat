@@ -16,7 +16,7 @@ const AIContext = createContext<AIContextType | undefined>(undefined);
 export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [aiEnabled, setAIEnabled] = useState(true);
   const { apiKey } = useAPI();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const toggleAI = () => {
     setAIEnabled(!aiEnabled);
@@ -34,12 +34,42 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         dangerouslyAllowBrowser: true
       });
 
+      // 获取当前语言
+      const currentLanguage = i18n.language;
+      let languageInstruction = "";
+
+      // 根据当前语言设置对应的指令
+      switch (currentLanguage) {
+        case 'zh':
+        case 'zh-CN':
+          languageInstruction = "请使用中文回答所有问题。";
+          break;
+        case 'en':
+          languageInstruction = "Please answer all questions in English.";
+          break;
+        case 'ja':
+          languageInstruction = "すべての質問に日本語で答えてください。";
+          break;
+        case 'ko':
+          languageInstruction = "모든 질문에 한국어로 대답해 주세요.";
+
+          break;
+        default:
+          // 默认使用英语
+          languageInstruction = "Please answer all questions in English.";
+      }
+
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
           {
+            role: "system",
+            content: `你是一个AI助手，你的名字是kscii。${languageInstruction} 请确保以用户所选的语言回答。当前语言设置为: ${currentLanguage}`
+          },
+          {
             role: "user",
-            content: "" //提示词
+            content: content
           }
         ],
         temperature: 0.7,

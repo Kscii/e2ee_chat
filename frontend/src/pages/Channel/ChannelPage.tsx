@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Layout, Button, Input, Tooltip, Modal, Form, Upload, message, Menu, Dropdown, Radio, Avatar } from 'antd';
-import { 
-  UserOutlined, 
-  BellOutlined, 
-  PushpinOutlined, 
+import {
+  UserOutlined,
+  BellOutlined,
+  PushpinOutlined,
   UsergroupAddOutlined,
   SearchOutlined,
-  InboxOutlined,
-  QuestionCircleOutlined,
-  PlusOutlined,
   NumberOutlined,
   SoundOutlined,
   AudioMutedOutlined,
@@ -16,11 +13,7 @@ import {
   SettingOutlined,
   LogoutOutlined,
   WarningOutlined,
-  SmileOutlined,
-  GiftOutlined,
-  PictureOutlined,
-  SendOutlined,
-  FileOutlined,
+  PlusOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useServer } from '../../contexts/ServerContext';
@@ -32,29 +25,18 @@ import { useAvatar } from '../../contexts/AvatarContext';
 import './ChannelPage.css';
 import { useTranslation } from 'react-i18next';
 import { useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { sendChannelMessage, getChannelMessages } from '../../api/message';
+import { ChannelMessage, createSystemMessage, convertGroupMessagesToChannelFormat } from '../../utils/channelUtils';
 
 const { Content, Sider } = Layout;
 
-interface Message {
-  id: string;
-  content: string;
-  sender: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  timestamp: string;
-  files?: {
-    url: string;
-    name: string;
-    type: string;
-  }[];
-}
-
+// 使用channelUtils中定义的接口
 const ChannelPage: React.FC = () => {
   const { t } = useTranslation();
   const { servers, currentServer, setCurrentServer, addServer } = useServer();
   const { avatar } = useAvatar();
+  const { user } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isChannelModalVisible, setIsChannelModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -64,10 +46,10 @@ const ChannelPage: React.FC = () => {
   const [joinedVoiceChannel, setJoinedVoiceChannel] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChannelMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchResults, setSearchResults] = useState<Message[]>([]);
+  const [searchResults, setSearchResults] = useState<ChannelMessage[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showContent, setShowContent] = useState(false);
@@ -87,23 +69,31 @@ const ChannelPage: React.FC = () => {
     }
   }, [voiceError]);
 
-  // 模拟的消息数据
+  // 加载频道消息
   useEffect(() => {
-    if (selectedChannel) {
-      const mockMessages: Message[] = [
-        {
-          id: '1',
-          content: t('channel.messages.welcome', { channelName: selectedChannel.name }),
-          sender: {
-            id: 'system',
-            name: t('common.system'),
-            avatar: undefined
-          },
-          timestamp: new Date().toISOString()
+    const loadChannelMessages = async () => {
+      if (selectedChannel && selectedChannel.type === 'text') {
+        try {
+          // 显示加载中的消息
+          const systemMessage = createSystemMessage(
+            t('channel.messages.welcome', { channelName: selectedChannel.name })
+          );
+          setMessages([systemMessage]);
+
+          // 获取群组API的消息
+          const channelMessages = await getChannelMessages(100, 0);
+
+          // 转换消息格式并更新UI
+          const formattedMessages = convertGroupMessagesToChannelFormat(channelMessages, systemMessage);
+          setMessages(formattedMessages);
+        } catch (error) {
+          console.error('获取频道消息失败:', error);
+          message.error('获取频道消息失败');
         }
-      ];
-      setMessages(mockMessages);
-    }
+      }
+    };
+
+    loadChannelMessages();
   }, [selectedChannel, t]);
 
   // 检测屏幕尺寸
@@ -111,7 +101,7 @@ const ChannelPage: React.FC = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -123,14 +113,14 @@ const ChannelPage: React.FC = () => {
       // 获取MainLayout的侧边栏元素和菜单按钮
       const mainSider = document.querySelector('.app-sider') as HTMLElement;
       const mobileMenuButton = document.querySelector('.mobile-menu-button') as HTMLElement;
-      
+
       if (mainSider && mobileMenuButton) {
         // 保留移动菜单按钮的位置和层级，但不修改其原有行为
         mobileMenuButton.style.display = 'flex';
         mobileMenuButton.style.top = '10px';
         mobileMenuButton.style.right = '10px';
         mobileMenuButton.style.zIndex = '1002';
-        
+
         // 使用MutationObserver监听MainLayout侧边栏的class变化
         // 这样可以保持与MainLayout组件的状态同步
         const observer = new MutationObserver((mutations) => {
@@ -138,7 +128,7 @@ const ChannelPage: React.FC = () => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
               // 检测.show类是否存在来判断菜单是否打开
               const isMenuOpen = mainSider.classList.contains('show');
-              
+
               // 更新Channel页面的显示状态
               const channelPageElement = document.querySelector('.channel-page') as HTMLElement;
               if (channelPageElement) {
@@ -155,10 +145,10 @@ const ChannelPage: React.FC = () => {
             }
           });
         });
-        
+
         // 观察侧边栏的class属性变化
         observer.observe(mainSider, { attributes: true });
-        
+
         // 清理函数
         return () => {
           observer.disconnect();
@@ -169,7 +159,7 @@ const ChannelPage: React.FC = () => {
             channelPageElement.style.removeProperty('opacity');
             channelPageElement.style.removeProperty('pointer-events');
           }
-          
+
           // 去除移动按钮的自定义样式
           if (mobileMenuButton) {
             mobileMenuButton.style.removeProperty('top');
@@ -179,7 +169,7 @@ const ChannelPage: React.FC = () => {
         };
       }
     }
-    
+
     return undefined;
   }, [isMobile]);
 
@@ -190,7 +180,7 @@ const ChannelPage: React.FC = () => {
 
   const handleChannelSelect = (channel: Channel) => {
     setSelectedChannel(channel);
-    
+
     // 在移动端选择频道后显示内容区域
     if (isMobile) {
       setShowContent(true);
@@ -265,7 +255,7 @@ const ChannelPage: React.FC = () => {
 
         currentServer.channels.push(newChannel);
         setCurrentServer(currentServer.id);
-        
+
         setIsChannelModalVisible(false);
         channelForm.resetFields();
         message.success(t('channel.form.createSuccess'));
@@ -316,17 +306,17 @@ const ChannelPage: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string, files?: File[]) => {
-    if (!selectedChannel) return;
+    if (!selectedChannel || !user) return;
 
     setLoading(true);
     try {
-      // 这里应该调用后端API发送消息
-      const newMessage: Message = {
+      // 创建临时消息显示在UI上
+      const tempMessage: ChannelMessage = {
         id: Date.now().toString(),
         content,
         sender: {
           id: 'current-user-id',
-          name: t('chat.currentUser'),
+          name: user.username,
           avatar: avatar || undefined
         },
         timestamp: new Date().toISOString(),
@@ -337,9 +327,21 @@ const ChannelPage: React.FC = () => {
         }))
       };
 
-      setMessages(prev => [...prev, newMessage]);
+      // 先更新UI
+      setMessages(prev => [...prev, tempMessage]);
+
+      // 调用群组API发送消息
+      await sendChannelMessage(content);
+
+      // 刷新消息列表
+      const updatedMessages = await getChannelMessages(100, 0);
+
+      // 转换并更新UI显示
+      const systemMessage = messages[0]; // 保留系统欢迎消息
+      const formattedMessages = convertGroupMessagesToChannelFormat(updatedMessages, systemMessage);
+      setMessages(formattedMessages);
     } catch (error) {
-      console.error(t('errors.chat.sendFailed'), error);
+      console.error('发送频道消息失败:', error);
       message.error(t('errors.chat.sendFailed'));
     } finally {
       setLoading(false);
@@ -351,7 +353,7 @@ const ChannelPage: React.FC = () => {
     setSearchKeyword(value);
     if (value.trim()) {
       setIsSearching(true);
-      const results = messages.filter(msg => 
+      const results = messages.filter(msg =>
         msg.content.toLowerCase().includes(value.toLowerCase()) ||
         msg.sender.name.toLowerCase().includes(value.toLowerCase())
       );
@@ -488,10 +490,10 @@ const ChannelPage: React.FC = () => {
           <>
             {/* 在移动端和内容区域添加返回按钮 */}
             {isMobile && (
-              <Button 
-                type="text" 
+              <Button
+                type="text"
                 className="back-to-channels-btn"
-                icon={<ArrowLeftOutlined />} 
+                icon={<ArrowLeftOutlined />}
                 onClick={handleBackToChannels}
               >
                 {t('common.back')}
@@ -509,7 +511,7 @@ const ChannelPage: React.FC = () => {
                 <Tooltip title={t('channel.actions.members')}>
                   <Button type="text" icon={<UsergroupAddOutlined />} />
                 </Tooltip>
-                <Input 
+                <Input
                   prefix={<SearchOutlined />}
                   placeholder={t('chat.actions.search')}
                   className="channel-search"

@@ -90,6 +90,7 @@
     "sendButton": "发送",
     "uploadButton": "上传文件",
     "emojiButton": "插入表情",
+    "emptyMessages": "没有消息",
     "status": {
       "sending": "发送中...",
       "sent": "已发送",

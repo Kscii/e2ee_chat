@@ -32,6 +32,72 @@ class DatabaseManager:
         )
         ''')
         
+        # 创建消息表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender_id INTEGER NOT NULL,
+            receiver_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            is_read BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (sender_id) REFERENCES users (id),
+            FOREIGN KEY (receiver_id) REFERENCES users (id)
+        )
+        ''')
+        
+        # 创建会话表（用于跟踪用户之间的会话）
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user1_id INTEGER NOT NULL,
+            user2_id INTEGER NOT NULL,
+            last_message_id INTEGER,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user1_id) REFERENCES users (id),
+            FOREIGN KEY (user2_id) REFERENCES users (id),
+            FOREIGN KEY (last_message_id) REFERENCES messages (id),
+            UNIQUE(user1_id, user2_id)
+        )
+        ''')
+        
+        # 创建群组表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS groups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # 创建群组成员表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS group_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id),
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(group_id, user_id)
+        )
+        ''')
+        
+        # 创建群组消息表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS group_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER NOT NULL,
+            sender_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id),
+            FOREIGN KEY (sender_id) REFERENCES users (id)
+        )
+        ''')
+        
         conn.commit()
         conn.close()
         print("数据库初始化完成")
@@ -141,6 +207,28 @@ class UserModel:
         finally:
             conn.close()
     
+    def get_all_users(self):
+        """获取所有用户的列表"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                "SELECT id, username, email, created_at, last_login FROM users"
+            )
+            users = cursor.fetchall()
+            
+            # 转换为列表字典
+            user_list = [dict(user) for user in users]
+            return user_list
+        
+        except Error as e:
+            print(f"获取用户列表失败: {str(e)}")
+            return []
+        
+        finally:
+            conn.close()
+    
     def update_user(self, username, data):
         """更新用户信息"""
         conn = self.db_manager.get_connection()
@@ -215,5 +303,293 @@ class UserModel:
             conn.rollback()
             return {"error": f"密码修改失败: {str(e)}"}, 500
         
+        finally:
+            conn.close()
+
+
+class MessageModel:
+    def __init__(self):
+        self.db_manager = DatabaseManager()
+    
+    def send_message(self, sender_username, receiver_username, content):
+        """发送消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取发送者和接收者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (sender_username,))
+            sender = cursor.fetchone()
+            
+            if not sender:
+                return {"error": "发送者不存在"}, 404
+            
+            cursor.execute("SELECT id FROM users WHERE username = ?", (receiver_username,))
+            receiver = cursor.fetchone()
+            
+            if not receiver:
+                return {"error": "接收者不存在"}, 404
+            
+            sender_id = sender['id']
+            receiver_id = receiver['id']
+            
+            # 存储消息
+            cursor.execute(
+                "INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
+                (sender_id, receiver_id, content)
+            )
+            
+            # 获取消息ID
+            message_id = cursor.lastrowid
+            
+            # 更新或创建会话
+            cursor.execute(
+                """
+                INSERT INTO conversations (user1_id, user2_id, last_message_id, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user1_id, user2_id) 
+                DO UPDATE SET last_message_id = ?, updated_at = ?
+                """,
+                (
+                    min(sender_id, receiver_id), 
+                    max(sender_id, receiver_id), 
+                    message_id,
+                    datetime.now().isoformat(),
+                    message_id,
+                    datetime.now().isoformat()
+                )
+            )
+            
+            conn.commit()
+            
+            return {
+                "message_id": message_id,
+                "sender_id": sender_id,
+                "receiver_id": receiver_id,
+                "content": content,
+                "created_at": datetime.now().isoformat()
+            }, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"发送消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_messages(self, user1_username, user2_username, limit=50, offset=0):
+        """获取两个用户之间的消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (user1_username,))
+            user1 = cursor.fetchone()
+            
+            if not user1:
+                return {"error": "用户1不存在"}, 404
+                
+            cursor.execute("SELECT id FROM users WHERE username = ?", (user2_username,))
+            user2 = cursor.fetchone()
+            
+            if not user2:
+                return {"error": "用户2不存在"}, 404
+                
+            user1_id = user1['id']
+            user2_id = user2['id']
+            
+            # 获取消息 - 修改为按时间正序排序（ASC而非DESC）
+            cursor.execute(
+                """
+                SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
+                       s.username as sender_username, r.username as receiver_username
+                FROM messages m
+                JOIN users s ON m.sender_id = s.id
+                JOIN users r ON m.receiver_id = r.id
+                WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)
+                ORDER BY m.created_at ASC
+                LIMIT ? OFFSET ?
+                """,
+                (user1_id, user2_id, user2_id, user1_id, limit, offset)
+            )
+            
+            messages = cursor.fetchall()
+            message_list = [dict(msg) for msg in messages]
+            
+            # 更新消息的已读状态（将发给user1但未读的消息标记为已读）
+            cursor.execute(
+                """
+                UPDATE messages
+                SET is_read = 1
+                WHERE receiver_id = ? AND sender_id = ? AND is_read = 0
+                """,
+                (user1_id, user2_id)
+            )
+            
+            conn.commit()
+            
+            return {"messages": message_list}, 200
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"获取消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_conversations(self, username):
+        """获取用户的所有会话"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"error": "用户不存在"}, 404
+                
+            user_id = user['id']
+            
+            # 获取会话列表
+            cursor.execute(
+                """
+                SELECT c.id, c.user1_id, c.user2_id, c.last_message_id, c.updated_at,
+                       u1.username as user1_username, u2.username as user2_username,
+                       m.content as last_message, m.created_at as last_message_time,
+                       (SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND sender_id = (CASE WHEN c.user1_id = ? THEN c.user2_id ELSE c.user1_id END) AND is_read = 0) as unread_count
+                FROM conversations c
+                JOIN users u1 ON c.user1_id = u1.id
+                JOIN users u2 ON c.user2_id = u2.id
+                LEFT JOIN messages m ON c.last_message_id = m.id
+                WHERE c.user1_id = ? OR c.user2_id = ?
+                ORDER BY c.updated_at DESC
+                """,
+                (user_id, user_id, user_id, user_id)
+            )
+            
+            conversations = cursor.fetchall()
+            
+            # 处理会话列表，确保当前用户不是user1
+            conversation_list = []
+            for conv in conversations:
+                conv_dict = dict(conv)
+                # 如果当前用户是user1，则将另一个用户作为对话对象
+                if conv_dict['user1_id'] == user_id:
+                    conv_dict['other_user_id'] = conv_dict['user2_id']
+                    conv_dict['other_username'] = conv_dict['user2_username']
+                else:
+                    conv_dict['other_user_id'] = conv_dict['user1_id']
+                    conv_dict['other_username'] = conv_dict['user1_username']
+                
+                conversation_list.append(conv_dict)
+            
+            return {"conversations": conversation_list}, 200
+            
+        except Error as e:
+            return {"error": f"获取会话列表失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def send_group_message(self, sender_username, content):
+        """发送群组消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取发送者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (sender_username,))
+            sender = cursor.fetchone()
+            
+            if not sender:
+                return {"error": "发送者不存在"}, 404
+            
+            sender_id = sender['id']
+            
+            # 获取或创建默认群组ID为1
+            cursor.execute("SELECT id FROM groups WHERE id = 1")
+            group = cursor.fetchone()
+            
+            if not group:
+                # 创建默认群组
+                cursor.execute(
+                    "INSERT INTO groups (id, name, description) VALUES (1, '公共聊天室', '所有用户共享的聊天室')"
+                )
+                group_id = 1
+            else:
+                group_id = group['id']
+            
+            # 确保用户是群组成员
+            cursor.execute(
+                "SELECT id FROM group_members WHERE group_id = ? AND user_id = ?",
+                (group_id, sender_id)
+            )
+            member = cursor.fetchone()
+            
+            if not member:
+                # 添加用户为群组成员
+                cursor.execute(
+                    "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
+                    (group_id, sender_id)
+                )
+            
+            # 存储消息
+            cursor.execute(
+                "INSERT INTO group_messages (group_id, sender_id, content) VALUES (?, ?, ?)",
+                (group_id, sender_id, content)
+            )
+            
+            # 获取消息ID
+            message_id = cursor.lastrowid
+            
+            conn.commit()
+            
+            return {
+                "id": message_id,
+                "group_id": group_id,
+                "sender_id": sender_id,
+                "sender_username": sender_username,
+                "content": content,
+                "created_at": datetime.now().isoformat()
+            }, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"发送群组消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_group_messages(self, limit=50, offset=0):
+        """获取群组消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取默认群组(ID=1)的消息，按时间正序排序
+            cursor.execute(
+                """
+                SELECT g.id, g.group_id, g.sender_id, g.content, g.created_at,
+                       u.username as sender_username
+                FROM group_messages g
+                JOIN users u ON g.sender_id = u.id
+                WHERE g.group_id = 1
+                ORDER BY g.created_at ASC
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset)
+            )
+            
+            messages = cursor.fetchall()
+            message_list = [dict(msg) for msg in messages]
+            
+            return message_list, 200
+            
+        except Error as e:
+            return {"error": f"获取群组消息失败: {str(e)}"}, 500
+            
         finally:
             conn.close() 
