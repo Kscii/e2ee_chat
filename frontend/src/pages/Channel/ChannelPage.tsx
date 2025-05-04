@@ -6,6 +6,9 @@ import {
   PushpinOutlined,
   UsergroupAddOutlined,
   SearchOutlined,
+  InboxOutlined,
+  QuestionCircleOutlined,
+  PlusOutlined,
   NumberOutlined,
   SoundOutlined,
   AudioMutedOutlined,
@@ -13,7 +16,11 @@ import {
   SettingOutlined,
   LogoutOutlined,
   WarningOutlined,
-  PlusOutlined,
+  SmileOutlined,
+  GiftOutlined,
+  PictureOutlined,
+  SendOutlined,
+  FileOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useServer } from '../../contexts/ServerContext';
@@ -25,18 +32,29 @@ import { useAvatar } from '../../contexts/AvatarContext';
 import './ChannelPage.css';
 import { useTranslation } from 'react-i18next';
 import { useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { sendChannelMessage, getChannelMessages } from '../../api/message';
-import { ChannelMessage, createSystemMessage, convertGroupMessagesToChannelFormat } from '../../utils/channelUtils';
 
 const { Content, Sider } = Layout;
 
-// 使用channelUtils中定义的接口
+interface Message {
+  id: string;
+  content: string;
+  sender: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  timestamp: string;
+  files?: {
+    url: string;
+    name: string;
+    type: string;
+  }[];
+}
+
 const ChannelPage: React.FC = () => {
   const { t } = useTranslation();
   const { servers, currentServer, setCurrentServer, addServer } = useServer();
   const { avatar } = useAvatar();
-  const { user } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isChannelModalVisible, setIsChannelModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -46,10 +64,10 @@ const ChannelPage: React.FC = () => {
   const [joinedVoiceChannel, setJoinedVoiceChannel] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [micPermissionError, setMicPermissionError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChannelMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchResults, setSearchResults] = useState<ChannelMessage[]>([]);
+  const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showContent, setShowContent] = useState(false);
@@ -69,31 +87,23 @@ const ChannelPage: React.FC = () => {
     }
   }, [voiceError]);
 
-  // 加载频道消息
+  // 模拟的消息数据
   useEffect(() => {
-    const loadChannelMessages = async () => {
-      if (selectedChannel && selectedChannel.type === 'text') {
-        try {
-          // 显示加载中的消息
-          const systemMessage = createSystemMessage(
-            t('channel.messages.welcome', { channelName: selectedChannel.name })
-          );
-          setMessages([systemMessage]);
-
-          // 获取群组API的消息
-          const channelMessages = await getChannelMessages(100, 0);
-
-          // 转换消息格式并更新UI
-          const formattedMessages = convertGroupMessagesToChannelFormat(channelMessages, systemMessage);
-          setMessages(formattedMessages);
-        } catch (error) {
-          console.error('获取频道消息失败:', error);
-          message.error('获取频道消息失败');
+    if (selectedChannel) {
+      const mockMessages: Message[] = [
+        {
+          id: '1',
+          content: t('channel.messages.welcome', { channelName: selectedChannel.name }),
+          sender: {
+            id: 'system',
+            name: t('common.system'),
+            avatar: undefined
+          },
+          timestamp: new Date().toISOString()
         }
-      }
-    };
-
-    loadChannelMessages();
+      ];
+      setMessages(mockMessages);
+    }
   }, [selectedChannel, t]);
 
   // 检测屏幕尺寸
@@ -306,17 +316,17 @@ const ChannelPage: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string, files?: File[]) => {
-    if (!selectedChannel || !user) return;
+    if (!selectedChannel) return;
 
     setLoading(true);
     try {
-      // 创建临时消息显示在UI上
-      const tempMessage: ChannelMessage = {
+      // 这里应该调用后端API发送消息
+      const newMessage: Message = {
         id: Date.now().toString(),
         content,
         sender: {
           id: 'current-user-id',
-          name: user.username,
+          name: t('chat.currentUser'),
           avatar: avatar || undefined
         },
         timestamp: new Date().toISOString(),
@@ -327,21 +337,9 @@ const ChannelPage: React.FC = () => {
         }))
       };
 
-      // 先更新UI
-      setMessages(prev => [...prev, tempMessage]);
-
-      // 调用群组API发送消息
-      await sendChannelMessage(content);
-
-      // 刷新消息列表
-      const updatedMessages = await getChannelMessages(100, 0);
-
-      // 转换并更新UI显示
-      const systemMessage = messages[0]; // 保留系统欢迎消息
-      const formattedMessages = convertGroupMessagesToChannelFormat(updatedMessages, systemMessage);
-      setMessages(formattedMessages);
+      setMessages(prev => [...prev, newMessage]);
     } catch (error) {
-      console.error('发送频道消息失败:', error);
+      console.error(t('errors.chat.sendFailed'), error);
       message.error(t('errors.chat.sendFailed'));
     } finally {
       setLoading(false);

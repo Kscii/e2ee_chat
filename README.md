@@ -7,7 +7,7 @@
 This is a modern web chat application built with React and TypeScript. It features AI-powered conversations, text-to-speech capabilities, and supports multiple languages. The project includes a backend authentication system built with Flask and SQLite.
 
 If you want to experience this project, you can visit:  
--> [**kscii.tech**](https://kscii.tech)
+-> [**kang-mi.com**](https://kang-mi.com/)
 
 ### Key Features
 - AI Chat Assistant (powered by OpenAI)
@@ -116,7 +116,7 @@ The backend server will run on `http://localhost:8000` by default.
 这是一个使用 React 和 TypeScript 构建的现代化网页聊天应用。它具有 AI 对话功能、语音合成功能，并支持多语言。项目包含基于 Flask 和 SQLite 构建的后端认证系统。
 
 如果你想体验本项目的效果，可以访问：  
--> [**kscii.tech**](https://kscii.tech)
+-> [**kang-mi.com**](https://kang-mi.com/)
 
 ### 主要功能
 - AI 聊天助手（由 OpenAI 驱动）

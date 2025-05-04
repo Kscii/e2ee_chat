@@ -177,15 +177,4 @@ export const getGroupMessages = async (limit = 50, offset = 0): Promise<GroupMes
     }
     throw new Error('获取群组消息失败，请稍后重试');
   }
-};
-
-// Channel API 函数 - 使用现有的群组API
-export const sendChannelMessage = async (content: string): Promise<GroupMessage> => {
-  // 直接使用群组消息API
-  return sendGroupMessage(content);
-};
-
-export const getChannelMessages = async (limit = 50, offset = 0): Promise<GroupMessage[]> => {
-  // 直接使用群组消息API
-  return getGroupMessages(limit, offset);
 }; 
