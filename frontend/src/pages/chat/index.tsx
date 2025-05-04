@@ -1,59 +1,59 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Input, Button, Avatar, Typography, Divider, Tooltip, Upload, message, Modal } from 'antd';
-import {
-  SendOutlined,
-  UserOutlined,
-  SoundOutlined,
-  RobotOutlined,
-  PaperClipOutlined,
-  PictureOutlined,
-  FilePdfOutlined,
-  FileWordOutlined,
-  FileExcelOutlined,
-  FilePptOutlined,
-  FileTextOutlined,
-  EyeOutlined,
-  DownloadOutlined,
-  CheckOutlined,
-  CheckCircleOutlined,
-  SmileOutlined,
-  TeamOutlined
-} from '@ant-design/icons';
+import React, { useRef, useState, useEffect } from 'react';
+import { Typography, Input, Button, Avatar, Divider, message, Upload, Popover, Tooltip, Modal } from 'antd';
+import { UserOutlined, RobotOutlined, UploadOutlined, FileOutlined, SendOutlined, TeamOutlined, SmileOutlined, CheckOutlined, CheckCircleOutlined, DownloadOutlined, SoundOutlined } from '@ant-design/icons';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
-import type { Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAvatar } from '../../contexts/AvatarContext';
 import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
 import { useAPI } from '../../contexts/APIContext';
-import { useTranslation } from 'react-i18next';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useAuth } from '../../contexts/AuthContext';
-import { sendMessage, getMessages, sendGroupMessage, getGroupMessages, GroupMessage } from '../../api/message';
+// 使用sendEncryptedMessage发送加密消息，sendMessage仅保留用于群组或非加密消息
+import { sendEncryptedMessage, getMessages, sendGroupMessage, getGroupMessages, GroupMessage } from '../../api/message';
 import { getAllUsers } from '../../api/auth';
+import { useCrypto } from '../../contexts/CryptoContext';
+import { getOrFetchPublicKey } from '../../api/keys';
 
 const { Text } = Typography;
 
+// 消息发送者类型
+type MessageSender = 'user' | 'other';
+
+// 消息状态
+type MessageStatus = 'sending' | 'sent' | 'read' | 'failed';
+
+// 消息类型
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'other';
+  sender: MessageSender;
   timestamp: Date;
-  type?: 'text' | 'image' | 'pdf' | 'word' | 'excel' | 'ppt' | 'txt' | 'file';
+  status?: MessageStatus;
+  type?: 'text' | 'image' | 'file' | 'pdf' | 'word' | 'excel' | 'ppt' | 'txt';
   fileInfo?: {
     name: string;
     url: string;
-    type: string;
+    size?: number;
+    type?: string;
     previewUrl?: string;
   };
-  status?: 'sending' | 'sent' | 'read' | 'failed';
+}
+
+// 用于Markdown渲染的组件接口
+interface Components {
+  [key: string]: React.ComponentType<React.PropsWithChildren<{
+    className?: string;
+    children?: React.ReactNode;
+  }>>;
 }
 
 // 添加打字机效果组件
@@ -95,6 +95,17 @@ const LoadingAnimation: React.FC = () => {
   );
 };
 
+// 简单的消息操作组件
+const MessageActions: React.FC<{ message: Message }> = ({ message }) => {
+  return (
+    <div className="message-actions">
+      <Button size="small" onClick={() => window.open(message.fileInfo?.url)}>
+        下载
+      </Button>
+    </div>
+  );
+};
+
 const ChatPage: React.FC = () => {
   const { isDarkMode } = useTheme();
   const { markdownMode } = useMarkdown();
@@ -108,6 +119,7 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   const isAIChat = location.pathname === '/ai';
+  const { encryptMessage, decryptMessage } = useCrypto();
 
   // 获取聊天对象ID或用户名
   const chatId = params.id || 'ai';
@@ -248,12 +260,36 @@ const ChatPage: React.FC = () => {
       const messagesData = await getMessages(otherUsername);
 
       // 转换API消息格式为UI消息格式
-      const uiMessages: Message[] = messagesData.map(msg => ({
-        id: msg.id.toString(),
-        content: msg.content,
-        sender: msg.sender_username === user.username ? 'user' : 'other',
-        timestamp: new Date(msg.created_at),
-        status: msg.is_read ? 'read' : 'sent'
+      const uiMessages: Message[] = await Promise.all(messagesData.map(async msg => {
+        let content = msg.content;
+
+        // 如果是加密消息，尝试解密
+        if (msg.is_encrypted) {
+          try {
+            // 获取发送者的公钥
+            const senderPublicKey = await getOrFetchPublicKey(msg.sender_username);
+
+            // 解密消息内容
+            const decrypted = decryptMessage(content, senderPublicKey);
+            if (decrypted) {
+              content = decrypted;
+            } else {
+              console.error('无法解密消息:', msg.id);
+              content = '[加密消息 - 无法解密]';
+            }
+          } catch (error) {
+            console.error('解密消息失败:', error);
+            content = '[加密消息 - 解密失败]';
+          }
+        }
+
+        return {
+          id: msg.id.toString(),
+          content: content,
+          sender: msg.sender_username === user.username ? 'user' : 'other',
+          timestamp: new Date(msg.created_at),
+          status: msg.is_read ? 'read' : 'sent'
+        };
       }));
 
       setMessages(uiMessages);
@@ -380,7 +416,14 @@ const ChatPage: React.FC = () => {
       } else if (chatType === 'user' && currentContact.name) {
         // 发送消息到后端
         try {
-          const response = await sendMessage(currentContact.name, userMessage.content);
+          // 获取接收者的公钥用于加密
+          const receiverPublicKey = await getOrFetchPublicKey(currentContact.name);
+
+          // 加密消息内容
+          const encryptedContent = encryptMessage(userMessage.content, receiverPublicKey);
+
+          // 发送加密消息
+          const response = await sendEncryptedMessage(currentContact.name, encryptedContent);
 
           // 防止页面崩溃的安全处理
           console.log('后端响应:', response);
@@ -533,12 +576,12 @@ const ChatPage: React.FC = () => {
   // 获取文件图标
   const getFileIcon = (type: Message['type']) => {
     switch (type) {
-      case 'pdf': return <FilePdfOutlined />;
-      case 'word': return <FileWordOutlined />;
-      case 'excel': return <FileExcelOutlined />;
-      case 'ppt': return <FilePptOutlined />;
-      case 'txt': return <FileTextOutlined />;
-      default: return <PaperClipOutlined />;
+      case 'pdf': return <FileOutlined />;
+      case 'word': return <FileOutlined />;
+      case 'excel': return <FileOutlined />;
+      case 'ppt': return <FileOutlined />;
+      case 'txt': return <FileOutlined />;
+      default: return <FileOutlined />;
     }
   };
 
@@ -622,9 +665,9 @@ const ChatPage: React.FC = () => {
             <div className="file-icon">{icon}</div>
             <div className="file-name">{message.fileInfo.name}</div>
             <div className="file-actions">
-              <Tooltip title={t('common.preview')}>
-                <Button type="text" icon={<EyeOutlined />} />
-              </Tooltip>
+              <Popover content={<MessageActions message={message} />}>
+                <Button type="text" icon={<UploadOutlined />} />
+              </Popover>
               <Tooltip title={t('common.download')}>
                 <Button type="text" icon={<DownloadOutlined />} onClick={(e) => {
                   e.stopPropagation();
@@ -951,7 +994,7 @@ const ChatPage: React.FC = () => {
               >
                 <Button
                   type="text"
-                  icon={<PaperClipOutlined />}
+                  icon={<UploadOutlined />}
                   title={t('chat.uploadButton')}
                 />
               </Upload>
@@ -985,7 +1028,7 @@ const ChatPage: React.FC = () => {
               >
                 <Button
                   type="text"
-                  icon={<PictureOutlined />}
+                  icon={<UploadOutlined />}
                   title={t('chat.uploadButton')}
                 />
               </Upload>

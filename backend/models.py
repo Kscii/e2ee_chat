@@ -40,6 +40,7 @@ class DatabaseManager:
             receiver_id INTEGER NOT NULL,
             content TEXT NOT NULL,
             is_read BOOLEAN DEFAULT 0,
+            is_encrypted BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (sender_id) REFERENCES users (id),
             FOREIGN KEY (receiver_id) REFERENCES users (id)
@@ -58,6 +59,17 @@ class DatabaseManager:
             FOREIGN KEY (user2_id) REFERENCES users (id),
             FOREIGN KEY (last_message_id) REFERENCES messages (id),
             UNIQUE(user1_id, user2_id)
+        )
+        ''')
+        
+        # 创建用户公钥表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_keys (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL UNIQUE,
+            public_key TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
         ''')
         
@@ -311,7 +323,7 @@ class MessageModel:
     def __init__(self):
         self.db_manager = DatabaseManager()
     
-    def send_message(self, sender_username, receiver_username, content):
+    def send_message(self, sender_username, receiver_username, content, is_encrypted=False):
         """发送消息"""
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -335,8 +347,8 @@ class MessageModel:
             
             # 存储消息
             cursor.execute(
-                "INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
-                (sender_id, receiver_id, content)
+                "INSERT INTO messages (sender_id, receiver_id, content, is_encrypted) VALUES (?, ?, ?, ?)",
+                (sender_id, receiver_id, content, 1 if is_encrypted else 0)
             )
             
             # 获取消息ID
@@ -367,6 +379,7 @@ class MessageModel:
                 "sender_id": sender_id,
                 "receiver_id": receiver_id,
                 "content": content,
+                "is_encrypted": bool(is_encrypted),
                 "created_at": datetime.now().isoformat()
             }, 201
             
@@ -402,7 +415,7 @@ class MessageModel:
             # 获取消息 - 修改为按时间正序排序（ASC而非DESC）
             cursor.execute(
                 """
-                SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
+                SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.is_encrypted, m.created_at,
                        s.username as sender_username, r.username as receiver_username
                 FROM messages m
                 JOIN users s ON m.sender_id = s.id

@@ -191,13 +191,14 @@ def send_message():
     data = request.get_json()
     receiver_username = data.get('receiver')
     content = data.get('content')
+    is_encrypted = data.get('is_encrypted', False)
     
     # 验证数据
     if not receiver_username or not content:
         return jsonify({"error": "接收者和消息内容不能为空"}), 400
     
     # 发送消息
-    result, status_code = message_model.send_message(sender_username, receiver_username, content)
+    result, status_code = message_model.send_message(sender_username, receiver_username, content, is_encrypted)
     
     return jsonify(result), status_code
 
@@ -301,6 +302,151 @@ def get_group_messages():
     result, status_code = message_model.get_group_messages(limit, offset)
     
     return jsonify({"messages": result}), status_code
+
+# 保存用户公钥
+@app.route('/api/keys', methods=['POST'])
+def save_user_public_key():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取用户名
+    username = payload.get('username')
+    
+    # 获取请求数据
+    data = request.get_json()
+    public_key = data.get('publicKey')
+    
+    if not public_key:
+        return jsonify({"error": "公钥不能为空"}), 400
+    
+    # 保存公钥
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # 检查用户是否存在
+        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"error": "用户不存在"}), 404
+        
+        user_id = user['id']
+        
+        # 保存公钥，如果已存在则更新
+        cursor.execute(
+            """
+            INSERT INTO user_keys (user_id, public_key, updated_at) 
+            VALUES (?, ?, ?) 
+            ON CONFLICT(user_id) 
+            DO UPDATE SET public_key = ?, updated_at = ?
+            """, 
+            (user_id, public_key, datetime.now().isoformat(), public_key, datetime.now().isoformat())
+        )
+        
+        conn.commit()
+        return jsonify({"message": "公钥保存成功"}), 200
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"保存公钥失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
+
+# 获取用户公钥
+@app.route('/api/keys/<username>', methods=['GET'])
+def get_user_public_key(username):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取公钥
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            """
+            SELECT k.public_key 
+            FROM user_keys k
+            JOIN users u ON k.user_id = u.id
+            WHERE u.username = ?
+            """, 
+            (username,)
+        )
+        
+        result = cursor.fetchone()
+        
+        if not result:
+            return jsonify({"error": "未找到该用户的公钥"}), 404
+            
+        return jsonify({"username": username, "publicKey": result['public_key']}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取公钥失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
+
+# 获取所有用户公钥
+@app.route('/api/keys', methods=['GET'])
+def get_all_public_keys():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取所有公钥
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            """
+            SELECT u.username, k.public_key 
+            FROM user_keys k
+            JOIN users u ON k.user_id = u.id
+            """
+        )
+        
+        results = cursor.fetchall()
+        
+        keys = []
+        for row in results:
+            keys.append({
+                "username": row['username'],
+                "publicKey": row['public_key']
+            })
+            
+        return jsonify({"keys": keys}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取公钥列表失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
 
 # 运行应用
 if __name__ == '__main__':

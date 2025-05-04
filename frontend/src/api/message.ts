@@ -15,6 +15,7 @@ export interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+  is_encrypted?: boolean; // 标记消息是否已加密
 }
 
 export interface GroupMessage {
@@ -79,6 +80,27 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+// 发送加密消息
+export const sendEncryptedMessage = async (receiver: string, encryptedContent: string): Promise<Message> => {
+  try {
+    const response = await apiClient.post('/messages', {
+      receiver,
+      content: encryptedContent,
+      is_encrypted: true // 标记为加密消息
+    });
+    return response.data;
+  } catch (error) {
+    console.error('发送加密消息失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('发送加密消息失败，请稍后重试');
+  }
+};
 
 // 发送消息
 export const sendMessage = async (receiver: string, content: string): Promise<Message> => {
