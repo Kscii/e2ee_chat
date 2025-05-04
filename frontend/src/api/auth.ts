@@ -1,13 +1,17 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+// 从环境变量获取API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // 创建axios实例
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // 在浏览器环境中，不需要显式配置HTTPS证书验证
+  // 浏览器会自动处理证书验证
+  withCredentials: import.meta.env.VITE_SECURE_MODE === 'true' // 允许跨域请求携带凭证
 });
 
 // 请求拦截器添加token
