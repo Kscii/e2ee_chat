@@ -53,4 +53,75 @@ TRUSTED_DOMAIN="example.com" API_URL="https://api.example.com" ./scripts/build-p
    - 更新 `utils/certificateValidator.ts` 中的硬编码默认值
    - 使用环境变量在构建时传入新值
    - 使用构建脚本参数指定新值
-3. 重新构建应用并部署 
+3. 重新构建应用并部署
+
+# 自动化部署说明
+
+## 部署脚本
+
+项目提供了一个自动化部署脚本 `deploy.sh`，用于简化前端应用的构建和部署过程。此脚本执行以下操作：
+
+1. 检查必要的权限
+2. 使用生产环境配置构建应用
+3. 备份当前部署的版本
+4. 清空部署目录
+5. 部署新构建的文件
+6. 设置正确的文件权限
+
+## 使用方法
+
+```bash
+# 确保脚本有执行权限
+chmod +x deploy.sh
+
+# 执行完整的构建和部署
+./deploy.sh
+
+# 仅构建不部署
+./deploy.sh --build-only
+
+# 仅部署不构建
+./deploy.sh --deploy-only
+
+# 显示帮助信息
+./deploy.sh --help
+```
+
+## 配置方法
+
+脚本支持通过 `deploy-config.sh` 文件自定义配置参数。您可以根据需要编辑此文件：
+
+```bash
+# 复制示例配置文件
+cp deploy-config.sh deploy-config.local.sh
+
+# 编辑本地配置
+vim deploy-config.local.sh
+
+# 使用本地配置运行部署脚本
+CONFIG_FILE=./deploy-config.local.sh ./deploy.sh
+```
+
+## 配置参数说明
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| DEPLOY_DIR | 部署目录 | /var/www/chat-frontend |
+| BUILD_CMD | 构建命令 | npm run build:prod |
+| BACKUP_PREFIX | 备份目录前缀 | /var/www/backups/chat-frontend |
+| SERVER_USER | 服务器用户 | www-data |
+| SERVER_GROUP | 服务器用户组 | www-data |
+| SERVER_PERMISSIONS | 文件权限 | 755 |
+| ENABLE_BACKUP | 是否启用备份 | true |
+| AUTO_DEPLOY | 是否自动部署 | true |
+| SET_PERMISSIONS | 是否设置权限 | true |
+| MAX_BACKUPS | 最大备份数量 | 5 |
+| API_URL | API服务器地址 | (可选) |
+| TRUSTED_DOMAIN | 信任的域名 | (可选) |
+
+## 注意事项
+
+- 脚本需要 sudo 权限执行部署操作
+- 确保系统上已安装 npm 并已设置好依赖
+- 如果部署失败，可以从备份目录恢复先前的版本
+- 默认保留最近5个备份，可通过配置修改 

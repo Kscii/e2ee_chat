@@ -103,7 +103,7 @@ cp sample.env .env
 
 4. Start the backend server
 ```bash
-python run.py
+gunicorn -w 4 -b 0.0.0.0:8000 run:app
 ```
 
 The backend server will run on `http://localhost:8000` by default.
@@ -212,7 +212,7 @@ cp sample.env .env
 
 4. 启动后端服务器
 ```bash
-python run.py
+gunicorn -w 4 -b 0.0.0.0:8000 run:app
 ```
 
 后端服务器默认运行在 `http://localhost:8000`。
