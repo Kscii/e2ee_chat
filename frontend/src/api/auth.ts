@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { validateServerDomain } from '../utils/certificateValidator';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -14,9 +15,17 @@ const apiClient = axios.create({
   withCredentials: import.meta.env.VITE_SECURE_MODE === 'true' // 允许跨域请求携带凭证
 });
 
-// 请求拦截器添加token
+// 请求拦截器添加token和验证服务器
 apiClient.interceptors.request.use(
   (config) => {
+    // 生产环境下验证域名和协议
+    if (import.meta.env.MODE === 'production') {
+      if (!validateServerDomain()) {
+        throw new Error('服务器验证失败，为保护您的账户安全，已阻止请求');
+      }
+    }
+    
+    // 添加认证token
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -31,6 +40,7 @@ apiClient.interceptors.request.use(
 // 用户注册
 export const register = async (username: string, password: string, email: string, phone: string) => {
   try {
+    // 服务器验证在拦截器中完成
     const response = await apiClient.post('/register', {
       username,
       password,
@@ -49,6 +59,7 @@ export const register = async (username: string, password: string, email: string
 // 用户登录
 export const login = async (username: string, password: string) => {
   try {
+    // 服务器验证在拦截器中完成
     const response = await apiClient.post('/login', {
       username,
       password
