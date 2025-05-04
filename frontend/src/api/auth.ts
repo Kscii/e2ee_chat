@@ -1,8 +1,19 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { validateServerDomain } from '../utils/certificateValidator';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+// 定义API响应类型
+interface ApiErrorResponse {
+  error: string;
+}
+
+interface LoginResponse {
+  message: string;
+  username: string;
+  token: string;
+}
 
 // 创建axios实例
 const apiClient = axios.create({
@@ -48,9 +59,12 @@ export const register = async (username: string, password: string, email: string
       phone
     });
     return response.data;
-  } catch (error: any) {
-    if (error.response) {
-      throw new Error(error.response.data.error || '注册失败');
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error || '注册失败');
+      }
     }
     throw new Error('网络错误，请稍后重试');
   }
@@ -60,7 +74,7 @@ export const register = async (username: string, password: string, email: string
 export const login = async (username: string, password: string) => {
   try {
     // 服务器验证在拦截器中完成
-    const response = await apiClient.post('/login', {
+    const response = await apiClient.post<LoginResponse>('/login', {
       username,
       password
     });
@@ -72,9 +86,12 @@ export const login = async (username: string, password: string) => {
     }
     
     return response.data;
-  } catch (error: any) {
-    if (error.response) {
-      throw new Error(error.response.data.error || '登录失败');
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error || '登录失败');
+      }
     }
     throw new Error('网络错误，请稍后重试');
   }
@@ -85,12 +102,15 @@ export const getUserInfo = async () => {
   try {
     const response = await apiClient.get('/user');
     return response.data;
-  } catch (error: any) {
-    if (error.response && error.response.status === 401) {
-      // 如果token失效，清除本地存储
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
-      throw new Error('登录已过期，请重新登录');
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response && axiosError.response.status === 401) {
+        // 如果token失效，清除本地存储
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        throw new Error('登录已过期，请重新登录');
+      }
     }
     throw new Error('获取用户信息失败');
   }

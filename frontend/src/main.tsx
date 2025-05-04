@@ -6,11 +6,14 @@ import './index.css'
 // 导入 Ant Design 样式
 import 'antd/dist/reset.css'
 // 导入安全检查
-import { enforceSecureConnection } from './utils/certificateValidator'
+import { enforceSecureConnection, getEnvironmentInfo } from './utils/certificateValidator'
 
 // 在生产环境下执行安全检查
 if (import.meta.env.MODE === 'production') {
   enforceSecureConnection();
+} else {
+  // 在开发环境下输出环境信息，帮助调试
+  console.info('开发环境配置:', getEnvironmentInfo());
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

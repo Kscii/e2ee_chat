@@ -79,7 +79,7 @@ i18n
     },
     fallbackLng: 'en',
     lng: 'en', // 设置默认语言为英文
-    debug: process.env.NODE_ENV === 'development',
+    debug: import.meta.env.MODE === 'development',
     
     interpolation: {
       escapeValue: false, // 不转义 HTML
