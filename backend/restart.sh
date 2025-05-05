@@ -11,15 +11,21 @@ set -e  # 遇到错误立即退出
 # 确定运行环境
 ENV="dev"  # 默认开发环境
 
-if [ "$1" == "prod" ]; then
+# 检查命令行参数和环境变量
+if [ "$1" == "prod" ] || [ "$APP_ENV" == "prod" ]; then
     ENV="prod"
     echo "===== 开始重新部署服务（生产环境）====="
+    if [ "$1" == "prod" ]; then
+        echo "（基于命令行参数）"
+    else
+        echo "（基于APP_ENV环境变量）"
+    fi
 elif [ "$1" == "dev" ]; then
     ENV="dev"
     echo "===== 开始重新部署服务（开发环境）====="
 else
     echo "未指定环境，默认使用开发环境"
-    echo "使用方法: ./restart.sh [dev|prod]"
+    echo "使用方法: ./restart.sh [dev|prod] 或设置环境变量 APP_ENV=prod"
     echo "===== 开始重新部署服务（开发环境）====="
 fi
 
@@ -80,4 +86,4 @@ else
     # 如果需要后台运行，可以将上面一行改为：
     # nohup python3 run.py > dev_server.log 2>&1 &
     # echo "开发服务器已在后台启动，日志输出到dev_server.log"
-fi 
+fi
