@@ -103,6 +103,11 @@ cp sample.env .env
 
 4. Start the backend server
 ```bash
+cd backend
+python run.py
+```
+or
+```bash
 gunicorn -w 4 -b 0.0.0.0:8000 run:app
 ```
 
@@ -211,6 +216,11 @@ cp sample.env .env
 ```
 
 4. 启动后端服务器
+```bash
+cd backend
+python run.py
+```
+或者
 ```bash
 gunicorn -w 4 -b 0.0.0.0:8000 run:app
 ```
