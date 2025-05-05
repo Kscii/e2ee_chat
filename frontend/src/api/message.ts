@@ -258,12 +258,18 @@ export const sendEncryptedGroupMessages = async (messages: { recipient: string, 
 };
 
 // 创建新群组
-export const createNewGroup = async (name: string, description: string, members: string[]): Promise<{ id: number, name: string }> => {
+export const createNewGroup = async (
+  name: string, 
+  description: string, 
+  members: string[],
+  server_id: number = 1
+): Promise<{ id: number, name: string, server_id: number }> => {
   try {
     const response = await apiClient.post('/groups', {
       name,
       description,
-      members
+      members,
+      server_id
     });
     return response.data;
   } catch (error) {
@@ -279,7 +285,7 @@ export const createNewGroup = async (name: string, description: string, members:
 };
 
 // 获取所有群组
-export const getAllGroups = async (): Promise<{ id: number, name: string }[]> => {
+export const getAllGroups = async (): Promise<{ id: number, name: string, server_id: number }[]> => {
   try {
     const response = await apiClient.get('/groups');
     return response.data.groups;

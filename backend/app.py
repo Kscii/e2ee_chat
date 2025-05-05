@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, g
 from flask_cors import CORS
 import jwt
 from datetime import datetime, timedelta
+from functools import wraps
 
-from models import DatabaseManager, UserModel, MessageModel
+from models import DatabaseManager, UserModel, MessageModel, ServerModel
 import config
 
 app = Flask(__name__)
@@ -16,6 +17,28 @@ db_manager.init_db()
 # 初始化用户模型和消息模型
 user_model = UserModel()
 message_model = MessageModel()
+server_model = ServerModel()  # 初始化服务器模型
+
+# 定义权限验证装饰器
+def protected_endpoint(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "无效的访问令牌"}), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_token(token)
+        
+        if not payload:
+            return jsonify({"error": "令牌已过期或无效"}), 401
+            
+        # 将用户信息存储在g对象中，方便后续使用
+        g.user = payload
+        
+        return f(*args, **kwargs)
+    return decorated
 
 # 生成JWT Token
 def generate_token(username):
@@ -551,7 +574,40 @@ def get_all_public_keys():
 
 # 获取所有群组
 @app.route('/api/groups', methods=['GET'])
-def get_all_groups():
+def get_groups():
+    """获取群组列表"""
+    # 获取群组列表，并添加server_id字段到响应中
+    response, status_code = message_model.get_all_groups()
+    
+    return jsonify(response), status_code
+
+# 创建新群组
+@app.route('/api/groups', methods=['POST'])
+@protected_endpoint
+def create_group():
+    """创建新群组"""
+    # 从请求体获取数据
+    data = request.get_json()
+    name = data.get('name', '')
+    description = data.get('description', '')
+    members = data.get('members', [])
+    server_id = data.get('server_id', 1)  # 默认为1（主服务器）
+    
+    # 验证必填字段
+    if not name:
+        return jsonify({'error': '群组名称是必填的'}), 400
+    
+    # 获取当前用户
+    username = g.user.get('username')
+    
+    # 创建群组，并传递server_id
+    response, status_code = message_model.create_group(username, name, description, members, server_id)
+    
+    return jsonify(response), status_code
+
+# 获取所有服务器的接口
+@app.route('/api/servers', methods=['GET'])
+def get_all_servers():
     auth_header = request.headers.get('Authorization')
     
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -563,14 +619,39 @@ def get_all_groups():
     if not payload:
         return jsonify({"error": "令牌已过期或无效"}), 401
     
-    # 获取所有群组
-    result, status_code = message_model.get_all_groups()
+    # 获取用户名
+    username = payload.get('username')
+    
+    # 获取服务器列表
+    result, status_code = server_model.get_all_servers(username)
     
     return jsonify(result), status_code
 
-# 创建新群组
-@app.route('/api/groups', methods=['POST'])
-def create_group():
+# 获取服务器详情接口
+@app.route('/api/servers/<int:server_id>', methods=['GET'])
+def get_server(server_id):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取用户名
+    username = payload.get('username')
+    
+    # 获取服务器详情
+    result, status_code = server_model.get_server(server_id, username)
+    
+    return jsonify(result), status_code
+
+# 创建服务器接口
+@app.route('/api/servers', methods=['POST'])
+def create_server():
     auth_header = request.headers.get('Authorization')
     
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -588,14 +669,81 @@ def create_group():
     # 获取请求数据
     data = request.get_json()
     name = data.get('name')
-    description = data.get('description', '')
-    members = data.get('members', [])
+    description = data.get('description')
+    avatar = data.get('avatar')
     
     if not name:
-        return jsonify({"error": "群组名称不能为空"}), 400
+        return jsonify({"error": "服务器名称不能为空"}), 400
     
-    # 创建新群组
-    result, status_code = message_model.create_group(creator_username, name, description, members)
+    # 创建服务器
+    result, status_code = server_model.create_server(
+        creator_username, 
+        name, 
+        description,
+        avatar
+    )
+    
+    return jsonify(result), status_code
+
+# 添加成员到服务器接口
+@app.route('/api/servers/<int:server_id>/members', methods=['POST'])
+def add_server_member(server_id):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取操作者用户名
+    owner_username = payload.get('username')
+    
+    # 获取请求数据
+    data = request.get_json()
+    member_username = data.get('username')
+    
+    if not member_username:
+        return jsonify({"error": "成员用户名不能为空"}), 400
+    
+    # 添加成员
+    result, status_code = server_model.add_server_member(
+        server_id,
+        owner_username,
+        member_username
+    )
+    
+    return jsonify(result), status_code
+
+# 更新服务器信息接口
+@app.route('/api/servers/<int:server_id>', methods=['PUT'])
+def update_server(server_id):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取操作者用户名
+    owner_username = payload.get('username')
+    
+    # 获取请求数据
+    data = request.get_json()
+    
+    # 更新服务器信息
+    result, status_code = server_model.update_server(
+        server_id,
+        owner_username,
+        data
+    )
     
     return jsonify(result), status_code
 

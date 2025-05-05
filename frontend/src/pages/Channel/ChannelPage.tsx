@@ -39,6 +39,9 @@ import { CryptoService } from '../../utils/crypto';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCrypto } from '../../contexts/CryptoContext';
 
+// 从环境变量获取API URL，与message.ts中相同
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 const { Content, Sider } = Layout;
 
 interface Message {
@@ -96,7 +99,7 @@ const ChannelPage: React.FC = () => {
   const [encryptedMessages, setEncryptedMessages] = useState<EncryptedMessage[]>([]);
   const [decryptedMessages, setDecryptedMessages] = useState<Map<string, string>>(new Map());
   // 添加群组状态
-  const [groups, setGroups] = useState<{ id: number, name: string }[]>([]);
+  const [groups, setGroups] = useState<{ id: number, name: string, server_id: number }[]>([]);
 
   // 使用语音通话hook
   const { stream, error: voiceError, isStreaming } = useVoiceChat({
@@ -120,43 +123,42 @@ const ChannelPage: React.FC = () => {
         const groupsData = await getAllGroups();
         setGroups(groupsData);
 
-        // 检查ID为2的general群组是否存在
-        const generalGroup = groupsData.find(g => g.id === 2);
+        // 如果当前server有频道，显示现有频道
+        if (currentServer) {
+          // 从数据库中的群组数据创建频道列表
+          const existingChannelIds = currentServer.channels.map(ch => ch.id);
 
-        if (!generalGroup) {
-          // 如果不存在，创建一个
-          await createNewGroup("general", "频道系统默认群组", ["kscii", "user1", "user2"]);
-          // 重新获取群组列表
-          const updatedGroups = await getAllGroups();
-          setGroups(updatedGroups);
-        }
-
-        // 如果当前server有频道，查找名为general的频道并选中
-        if (currentServer && currentServer.channels && currentServer.channels.length > 0) {
-          // 尝试查找和general群组对应的频道（ID为channel-2)
-          const generalChannel = currentServer.channels.find(ch => ch.id === 'channel-2' || ch.name.toLowerCase() === 'general');
-
-          if (generalChannel) {
-            // 选中general频道
-            setSelectedChannel(generalChannel);
-          } else {
-            // 如果找不到general频道，则创建一个
-            const newChannel: Channel = {
-              id: 'channel-2', // ID为channel-2，对应群组ID 2
-              name: 'general',
-              type: 'text',
+          // 将每个群组转换为频道，如果该频道不存在
+          // 同时过滤掉id为1的群组，这个群组不应该在channel页面显示
+          // 只显示属于当前服务器的群组（server_id等于当前服务器ID）
+          const newChannels: Channel[] = groupsData
+            .filter(group =>
+              !existingChannelIds.includes(`channel-${group.id}`) &&
+              group.id !== 1 &&
+              group.server_id === parseInt(currentServer.id, 10)
+            )
+            .map(group => ({
+              id: `channel-${group.id}`,
+              name: group.name,
+              type: 'text' as const, // 使用 as const 确保类型是 'text' 而不是 string
               serverId: currentServer.id,
-              description: '频道系统默认群组',
+              description: '', // 群组API可能不包含description，使用空字符串
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-            };
+            }));
 
-            // 添加到当前服务器的频道列表
-            currentServer.channels.push(newChannel);
+          // 只有在有新频道时才更新
+          if (newChannels.length > 0) {
+            // 将新频道添加到当前服务器的频道列表中
+            currentServer.channels = [...currentServer.channels, ...newChannels];
+            // 更新当前服务器状态，触发重新渲染
             setCurrentServer(currentServer.id);
+            console.log('已从数据库同步群组到频道:', newChannels);
+          }
 
-            // 选中新创建的general频道
-            setSelectedChannel(newChannel);
+          // 如果有频道但没有选中的频道，选择第一个频道
+          if (currentServer.channels.length > 0 && !selectedChannel) {
+            setSelectedChannel(currentServer.channels[0]);
           }
         }
       } catch (error) {
@@ -168,7 +170,7 @@ const ChannelPage: React.FC = () => {
     if (user) {
       fetchGroups();
     }
-  }, [user, currentServer]);
+  }, [user, currentServer?.id]);
 
   // 获取加密消息 - 修改为按照选中的频道（群组）获取消息
   const fetchEncryptedMessages = async () => {
@@ -473,8 +475,8 @@ const ChannelPage: React.FC = () => {
             sender: {
               id: msg.sender_id.toString(),
               name: msg.sender_username,
-              // 如果是当前用户，使用当前头像
-              avatar: msg.sender_username === user?.username ? avatar : undefined
+              // 修复avatar类型问题
+              avatar: msg.sender_username === user?.username ? (avatar || undefined) : undefined
             },
             timestamp: msg.created_at
           });
@@ -510,30 +512,33 @@ const ChannelPage: React.FC = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const newServer: Server = {
-        id: Date.now().toString(),
+
+      // 获取头像URL
+      let avatarUrl = undefined;
+      if (fileList.length > 0) {
+        avatarUrl = fileList[0].thumbUrl || fileList[0]?.response?.url;
+      }
+
+      // 创建服务器对象
+      const serverData = {
         name: values.name,
         description: values.description,
-        ownerId: 'user1',
-        members: ['user1'],
-        channels: [
-          {
-            id: 'channel-' + Date.now(),
-            name: t('channel.default'),
-            type: 'text',
-            serverId: Date.now().toString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        avatar: values.avatar?.[0]?.response?.url
+        avatar: avatarUrl,
       };
 
-      if (fileList.length > 0 && fileList[0].thumbUrl) {
-        newServer.avatar = fileList[0].thumbUrl;
-      }
+      // 添加服务器（ServerContext中的addServer已更新为调用API）
+      const newServerId = Date.now().toString(); // 仅用作临时ID，API会返回实际ID
+      const newServer: Server = {
+        id: newServerId,
+        name: values.name,
+        description: values.description,
+        ownerId: user?.username || 'user1', // 使用username作为所有者ID
+        members: [user?.username || 'user1'],
+        channels: [], // 不再预设频道，由API创建
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        avatar: avatarUrl
+      };
 
       addServer(newServer);
       setIsModalVisible(false);
@@ -561,15 +566,45 @@ const ChannelPage: React.FC = () => {
     try {
       const values = await channelForm.validateFields();
 
-      // 创建新群组而不是频道
+      // 创建新群组
       const newGroupName = values.name;
       const newGroupDescription = values.description || '';
 
-      // 默认添加三个用户
-      const members = ["kscii", "user1", "user2"];
+      // 获取现有的所有群组ID
+      const allGroups = await getAllGroups();
+      const existingIds = allGroups.map(group => group.id);
 
-      // 调用API创建新群组
-      const newGroup = await createNewGroup(newGroupName, newGroupDescription, members);
+      // 寻找最小的未被占用的ID（从2开始检查，确保ID为1的群组保留）
+      let nextId = 2;
+      while (existingIds.includes(nextId)) {
+        nextId++;
+      }
+
+      console.log('将使用下一个可用的群组ID:', nextId);
+
+      // 获取所有用户作为群组成员
+      const token = localStorage.getItem('token');
+      const usersResponse = await fetch(`${API_URL}/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const usersData = await usersResponse.json();
+      const members = usersData?.users?.map((user: any) => user.username) || [];
+
+      // 如果没有获取到用户列表，使用默认用户
+      if (!members.length) {
+        members.push("kscii", "user1", "user2");
+      }
+
+      // 调用API创建新群组，并为其设置当前服务器ID
+      const newGroup = await createNewGroup(
+        newGroupName,
+        newGroupDescription,
+        members,
+        currentServer ? parseInt(currentServer.id, 10) : 1 // 使用当前服务器ID，如果没有则默认为1
+      );
 
       // 创建新的Channel对象使其在UI中显示
       if (currentServer) {
@@ -586,6 +621,9 @@ const ChannelPage: React.FC = () => {
         // 添加到当前服务器的频道列表
         currentServer.channels.push(newChannel);
         setCurrentServer(currentServer.id);
+
+        // 自动选中新创建的频道
+        setSelectedChannel(newChannel);
 
         // 重新获取群组列表
         const updatedGroups = await getAllGroups();

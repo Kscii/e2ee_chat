@@ -77,7 +77,7 @@ const AppContent = () => {
                 <MainLayout />
               </PrivateRoute>
             }>
-              <Route index element={<Navigate to="/chat" replace />} />
+              <Route index element={<Navigate to="/chat/groups" replace />} />
               <Route path="chat/:id?" element={<ChatPage />} />
               <Route path="channels" element={<ChannelPage />} />
               <Route path="settings" element={<SettingsPage />} />

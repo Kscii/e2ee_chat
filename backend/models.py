@@ -32,6 +32,33 @@ class DatabaseManager:
         )
         ''')
         
+        # 创建服务器表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS servers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            owner_id INTEGER NOT NULL,
+            avatar TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (owner_id) REFERENCES users (id)
+        )
+        ''')
+        
+        # 创建服务器成员表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS server_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            server_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (server_id) REFERENCES servers (id),
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(server_id, user_id)
+        )
+        ''')
+        
         # 创建消息表
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS messages (
@@ -79,8 +106,10 @@ class DatabaseManager:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             description TEXT,
+            server_id INTEGER NOT NULL DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (server_id) REFERENCES servers (id)
         )
         ''')
         
@@ -170,23 +199,47 @@ class DatabaseManager:
                 
                 user_ids.append(user['id'])
             
+            # 创建默认服务器
+            cursor.execute("SELECT id FROM servers WHERE id = 1")
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO servers (id, name, description, owner_id) VALUES (?, ?, ?, ?)",
+                    (1, "main server", "默认服务器", user_ids[0])  # kscii作为所有者
+                )
+                print("创建服务器: 主服务器")
+            
+            # 将用户添加到服务器
+            for user_id in user_ids:
+                # 检查用户是否已在服务器中
+                cursor.execute(
+                    "SELECT id FROM server_members WHERE server_id = 1 AND user_id = ?",
+                    (user_id,)
+                )
+                
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
+                        (1, user_id)
+                    )
+                    print(f"将用户ID {user_id} 加入服务器1")
+            
             # 创建默认群组1 (公共聊天室)
             cursor.execute("SELECT id FROM groups WHERE id = 1")
             if not cursor.fetchone():
                 cursor.execute(
-                    "INSERT INTO groups (id, name, description) VALUES (?, ?, ?)",
-                    (1, "公共聊天室", "所有用户共享的聊天室")
+                    "INSERT INTO groups (id, name, description, server_id) VALUES (?, ?, ?, ?)",
+                    (1, "公共聊天室", "所有用户共享的聊天室", 1)  # 设置server_id为1
                 )
-                print("创建群组: 公共聊天室")
+                print("创建群组: 公共聊天室(服务器1)")
             
             # 创建默认群组2 (general) - 用于频道页面
             cursor.execute("SELECT id FROM groups WHERE id = 2")
             if not cursor.fetchone():
                 cursor.execute(
-                    "INSERT INTO groups (id, name, description) VALUES (?, ?, ?)",
-                    (2, "general", "频道系统默认群组")
+                    "INSERT INTO groups (id, name, description, server_id) VALUES (?, ?, ?, ?)",
+                    (2, "general", "频道系统默认群组", 1)  # 设置server_id为1
                 )
-                print("创建群组: general (频道)")
+                print("创建群组: general (服务器1)")
             
             # 将用户加入群组1
             for user_id in user_ids:
@@ -850,7 +903,7 @@ class MessageModel:
         try:
             cursor.execute(
                 """
-                SELECT id, name, description, created_at, updated_at
+                SELECT id, name, description, server_id, created_at, updated_at
                 FROM groups
                 ORDER BY id ASC
                 """
@@ -867,7 +920,7 @@ class MessageModel:
         finally:
             conn.close()
 
-    def create_group(self, creator_username, name, description, members=None):
+    def create_group(self, creator_username, name, description, members=None, server_id=1):
         """创建新群组"""
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -885,10 +938,10 @@ class MessageModel:
             # 创建新群组
             cursor.execute(
                 """
-                INSERT INTO groups (name, description, created_at, updated_at)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO groups (name, description, server_id, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (name, description, datetime.now().isoformat(), datetime.now().isoformat())
+                (name, description, server_id, datetime.now().isoformat(), datetime.now().isoformat())
             )
             
             group_id = cursor.lastrowid
@@ -927,12 +980,306 @@ class MessageModel:
                 "id": group_id,
                 "name": name,
                 "description": description,
+                "server_id": server_id,
                 "created_at": datetime.now().isoformat()
             }, 201
             
         except Error as e:
             conn.rollback()
             return {"error": f"创建群组失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+
+class ServerModel:
+    def __init__(self):
+        self.db_manager = DatabaseManager()
+    
+    def get_all_servers(self, username):
+        """获取用户所属的所有服务器"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"error": "用户不存在"}, 404
+            
+            user_id = user['id']
+            
+            # 获取用户加入的所有服务器
+            cursor.execute(
+                """
+                SELECT s.id, s.name, s.description, s.owner_id, s.avatar, s.created_at, s.updated_at,
+                       u.username as owner_username,
+                       (SELECT COUNT(*) FROM server_members WHERE server_id = s.id) as member_count
+                FROM servers s
+                JOIN server_members sm ON s.id = sm.server_id
+                JOIN users u ON s.owner_id = u.id
+                WHERE sm.user_id = ?
+                ORDER BY s.created_at DESC
+                """,
+                (user_id,)
+            )
+            
+            servers = cursor.fetchall()
+            server_list = [dict(server) for server in servers]
+            
+            return {"servers": server_list}, 200
+            
+        except Error as e:
+            return {"error": f"获取服务器列表失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_server(self, server_id, username):
+        """获取单个服务器的详细信息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"error": "用户不存在"}, 404
+            
+            user_id = user['id']
+            
+            # 检查用户是否为该服务器的成员
+            cursor.execute(
+                "SELECT id FROM server_members WHERE server_id = ? AND user_id = ?",
+                (server_id, user_id)
+            )
+            
+            if not cursor.fetchone():
+                return {"error": "您不是该服务器的成员"}, 403
+            
+            # 获取服务器信息
+            cursor.execute(
+                """
+                SELECT s.id, s.name, s.description, s.owner_id, s.avatar, s.created_at, s.updated_at,
+                       u.username as owner_username
+                FROM servers s
+                JOIN users u ON s.owner_id = u.id
+                WHERE s.id = ?
+                """,
+                (server_id,)
+            )
+            
+            server = cursor.fetchone()
+            
+            if not server:
+                return {"error": "服务器不存在"}, 404
+            
+            server_dict = dict(server)
+            
+            # 获取服务器成员
+            cursor.execute(
+                """
+                SELECT u.id, u.username, u.email, sm.joined_at
+                FROM server_members sm
+                JOIN users u ON sm.user_id = u.id
+                WHERE sm.server_id = ?
+                ORDER BY sm.joined_at ASC
+                """,
+                (server_id,)
+            )
+            
+            members = cursor.fetchall()
+            member_list = [dict(member) for member in members]
+            
+            server_dict['members'] = member_list
+            
+            return server_dict, 200
+            
+        except Error as e:
+            return {"error": f"获取服务器详情失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def create_server(self, creator_username, name, description=None, avatar=None):
+        """创建新服务器"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取创建者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (creator_username,))
+            creator = cursor.fetchone()
+            
+            if not creator:
+                return {"error": "创建者不存在"}, 404
+            
+            creator_id = creator['id']
+            
+            # 创建服务器
+            cursor.execute(
+                """
+                INSERT INTO servers (name, description, owner_id, avatar, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    name, 
+                    description, 
+                    creator_id, 
+                    avatar,
+                    datetime.now().isoformat(),
+                    datetime.now().isoformat()
+                )
+            )
+            
+            server_id = cursor.lastrowid
+            
+            # 添加创建者为成员
+            cursor.execute(
+                "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
+                (server_id, creator_id)
+            )
+            
+            conn.commit()
+            
+            return {
+                "id": server_id,
+                "name": name,
+                "description": description,
+                "owner_id": creator_id,
+                "owner_username": creator_username,
+                "avatar": avatar,
+                "created_at": datetime.now().isoformat()
+            }, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"创建服务器失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def add_server_member(self, server_id, owner_username, member_username):
+        """添加成员到服务器"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取服务器信息
+            cursor.execute("SELECT owner_id FROM servers WHERE id = ?", (server_id,))
+            server = cursor.fetchone()
+            
+            if not server:
+                return {"error": "服务器不存在"}, 404
+            
+            # 获取操作者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (owner_username,))
+            owner = cursor.fetchone()
+            
+            if not owner:
+                return {"error": "操作者不存在"}, 404
+            
+            # 验证操作者是否为服务器拥有者
+            if server['owner_id'] != owner['id']:
+                return {"error": "只有服务器拥有者才能添加成员"}, 403
+            
+            # 获取要添加的用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (member_username,))
+            member = cursor.fetchone()
+            
+            if not member:
+                return {"error": "要添加的用户不存在"}, 404
+            
+            member_id = member['id']
+            
+            # 检查用户是否已是成员
+            cursor.execute(
+                "SELECT id FROM server_members WHERE server_id = ? AND user_id = ?",
+                (server_id, member_id)
+            )
+            
+            if cursor.fetchone():
+                return {"message": "用户已是该服务器的成员"}, 200
+            
+            # 添加成员
+            cursor.execute(
+                "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
+                (server_id, member_id)
+            )
+            
+            conn.commit()
+            
+            return {"message": "成员添加成功"}, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"添加成员失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def update_server(self, server_id, owner_username, data):
+        """更新服务器信息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取服务器信息
+            cursor.execute("SELECT owner_id FROM servers WHERE id = ?", (server_id,))
+            server = cursor.fetchone()
+            
+            if not server:
+                return {"error": "服务器不存在"}, 404
+            
+            # 获取操作者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (owner_username,))
+            owner = cursor.fetchone()
+            
+            if not owner:
+                return {"error": "操作者不存在"}, 404
+            
+            # 验证操作者是否为服务器拥有者
+            if server['owner_id'] != owner['id']:
+                return {"error": "只有服务器拥有者才能更新服务器信息"}, 403
+            
+            # 构建更新语句
+            update_fields = []
+            params = []
+            
+            for key, value in data.items():
+                if key in ['name', 'description', 'avatar']:
+                    update_fields.append(f"{key} = ?")
+                    params.append(value)
+            
+            if not update_fields:
+                return {"error": "没有提供可更新的字段"}, 400
+            
+            # 添加更新时间
+            update_fields.append("updated_at = ?")
+            params.append(datetime.now().isoformat())
+            
+            # 添加服务器ID到参数列表
+            params.append(server_id)
+            
+            # 执行更新
+            cursor.execute(
+                f"UPDATE servers SET {', '.join(update_fields)} WHERE id = ?",
+                tuple(params)
+            )
+            
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                return {"message": "服务器信息更新成功"}, 200
+            else:
+                return {"error": "服务器信息未更改"}, 400
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"更新服务器信息失败: {str(e)}"}, 500
             
         finally:
             conn.close() 

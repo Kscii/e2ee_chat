@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input, Button, Avatar, Tooltip, Upload, Modal } from 'antd';
-import { 
-  FileOutlined, 
-  PictureOutlined, 
+import {
+  FileOutlined,
+  PictureOutlined,
   SendOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -47,7 +47,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
