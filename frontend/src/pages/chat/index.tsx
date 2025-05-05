@@ -17,11 +17,12 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useAuth } from '../../contexts/AuthContext';
-// 使用sendEncryptedMessage发送加密消息，sendMessage仅保留用于群组或非加密消息
-import { sendEncryptedMessage, getMessages, sendGroupMessage, getGroupMessages, GroupMessage } from '../../api/message';
+// 使用sendEncryptedMessage发送加密消息
+import { sendEncryptedMessage, getMessages, getGroupMessages, GroupMessage, getGroupMembers, sendEncryptedGroupMessages, getEncryptedGroupMessages } from '../../api/message';
 import { getAllUsers } from '../../api/auth';
 import { useCrypto } from '../../contexts/CryptoContext';
 import { getOrFetchPublicKey } from '../../api/keys';
+import { CryptoService } from '../../utils/crypto';
 
 const { Text } = Typography;
 
@@ -144,6 +145,17 @@ const ChatPage: React.FC = () => {
   const [allUsers, setAllUsers] = useState<{ id: number, username: string }[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [loadingGroupMessages, setLoadingGroupMessages] = useState(false);
+  const [encryptedGroupMessages, setEncryptedGroupMessages] = useState<Array<{
+    id: number;
+    group_id: number;
+    sender_id: number;
+    receiver_id: number;
+    content: string;
+    original_message_id: number;
+    created_at: string;
+    sender_username: string;
+  }>>([]);
+  const [decryptedGroupMessages, setDecryptedGroupMessages] = useState<Map<string, string>>(new Map());
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -191,12 +203,96 @@ const ChatPage: React.FC = () => {
 
       setGroupMessages(messagesData);
       console.log('群组消息设置完成');
+
+      // 始终获取加密消息，因为只使用加密模式
+      await fetchEncryptedGroupMessages();
     } catch (error) {
       console.error('获取群组消息失败详情:', error);
       message.error('获取群组消息失败');
     } finally {
       setLoadingGroupMessages(false);
     }
+  };
+
+  // 获取加密群组消息
+  const fetchEncryptedGroupMessages = async () => {
+    if (!user) return;
+
+    try {
+      // 获取加密消息
+      const encryptedMessages = await getEncryptedGroupMessages();
+      setEncryptedGroupMessages(encryptedMessages);
+
+      // 解密消息
+      await decryptGroupMessages(encryptedMessages);
+    } catch (error) {
+      console.error('获取加密群组消息失败:', error);
+      message.error('获取加密群组消息失败');
+    }
+  };
+
+  // 解密群组消息
+  const decryptGroupMessages = async (encryptedMessages: Array<{
+    id: number;
+    group_id: number;
+    sender_id: number;
+    receiver_id: number;
+    content: string;
+    original_message_id: number;
+    created_at: string;
+    sender_username: string;
+  }>) => {
+    if (!encryptedMessages.length) return;
+
+    const myKeyPair = CryptoService.getUserKeyPair();
+    if (!myKeyPair) {
+      message.error('未找到密钥对，无法解密消息');
+      return;
+    }
+
+    const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+
+    // 获取并缓存所有发送者的公钥
+    const senderPublicKeys = new Map<string, Uint8Array>();
+
+    for (const msg of encryptedMessages) {
+      if (senderPublicKeys.has(msg.sender_username)) continue;
+
+      try {
+        const publicKey = await getOrFetchPublicKey(msg.sender_username);
+        senderPublicKeys.set(
+          msg.sender_username,
+          CryptoService.stringToKey(publicKey)
+        );
+      } catch (error) {
+        console.error(`获取用户 ${msg.sender_username} 的公钥失败:`, error);
+      }
+    }
+
+    // 解密消息并更新UI
+    const decryptedMessages = new Map<string, string>();
+
+    for (const msg of encryptedMessages) {
+      try {
+        const senderPublicKey = senderPublicKeys.get(msg.sender_username);
+        if (!senderPublicKey) continue;
+
+        const decrypted = CryptoService.decryptMessage(
+          msg.content,
+          senderPublicKey,
+          mySecretKey
+        );
+
+        if (decrypted) {
+          decryptedMessages.set(msg.id.toString(), decrypted);
+        }
+      } catch (error) {
+        console.error(`解密消息 ${msg.id} 失败:`, error);
+      }
+    }
+
+    // 更新UI，在渲染消息时使用
+    setDecryptedGroupMessages(decryptedMessages);
   };
 
   // 根据chatId加载对应的聊天记录和联系人信息
@@ -301,6 +397,73 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  // 发送群组加密消息
+  const sendEncryptedGroupMessage = async (content: string) => {
+    if (!user) return;
+
+    try {
+      // 获取我的密钥
+      const myKeyPair = CryptoService.getUserKeyPair();
+      if (!myKeyPair) {
+        message.error('未找到密钥对，无法发送加密消息');
+        return;
+      }
+
+      const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+
+      // 获取群组所有成员
+      const members = await getGroupMembers(1); // 默认群组ID为1
+
+      // 为每个成员加密消息（包括自己）
+      const encryptedMessages = await Promise.all(
+        members
+          // 移除过滤自己的代码，这样自己也会收到加密消息
+          .map(async (member) => {
+            try {
+              // 获取成员公钥
+              const publicKey = await getOrFetchPublicKey(member.username);
+              const publicKeyBytes = CryptoService.stringToKey(publicKey);
+
+              // 加密消息
+              const encrypted = CryptoService.encryptMessage(
+                content,
+                publicKeyBytes,
+                mySecretKey
+              );
+
+              return {
+                recipient: member.username,
+                content: encrypted
+              };
+            } catch (error) {
+              console.error(`为用户 ${member.username} 加密消息失败:`, error);
+              return null;
+            }
+          })
+      );
+
+      // 过滤掉失败的加密
+      const validMessages = encryptedMessages.filter(msg => msg !== null);
+
+      if (validMessages.length === 0) {
+        message.error('所有加密操作失败，无法发送消息');
+        return;
+      }
+
+      // 发送加密消息
+      await sendEncryptedGroupMessages(validMessages);
+
+      // 刷新消息列表
+      await fetchGroupMessages();
+
+      return true;
+    } catch (error) {
+      console.error('发送加密群组消息失败:', error);
+      message.error('发送加密群组消息失败');
+      return false;
+    }
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
     if (!user) {
@@ -371,15 +534,20 @@ const ChatPage: React.FC = () => {
           setTypingMessageId(null);
         }, aiResponse.length * 30 + 500);
       } else if (isGroupChat) {
-        // 发送群组消息
-        try {
-          setMessages(prev => [...prev, userMessage]);
-          await sendGroupMessage(userMessage.content);
+        // 删除条件判断，直接使用加密群组消息发送
+        const success = await sendEncryptedGroupMessage(userMessage.content);
 
-          // 发送成功后刷新群组消息
-          fetchGroupMessages();
-
-          // 更新消息状态为已发送
+        if (!success) {
+          // 更新消息状态为发送失败
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === userMessage.id
+                ? { ...msg, status: 'failed' as const }
+                : msg
+            )
+          );
+        } else {
+          // 更新消息状态
           setTimeout(() => {
             setMessages(prev =>
               prev.map(msg =>
@@ -389,7 +557,7 @@ const ChatPage: React.FC = () => {
               )
             );
 
-            // 2秒后更新为已读状态
+            // 2秒后更新为已读
             setTimeout(() => {
               setMessages(prev =>
                 prev.map(msg =>
@@ -400,18 +568,6 @@ const ChatPage: React.FC = () => {
               );
             }, 2000);
           }, 1000);
-        } catch (error) {
-          console.error('发送群组消息失败:', error);
-          message.error('发送群组消息失败');
-
-          // 更新消息状态为发送失败
-          setMessages(prev =>
-            prev.map(msg =>
-              msg.id === userMessage.id
-                ? { ...msg, status: 'failed' as const }
-                : msg
-            )
-          );
         }
       } else if (chatType === 'user' && currentContact.name) {
         // 发送消息到后端
@@ -772,6 +928,61 @@ const ChatPage: React.FC = () => {
     };
   }, []);
 
+  // 渲染群组消息
+  const renderGroupMessages = () => {
+    return (
+      <>
+        {/* 仅显示解密后的消息 - 不显示原始加密消息 */}
+        {encryptedGroupMessages.map((msg, index) => {
+          // 获取解密内容
+          const decryptedContent = decryptedGroupMessages.get(msg.id.toString());
+          if (!decryptedContent) return null;
+
+          return (
+            <div
+              key={`decrypted-${msg.id}`}
+              className={`message-bubble ${msg.sender_username === user?.username ? 'user-message' : 'other-message'}`}
+              style={{
+                animationDelay: `${index * 0.1}s`,
+                animationDuration: '0.5s'
+              }}
+            >
+              <div className="message-avatar">
+                <Avatar
+                  size={40}
+                  src={msg.sender_username === user?.username ? avatar : undefined}
+                  icon={msg.sender_username === user?.username ? <UserOutlined /> : <UserOutlined />}
+                />
+              </div>
+              <div className="message-content">
+                <div className="message-sender">
+                  <Text strong>{msg.sender_username}</Text>
+                </div>
+                <div className="message-text">
+                  {decryptedContent}
+                </div>
+                <div className="message-footer">
+                  <span className="message-time">
+                    {new Date(msg.created_at).toLocaleTimeString()}
+                  </span>
+                  {ttsEnabled && (
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<SoundOutlined />}
+                      onClick={() => speak(decryptedContent)}
+                      className="tts-button"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-main">
@@ -797,47 +1008,8 @@ const ChatPage: React.FC = () => {
           ) : (
             <>
               {isGroupChat ? (
-                // 渲染群组消息
-                groupMessages.map((msg, index) => (
-                  <div
-                    key={msg.id}
-                    className={`message-bubble ${msg.sender_username === user?.username ? 'user-message' : 'other-message'}`}
-                    style={{
-                      animationDelay: `${index * 0.1}s`,
-                      animationDuration: '0.5s'
-                    }}
-                  >
-                    <div className="message-avatar">
-                      <Avatar
-                        size={40}
-                        src={msg.sender_username === user?.username ? avatar : undefined}
-                        icon={msg.sender_username === user?.username ? <UserOutlined /> : <UserOutlined />}
-                      />
-                    </div>
-                    <div className="message-content">
-                      <div className="message-sender">
-                        <Text strong>{msg.sender_username}</Text>
-                      </div>
-                      <div className="message-text">
-                        {msg.content}
-                      </div>
-                      <div className="message-footer">
-                        <span className="message-time">
-                          {new Date(msg.created_at).toLocaleTimeString()}
-                        </span>
-                        {ttsEnabled && (
-                          <Button
-                            type="text"
-                            size="small"
-                            icon={<SoundOutlined />}
-                            onClick={() => speak(msg.content)}
-                            className="tts-button"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
+                // 渲染群组消息，使用新函数
+                renderGroupMessages()
               ) : (
                 // 渲染普通消息
                 messages.map((msg, index) => (

@@ -110,9 +110,120 @@ class DatabaseManager:
         )
         ''')
         
+        # 创建加密群组消息表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS encrypted_group_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER NOT NULL,
+            sender_id INTEGER NOT NULL,
+            receiver_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            original_message_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id),
+            FOREIGN KEY (sender_id) REFERENCES users (id),
+            FOREIGN KEY (receiver_id) REFERENCES users (id),
+            FOREIGN KEY (original_message_id) REFERENCES group_messages (id)
+        )
+        ''')
+        
         conn.commit()
         conn.close()
         print("数据库初始化完成")
+        
+        # 初始化测试数据
+        self.init_test_data()
+        print("测试数据初始化完成")
+
+    def init_test_data(self):
+        """初始化测试用户和群组数据"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 初始密码(统一使用info2222)
+            password = "info2222"
+            password_with_pepper = password + PEPPER
+            password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt()).decode()
+            
+            # 创建三个用户
+            users = [
+                ("kscii", "kscii@example.com", "123456", password_hash),
+                ("user1", "user1@example.com", "123456", password_hash),
+                ("user2", "user2@example.com", "123456", password_hash)
+            ]
+            
+            # 插入用户数据
+            user_ids = []
+            for username, email, phone, pw_hash in users:
+                # 检查用户是否已存在
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                user = cursor.fetchone()
+                if not user:
+                    cursor.execute(
+                        "INSERT INTO users (username, email, phone, password_hash) VALUES (?, ?, ?, ?)",
+                        (username, email, phone, pw_hash)
+                    )
+                    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                    user = cursor.fetchone()
+                    print(f"创建用户: {username}")
+                
+                user_ids.append(user['id'])
+            
+            # 创建默认群组1 (公共聊天室)
+            cursor.execute("SELECT id FROM groups WHERE id = 1")
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO groups (id, name, description) VALUES (?, ?, ?)",
+                    (1, "公共聊天室", "所有用户共享的聊天室")
+                )
+                print("创建群组: 公共聊天室")
+            
+            # 创建默认群组2 (general) - 用于频道页面
+            cursor.execute("SELECT id FROM groups WHERE id = 2")
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO groups (id, name, description) VALUES (?, ?, ?)",
+                    (2, "general", "频道系统默认群组")
+                )
+                print("创建群组: general (频道)")
+            
+            # 将用户加入群组1
+            for user_id in user_ids:
+                # 检查用户是否已在群组中
+                cursor.execute(
+                    "SELECT id FROM group_members WHERE group_id = 1 AND user_id = ?",
+                    (user_id,)
+                )
+                
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
+                        (1, user_id)
+                    )
+                    print(f"将用户ID {user_id} 加入群组1")
+            
+            # 将用户加入群组2 (general)
+            for user_id in user_ids:
+                # 检查用户是否已在群组中
+                cursor.execute(
+                    "SELECT id FROM group_members WHERE group_id = 2 AND user_id = ?",
+                    (user_id,)
+                )
+                
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
+                        (2, user_id)
+                    )
+                    print(f"将用户ID {user_id} 加入群组2 (general)")
+            
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"初始化测试数据失败: {str(e)}")
+        finally:
+            conn.close()
 
 class UserModel:
     def __init__(self):
@@ -603,6 +714,225 @@ class MessageModel:
             
         except Error as e:
             return {"error": f"获取群组消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def send_encrypted_group_messages(self, sender_username, encrypted_messages, group_id=1):
+        """发送加密群组消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取发送者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (sender_username,))
+            sender = cursor.fetchone()
+            
+            if not sender:
+                return {"error": "发送者不存在"}, 404
+            
+            sender_id = sender['id']
+            
+            # 检查群组是否存在
+            cursor.execute("SELECT id FROM groups WHERE id = ?", (group_id,))
+            group = cursor.fetchone()
+            
+            if not group:
+                return {"error": "群组不存在"}, 404
+            
+            # 创建一条原始群组消息（可见给所有人，但显示为"加密消息"）
+            cursor.execute(
+                "INSERT INTO group_messages (group_id, sender_id, content) VALUES (?, ?, ?)",
+                (group_id, sender_id, "[加密消息]")
+            )
+            
+            # 获取原始消息ID
+            original_message_id = cursor.lastrowid
+            
+            results = []
+            
+            # 处理每个接收者的加密消息
+            for message in encrypted_messages:
+                if not message:
+                    continue
+                    
+                receiver_username = message.get("recipient")
+                encrypted_content = message.get("content")
+                
+                if not receiver_username or not encrypted_content:
+                    continue
+                
+                # 获取接收者ID
+                cursor.execute("SELECT id FROM users WHERE username = ?", (receiver_username,))
+                receiver = cursor.fetchone()
+                
+                if not receiver:
+                    continue
+                    
+                receiver_id = receiver['id']
+                
+                # 存储加密消息
+                cursor.execute(
+                    """
+                    INSERT INTO encrypted_group_messages 
+                    (group_id, sender_id, receiver_id, content, original_message_id) 
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (group_id, sender_id, receiver_id, encrypted_content, original_message_id)
+                )
+                
+                message_id = cursor.lastrowid
+                
+                results.append({
+                    "id": message_id,
+                    "recipient": receiver_username
+                })
+            
+            conn.commit()
+            
+            return {
+                "message": "加密群组消息发送成功",
+                "original_message_id": original_message_id,
+                "results": results
+            }, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"发送加密群组消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_encrypted_group_messages(self, username, group_id=1):
+        """获取针对特定用户的加密群组消息"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取用户ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return {"error": "用户不存在"}, 404
+                
+            user_id = user['id']
+            
+            # 获取指定群组发送给该用户的加密消息
+            cursor.execute(
+                """
+                SELECT e.id, e.group_id, e.sender_id, e.receiver_id, e.content, 
+                       e.original_message_id, e.created_at, s.username as sender_username
+                FROM encrypted_group_messages e
+                JOIN users s ON e.sender_id = s.id
+                WHERE e.receiver_id = ? AND e.group_id = ?
+                ORDER BY e.created_at ASC
+                """,
+                (user_id, group_id)
+            )
+            
+            messages = cursor.fetchall()
+            message_list = [dict(msg) for msg in messages]
+            
+            return {"messages": message_list}, 200
+            
+        except Error as e:
+            return {"error": f"获取加密群组消息失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+
+    def get_all_groups(self):
+        """获取所有群组"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                """
+                SELECT id, name, description, created_at, updated_at
+                FROM groups
+                ORDER BY id ASC
+                """
+            )
+            
+            groups = cursor.fetchall()
+            group_list = [dict(group) for group in groups]
+            
+            return {"groups": group_list}, 200
+            
+        except Error as e:
+            return {"error": f"获取群组列表失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+
+    def create_group(self, creator_username, name, description, members=None):
+        """创建新群组"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 获取创建者ID
+            cursor.execute("SELECT id FROM users WHERE username = ?", (creator_username,))
+            creator = cursor.fetchone()
+            
+            if not creator:
+                return {"error": "创建者不存在"}, 404
+            
+            creator_id = creator['id']
+            
+            # 创建新群组
+            cursor.execute(
+                """
+                INSERT INTO groups (name, description, created_at, updated_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (name, description, datetime.now().isoformat(), datetime.now().isoformat())
+            )
+            
+            group_id = cursor.lastrowid
+            
+            # 添加创建者为群组成员
+            cursor.execute(
+                "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
+                (group_id, creator_id)
+            )
+            
+            # 如果指定了其他成员，也添加他们
+            if members:
+                for member_username in members:
+                    # 跳过创建者，因为已经添加
+                    if member_username == creator_username:
+                        continue
+                    
+                    # 获取成员ID
+                    cursor.execute("SELECT id FROM users WHERE username = ?", (member_username,))
+                    member = cursor.fetchone()
+                    
+                    if not member:
+                        continue
+                    
+                    member_id = member['id']
+                    
+                    # 添加成员
+                    cursor.execute(
+                        "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
+                        (group_id, member_id)
+                    )
+            
+            conn.commit()
+            
+            return {
+                "id": group_id,
+                "name": name,
+                "description": description,
+                "created_at": datetime.now().isoformat()
+            }, 201
+            
+        except Error as e:
+            conn.rollback()
+            return {"error": f"创建群组失败: {str(e)}"}, 500
             
         finally:
             conn.close() 

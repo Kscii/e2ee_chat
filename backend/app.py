@@ -303,6 +303,107 @@ def get_group_messages():
     
     return jsonify({"messages": result}), status_code
 
+# 发送加密群组消息接口
+@app.route('/api/group/encrypted-messages', methods=['POST'])
+def send_encrypted_group_messages():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取发送者用户名
+    sender_username = payload.get('username')
+    
+    # 获取请求数据
+    data = request.get_json()
+    messages = data.get('messages', [])
+    group_id = data.get('group_id', 1)  # 默认使用群组ID 1，但支持指定其他群组
+    
+    if not messages:
+        return jsonify({"error": "消息列表不能为空"}), 400
+    
+    # 发送加密群组消息
+    result, status_code = message_model.send_encrypted_group_messages(sender_username, messages, group_id)
+    
+    return jsonify(result), status_code
+
+# 获取加密群组消息接口
+@app.route('/api/group/encrypted-messages', methods=['GET'])
+def get_encrypted_group_messages():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取当前用户名
+    username = payload.get('username')
+    
+    # 获取群组ID参数
+    group_id = request.args.get('group_id', 1, type=int)
+    
+    # 获取加密群组消息
+    result, status_code = message_model.get_encrypted_group_messages(username, group_id)
+    
+    return jsonify(result), status_code
+
+# 获取群组成员接口
+@app.route('/api/groups/<int:group_id>/members', methods=['GET'])
+def get_group_members(group_id):
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # 获取群组成员
+        cursor.execute(
+            """
+            SELECT u.id, u.username 
+            FROM group_members gm
+            JOIN users u ON gm.user_id = u.id
+            WHERE gm.group_id = ?
+            """, 
+            (group_id,)
+        )
+        
+        members = cursor.fetchall()
+        member_list = [dict(member) for member in members]
+        
+        # 如果没有成员，返回所有用户作为默认成员
+        if not member_list:
+            cursor.execute("SELECT id, username FROM users")
+            all_users = cursor.fetchall()
+            member_list = [dict(user) for user in all_users]
+            
+        return jsonify({"members": member_list}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取群组成员失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
+
 # 保存用户公钥
 @app.route('/api/keys', methods=['POST'])
 def save_user_public_key():
@@ -447,6 +548,56 @@ def get_all_public_keys():
         
     finally:
         conn.close()
+
+# 获取所有群组
+@app.route('/api/groups', methods=['GET'])
+def get_all_groups():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取所有群组
+    result, status_code = message_model.get_all_groups()
+    
+    return jsonify(result), status_code
+
+# 创建新群组
+@app.route('/api/groups', methods=['POST'])
+def create_group():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取创建者用户名
+    creator_username = payload.get('username')
+    
+    # 获取请求数据
+    data = request.get_json()
+    name = data.get('name')
+    description = data.get('description', '')
+    members = data.get('members', [])
+    
+    if not name:
+        return jsonify({"error": "群组名称不能为空"}), 400
+    
+    # 创建新群组
+    result, status_code = message_model.create_group(creator_username, name, description, members)
+    
+    return jsonify(result), status_code
 
 # 运行应用
 if __name__ == '__main__':

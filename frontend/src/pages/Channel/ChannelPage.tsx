@@ -32,6 +32,12 @@ import { useAvatar } from '../../contexts/AvatarContext';
 import './ChannelPage.css';
 import { useTranslation } from 'react-i18next';
 import { useRef } from 'react';
+// 导入加密相关API和上下文
+import { getGroupMembers, sendEncryptedGroupMessages, getEncryptedGroupMessages, createNewGroup, getAllGroups } from '../../api/message';
+import { getOrFetchPublicKey } from '../../api/keys';
+import { CryptoService } from '../../utils/crypto';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCrypto } from '../../contexts/CryptoContext';
 
 const { Content, Sider } = Layout;
 
@@ -51,10 +57,23 @@ interface Message {
   }[];
 }
 
+// 加密消息接口
+interface EncryptedMessage {
+  id: number;
+  group_id: number;
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+  original_message_id: number;
+  created_at: string;
+  sender_username: string;
+}
+
 const ChannelPage: React.FC = () => {
   const { t } = useTranslation();
   const { servers, currentServer, setCurrentServer, addServer } = useServer();
   const { avatar } = useAvatar();
+  const { user } = useAuth(); // 获取用户信息
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isChannelModalVisible, setIsChannelModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -73,6 +92,12 @@ const ChannelPage: React.FC = () => {
   const [showContent, setShowContent] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
 
+  // 加密消息状态
+  const [encryptedMessages, setEncryptedMessages] = useState<EncryptedMessage[]>([]);
+  const [decryptedMessages, setDecryptedMessages] = useState<Map<string, string>>(new Map());
+  // 添加群组状态
+  const [groups, setGroups] = useState<{ id: number, name: string }[]>([]);
+
   // 使用语音通话hook
   const { stream, error: voiceError, isStreaming } = useVoiceChat({
     channelId: joinedVoiceChannel,
@@ -87,22 +112,162 @@ const ChannelPage: React.FC = () => {
     }
   }, [voiceError]);
 
-  // 模拟的消息数据
+  // 组件初始化时加载所有群组
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        // 获取所有群组
+        const groupsData = await getAllGroups();
+        setGroups(groupsData);
+
+        // 检查ID为2的general群组是否存在
+        const generalGroup = groupsData.find(g => g.id === 2);
+
+        if (!generalGroup) {
+          // 如果不存在，创建一个
+          await createNewGroup("general", "频道系统默认群组", ["kscii", "user1", "user2"]);
+          // 重新获取群组列表
+          const updatedGroups = await getAllGroups();
+          setGroups(updatedGroups);
+        }
+
+        // 如果当前server有频道，查找名为general的频道并选中
+        if (currentServer && currentServer.channels && currentServer.channels.length > 0) {
+          // 尝试查找和general群组对应的频道（ID为channel-2)
+          const generalChannel = currentServer.channels.find(ch => ch.id === 'channel-2' || ch.name.toLowerCase() === 'general');
+
+          if (generalChannel) {
+            // 选中general频道
+            setSelectedChannel(generalChannel);
+          } else {
+            // 如果找不到general频道，则创建一个
+            const newChannel: Channel = {
+              id: 'channel-2', // ID为channel-2，对应群组ID 2
+              name: 'general',
+              type: 'text',
+              serverId: currentServer.id,
+              description: '频道系统默认群组',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+
+            // 添加到当前服务器的频道列表
+            currentServer.channels.push(newChannel);
+            setCurrentServer(currentServer.id);
+
+            // 选中新创建的general频道
+            setSelectedChannel(newChannel);
+          }
+        }
+      } catch (error) {
+        console.error('获取群组列表失败:', error);
+        message.error('获取群组列表失败');
+      }
+    };
+
+    if (user) {
+      fetchGroups();
+    }
+  }, [user, currentServer]);
+
+  // 获取加密消息 - 修改为按照选中的频道（群组）获取消息
+  const fetchEncryptedMessages = async () => {
+    if (!user || !selectedChannel) return;
+
+    try {
+      // 获取群组ID - 修复NaN错误
+      let groupId = 1; // 默认群组ID
+      if (selectedChannel.id && selectedChannel.id.startsWith('channel-')) {
+        const idMatch = selectedChannel.id.match(/channel-(\d+)/);
+        if (idMatch && idMatch[1]) {
+          groupId = parseInt(idMatch[1], 10);
+        }
+      }
+
+      // 确保groupId有效
+      if (isNaN(groupId)) {
+        console.error('无效的群组ID:', selectedChannel.id);
+        message.error('无法确定群组ID，请重新选择频道');
+        return;
+      }
+
+      console.log('获取群组ID:', groupId, '的消息');
+
+      // 使用频道ID作为群组ID获取加密消息
+      const encryptedMessagesData = await getEncryptedGroupMessages(groupId);
+      setEncryptedMessages(encryptedMessagesData);
+
+      // 解密消息
+      await decryptMessages(encryptedMessagesData);
+    } catch (error) {
+      console.error('获取加密消息失败:', error);
+      message.error('获取加密消息失败');
+    }
+  };
+
+  // 解密消息
+  const decryptMessages = async (encryptedMessagesData: EncryptedMessage[]) => {
+    if (!encryptedMessagesData.length) return;
+
+    const myKeyPair = CryptoService.getUserKeyPair();
+    if (!myKeyPair) {
+      message.error('未找到密钥对，无法解密消息');
+      return;
+    }
+
+    const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+
+    // 获取并缓存所有发送者的公钥
+    const senderPublicKeys = new Map<string, Uint8Array>();
+
+    for (const msg of encryptedMessagesData) {
+      if (senderPublicKeys.has(msg.sender_username)) continue;
+
+      try {
+        const publicKey = await getOrFetchPublicKey(msg.sender_username);
+        senderPublicKeys.set(
+          msg.sender_username,
+          CryptoService.stringToKey(publicKey)
+        );
+      } catch (error) {
+        console.error(`获取用户 ${msg.sender_username} 的公钥失败:`, error);
+      }
+    }
+
+    // 解密消息并更新UI
+    const decryptedMsgs = new Map<string, string>();
+
+    for (const msg of encryptedMessagesData) {
+      try {
+        const senderPublicKey = senderPublicKeys.get(msg.sender_username);
+        if (!senderPublicKey) continue;
+
+        const decrypted = CryptoService.decryptMessage(
+          msg.content,
+          senderPublicKey,
+          mySecretKey
+        );
+
+        if (decrypted) {
+          decryptedMsgs.set(msg.id.toString(), decrypted);
+        }
+      } catch (error) {
+        console.error(`解密消息 ${msg.id} 失败:`, error);
+      }
+    }
+
+    // 更新UI，在渲染消息时使用
+    setDecryptedMessages(decryptedMsgs);
+  };
+
+  // 在选择频道后加载消息
   useEffect(() => {
     if (selectedChannel) {
-      const mockMessages: Message[] = [
-        {
-          id: '1',
-          content: t('channel.messages.welcome', { channelName: selectedChannel.name }),
-          sender: {
-            id: 'system',
-            name: t('common.system'),
-            avatar: undefined
-          },
-          timestamp: new Date().toISOString()
-        }
-      ];
-      setMessages(mockMessages);
+      // 移除系统欢迎消息，直接初始化为空数组
+      setMessages([]);
+
+      // 加载加密消息
+      fetchEncryptedMessages();
     }
   }, [selectedChannel, t]);
 
@@ -183,6 +348,147 @@ const ChannelPage: React.FC = () => {
     return undefined;
   }, [isMobile]);
 
+  // 发送端到端加密消息 - 使用当前选中的频道/群组
+  const sendEncryptedMessage = async (content: string, files?: File[]) => {
+    if (!user || !selectedChannel) return;
+
+    try {
+      // 获取我的密钥
+      const myKeyPair = CryptoService.getUserKeyPair();
+      if (!myKeyPair) {
+        message.error('未找到密钥对，无法发送加密消息');
+        return false;
+      }
+
+      const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+
+      // 获取群组ID - 修复NaN错误
+      let groupId = 1; // 默认群组ID
+      if (selectedChannel.id && selectedChannel.id.startsWith('channel-')) {
+        const idMatch = selectedChannel.id.match(/channel-(\d+)/);
+        if (idMatch && idMatch[1]) {
+          groupId = parseInt(idMatch[1], 10);
+        }
+      }
+
+      // 确保groupId有效
+      if (isNaN(groupId)) {
+        console.error('无效的群组ID:', selectedChannel.id);
+        message.error('无法确定群组ID，请重新选择频道');
+        return false;
+      }
+
+      console.log('使用群组ID:', groupId);
+
+      // 获取频道所有成员
+      const members = await getGroupMembers(groupId);
+
+      // 为每个成员加密消息（包括自己）
+      const encryptedMessages = await Promise.all(
+        members.map(async (member) => {
+          try {
+            // 获取成员公钥
+            const publicKey = await getOrFetchPublicKey(member.username);
+            const publicKeyBytes = CryptoService.stringToKey(publicKey);
+
+            // 加密消息
+            const encrypted = CryptoService.encryptMessage(
+              content,
+              publicKeyBytes,
+              mySecretKey
+            );
+
+            return {
+              recipient: member.username,
+              content: encrypted
+            };
+          } catch (error) {
+            console.error(`为用户 ${member.username} 加密消息失败:`, error);
+            return null;
+          }
+        })
+      );
+
+      // 过滤掉失败的加密
+      const validMessages = encryptedMessages.filter(msg => msg !== null);
+
+      if (validMessages.length === 0) {
+        message.error('所有加密操作失败，无法发送消息');
+        return false;
+      }
+
+      // 发送加密消息，指定群组ID
+      await sendEncryptedGroupMessages(validMessages, groupId);
+
+      // 刷新消息列表
+      await fetchEncryptedMessages();
+
+      return true;
+    } catch (error) {
+      console.error('发送加密消息失败:', error);
+      message.error('发送加密消息失败');
+      return false;
+    }
+  };
+
+  // 修改处理发送消息函数
+  const handleSendMessage = async (content: string, files?: File[]) => {
+    if (!selectedChannel) return;
+
+    setLoading(true);
+    try {
+      // 使用加密消息API
+      const success = await sendEncryptedMessage(content, files);
+
+      if (success) {
+        // 不再添加临时消息，只依赖从服务器获取的消息
+        // 服务器返回的消息会通过fetchEncryptedMessages获取并显示
+        await fetchEncryptedMessages();
+      }
+    } catch (error) {
+      console.error(t('errors.chat.sendFailed'), error);
+      message.error(t('errors.chat.sendFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 将解密后的消息转换为UI消息格式，与消息合并
+  const getMessagesForDisplay = () => {
+    // 首先处理原始消息（系统欢迎消息等）
+    const displayMessages = [...messages];
+
+    // 用于检测重复消息的集合
+    const messageContents = new Set(messages.map(msg => msg.content));
+
+    // 然后添加解密后的加密消息
+    encryptedMessages.forEach(msg => {
+      const decryptedContent = decryptedMessages.get(msg.id.toString());
+      if (decryptedContent) {
+        // 只有当消息内容不在已有消息中时才添加，避免重复显示
+        if (!messageContents.has(decryptedContent)) {
+          displayMessages.push({
+            id: `encrypted-${msg.id}`,
+            content: decryptedContent,
+            sender: {
+              id: msg.sender_id.toString(),
+              name: msg.sender_username,
+              // 如果是当前用户，使用当前头像
+              avatar: msg.sender_username === user?.username ? avatar : undefined
+            },
+            timestamp: msg.created_at
+          });
+          messageContents.add(decryptedContent);
+        }
+      }
+    });
+
+    // 按时间排序
+    return displayMessages.sort((a, b) =>
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+  };
+
   const handleServerSelect = (serverId: string) => {
     setCurrentServer(serverId);
     setSelectedChannel(null);
@@ -245,32 +551,52 @@ const ChannelPage: React.FC = () => {
     setFileList([]);
   };
 
+  // 修改添加频道（实际上是创建新群组）的函数
   const handleAddChannel = () => {
     setIsChannelModalVisible(true);
   };
 
+  // 修改确认添加频道（创建新群组）的函数
   const handleChannelModalOk = async () => {
     try {
       const values = await channelForm.validateFields();
+
+      // 创建新群组而不是频道
+      const newGroupName = values.name;
+      const newGroupDescription = values.description || '';
+
+      // 默认添加三个用户
+      const members = ["kscii", "user1", "user2"];
+
+      // 调用API创建新群组
+      const newGroup = await createNewGroup(newGroupName, newGroupDescription, members);
+
+      // 创建新的Channel对象使其在UI中显示
       if (currentServer) {
         const newChannel: Channel = {
-          id: 'channel-' + Date.now(),
-          name: values.name,
+          id: 'channel-' + newGroup.id, // 使用群组ID作为频道ID
+          name: newGroupName,
           type: values.type,
           serverId: currentServer.id,
-          description: values.description || '',
+          description: newGroupDescription,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
 
+        // 添加到当前服务器的频道列表
         currentServer.channels.push(newChannel);
         setCurrentServer(currentServer.id);
+
+        // 重新获取群组列表
+        const updatedGroups = await getAllGroups();
+        setGroups(updatedGroups);
 
         setIsChannelModalVisible(false);
         channelForm.resetFields();
         message.success(t('channel.form.createSuccess'));
       }
     } catch (error) {
+      console.error('创建频道失败:', error);
       message.error(t('channel.form.createError'));
     }
   };
@@ -315,43 +641,14 @@ const ChannelPage: React.FC = () => {
     return <AudioOutlined />;
   };
 
-  const handleSendMessage = async (content: string, files?: File[]) => {
-    if (!selectedChannel) return;
-
-    setLoading(true);
-    try {
-      // 这里应该调用后端API发送消息
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        content,
-        sender: {
-          id: 'current-user-id',
-          name: t('chat.currentUser'),
-          avatar: avatar || undefined
-        },
-        timestamp: new Date().toISOString(),
-        files: files?.map(file => ({
-          url: URL.createObjectURL(file),
-          name: file.name,
-          type: file.type
-        }))
-      };
-
-      setMessages(prev => [...prev, newMessage]);
-    } catch (error) {
-      console.error(t('errors.chat.sendFailed'), error);
-      message.error(t('errors.chat.sendFailed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // 搜索消息
   const handleSearch = (value: string) => {
     setSearchKeyword(value);
     if (value.trim()) {
       setIsSearching(true);
-      const results = messages.filter(msg =>
+      // 搜索所有显示的消息，包括解密后的消息
+      const allMessages = getMessagesForDisplay();
+      const results = allMessages.filter(msg =>
         msg.content.toLowerCase().includes(value.toLowerCase()) ||
         msg.sender.name.toLowerCase().includes(value.toLowerCase())
       );
@@ -521,7 +818,7 @@ const ChannelPage: React.FC = () => {
             <div className="channel-main">
               {selectedChannel.type === 'text' ? (
                 <ChatBox
-                  messages={isSearching ? searchResults : messages}
+                  messages={isSearching ? searchResults : getMessagesForDisplay()}
                   onSendMessage={handleSendMessage}
                   placeholder={t('channel.placeholders.message', { channelName: selectedChannel.name })}
                   showAvatar={true}

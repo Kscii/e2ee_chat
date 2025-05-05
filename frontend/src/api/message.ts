@@ -199,4 +199,98 @@ export const getGroupMessages = async (limit = 50, offset = 0): Promise<GroupMes
     }
     throw new Error('获取群组消息失败，请稍后重试');
   }
+};
+
+// 获取群组成员
+export const getGroupMembers = async (groupId = 1): Promise<{ id: number, username: string }[]> => {
+  try {
+    const response = await apiClient.get(`/groups/${groupId}/members`);
+    return response.data.members;
+  } catch (error) {
+    console.error('获取群组成员失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取群组成员失败，请稍后重试');
+  }
+};
+
+// 获取加密群组消息
+export const getEncryptedGroupMessages = async (groupId = 1): Promise<any[]> => {
+  try {
+    const response = await apiClient.get('/group/encrypted-messages', {
+      params: { group_id: groupId }
+    });
+    return response.data.messages;
+  } catch (error) {
+    console.error('获取加密群组消息失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取加密群组消息失败，请稍后重试');
+  }
+};
+
+// 发送加密群组消息 - 添加群组ID参数
+export const sendEncryptedGroupMessages = async (messages: { recipient: string, content: string }[], groupId = 1): Promise<any> => {
+  try {
+    const response = await apiClient.post('/group/encrypted-messages', {
+      messages,
+      group_id: groupId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('发送加密群组消息失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('发送加密群组消息失败，请稍后重试');
+  }
+};
+
+// 创建新群组
+export const createNewGroup = async (name: string, description: string, members: string[]): Promise<{ id: number, name: string }> => {
+  try {
+    const response = await apiClient.post('/groups', {
+      name,
+      description,
+      members
+    });
+    return response.data;
+  } catch (error) {
+    console.error('创建群组失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('创建群组失败，请稍后重试');
+  }
+};
+
+// 获取所有群组
+export const getAllGroups = async (): Promise<{ id: number, name: string }[]> => {
+  try {
+    const response = await apiClient.get('/groups');
+    return response.data.groups;
+  } catch (error) {
+    console.error('获取群组列表失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取群组列表失败，请稍后重试');
+  }
 }; 

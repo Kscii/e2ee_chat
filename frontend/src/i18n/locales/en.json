@@ -292,5 +292,10 @@
       "confirmRequired": "Please confirm your password!",
       "passwordsMismatch": "The two passwords don't match!"
     }
+  },
+  "upload": {
+    "file": "Upload File",
+    "image": "Upload Image",
+    "message": "Type a message or upload a file..."
   }
 }
