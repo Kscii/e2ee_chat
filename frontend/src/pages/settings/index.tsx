@@ -9,6 +9,7 @@ import { useAI } from '../../contexts/AIContext';
 import { useAPI } from '../../contexts/APIContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 import type { UploadChangeParam } from 'antd/es/upload';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import './index.css';
@@ -26,6 +27,7 @@ const SettingsPage: React.FC = () => {
   const { apiKey, setAPIKey } = useAPI();
   const { language, changeLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const beforeUpload = (file: RcFile) => {
     const isImage = file.type.startsWith('image/');
@@ -83,8 +85,8 @@ const SettingsPage: React.FC = () => {
               )}
             </Upload>
             <div className="profile-info">
-              <span className="setting-label-title">{t('settings.profile.name')}</span>
-              <span className="setting-label-description">{t('settings.profile.email')}</span>
+              <span className="setting-label-title">{user?.username || t('settings.profile.name')}</span>
+              <span className="setting-label-description">{user?.email || t('settings.profile.email')}</span>
             </div>
           </div>
         </div>

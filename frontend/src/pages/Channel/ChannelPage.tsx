@@ -858,7 +858,6 @@ const ChannelPage: React.FC = () => {
                 <ChatBox
                   messages={isSearching ? searchResults : getMessagesForDisplay()}
                   onSendMessage={handleSendMessage}
-                  placeholder={t('channel.placeholders.message', { channelName: selectedChannel.name })}
                   showAvatar={true}
                   showUsername={true}
                 />

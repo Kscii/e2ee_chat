@@ -1143,6 +1143,24 @@ class ServerModel:
                 (server_id, creator_id)
             )
             
+            # 默认添加系统用户(kscii, user1, user2)作为成员
+            default_users = ["kscii", "user1", "user2"]
+            for username in default_users:
+                # 跳过创建者，因为已添加
+                if username == creator_username:
+                    continue
+                    
+                # 获取用户ID
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+                user = cursor.fetchone()
+                
+                if user:
+                    # 添加用户为成员
+                    cursor.execute(
+                        "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
+                        (server_id, user['id'])
+                    )
+            
             conn.commit()
             
             return {
