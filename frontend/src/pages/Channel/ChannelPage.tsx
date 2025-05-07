@@ -79,6 +79,7 @@ const ChannelPage: React.FC = () => {
   const { user } = useAuth(); // 获取用户信息
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isChannelModalVisible, setIsChannelModalVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form] = Form.useForm();
   const [channelForm] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -563,6 +564,10 @@ const ChannelPage: React.FC = () => {
 
   // 修改确认添加频道（创建新群组）的函数
   const handleChannelModalOk = async () => {
+    if (isSubmitting) return; // 如果正在提交中，则不执行任何操作
+    
+    setIsSubmitting(true); // 设置提交状态为true
+    
     try {
       const values = await channelForm.validateFields();
 
@@ -636,6 +641,8 @@ const ChannelPage: React.FC = () => {
     } catch (error) {
       console.error('创建频道失败:', error);
       message.error(t('channel.form.createError'));
+    } finally {
+      setIsSubmitting(false); // 无论成功还是失败，都重置提交状态
     }
   };
 
@@ -928,6 +935,8 @@ const ChannelPage: React.FC = () => {
         open={isChannelModalVisible}
         onOk={handleChannelModalOk}
         onCancel={handleChannelModalCancel}
+        okButtonProps={{ disabled: isSubmitting }}
+        confirmLoading={isSubmitting}
       >
         <Form form={channelForm} layout="vertical">
           <Form.Item
