@@ -27,41 +27,48 @@
     "profile": {
       "title": "Profile",
       "name": "Username",
-      "email": "Email"
+      "email": "Email",
+      "avatarSuccess": "Avatar updated successfully",
+      "avatarError": "Failed to update avatar"
     },
     "theme": {
       "title": "Theme Settings",
       "dark": "Dark Mode",
-      "description": "Toggle dark/light theme",
+      "description": "Switch between light/dark themes",
       "markdown": "Enable Markdown Mode",
-      "markdownDescription": "Enable support for Markdown syntax in text fields"
+      "markdownDescription": "Enable Markdown syntax support in text fields"
     },
     "language": {
       "title": "Language Settings",
       "description": "Choose interface language",
       "zh": "中文",
       "en": "English",
-      "es": "Español",
-      "fr": "Français",
-      "de": "Deutsch",
-      "ja": "日本語",
-      "ko": "한국어",
-      "ru": "Русский",
-      "pt": "Português",
-      "it": "Italiano",
-      "hi": "हिन्दी",
-      "ar": "العربية",
-      "tr": "Türkçe",
-      "th": "ไทย",
-      "id": "Bahasa Indonesia",
-      "vi": "Tiếng Việt"
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "ru": "Russian",
+      "pt": "Portuguese",
+      "it": "Italian",
+      "hi": "Hindi",
+      "ar": "Arabic",
+      "tr": "Turkish",
+      "th": "Thai",
+      "id": "Indonesian",
+      "vi": "Vietnamese"
+    },
+    "live2d": {
+      "title": "Live2D Settings",
+      "enable": "Enable Live2D",
+      "description": "Show/hide Live2D virtual character"
     },
     "ai": {
       "title": "AI Settings",
       "enable": "Enable AI Assistant",
-      "description": "Toggle AI assistant features",
+      "description": "Turn on/off AI assistant features",
       "apiKey": "API Key",
-      "apiKeyDescription": "Set OpenAI API Key"
+      "apiKeyDescription": "Set your OpenAI API key"
     },
     "tts": {
       "title": "Text to Speech",

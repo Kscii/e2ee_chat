@@ -1,0 +1,176 @@
+{
+    "name": "anon",
+    "model": "anon_other-25.moc",
+    "textures": [
+        "textures/texture_00.png",
+        "textures/texture_01.png"
+    ],
+    "physics": "anon_other-25.physics.json",
+    "pose": "pose.json",
+    "expressions": [
+        {
+            "name": "f01",
+            "file": "expressions/default.exp.json"
+        },
+        {
+            "name": "f02",
+            "file": "expressions/smile01.exp.json"
+        },
+        {
+            "name": "f03",
+            "file": "expressions/surprised01.exp.json"
+        },
+        {
+            "name": "f04",
+            "file": "expressions/angry01.exp.json"
+        },
+        {
+            "name": "f05",
+            "file": "expressions/sad01.exp.json"
+        },
+        {
+            "name": "f06",
+            "file": "expressions/thinking01.exp.json"
+        },
+        {
+            "name": "f07",
+            "file": "expressions/wink01.exp.json"
+        },
+        {
+            "name": "f08",
+            "file": "expressions/cry01.exp.json"
+        },
+        {
+            "name": "f09",
+            "file": "expressions/smile02.exp.json"
+        },
+        {
+            "name": "f10",
+            "file": "expressions/angry02.exp.json"
+        },
+        {
+            "name": "f11",
+            "file": "expressions/serious01.exp.json"
+        },
+        {
+            "name": "f12",
+            "file": "expressions/shame01.exp.json"
+        }
+    ],
+    "motions": {
+        "idle": [
+            {
+                "file": "motions/idle01.mtn"
+            }
+        ],
+        "flick_head": [
+            {
+                "file": "motions/nf01.mtn"
+            },
+            {
+                "file": "motions/nf02.mtn"
+            },
+            {
+                "file": "motions/nf03.mtn"
+            },
+            {
+                "file": "motions/nf04.mtn"
+            },
+            {
+                "file": "motions/nf05.mtn"
+            },
+            {
+                "file": "motions/nf_left01.mtn"
+            },
+            {
+                "file": "motions/nf_right01.mtn"
+            }
+        ],
+        "tap_body": [
+            {
+                "file": "motions/smile01.mtn"
+            },
+            {
+                "file": "motions/smile02.mtn"
+            },
+            {
+                "file": "motions/smile03.mtn"
+            },
+            {
+                "file": "motions/smile04.mtn"
+            }
+        ],
+        "surprised": [
+            {
+                "file": "motions/surprised01.mtn"
+            }
+        ],
+        "thinking": [
+            {
+                "file": "motions/thinking01.mtn"
+            },
+            {
+                "file": "motions/thinking02.mtn"
+            },
+            {
+                "file": "motions/thinking03.mtn"
+            }
+        ],
+        "sad": [
+            {
+                "file": "motions/sad01.mtn"
+            },
+            {
+                "file": "motions/sad02.mtn"
+            },
+            {
+                "file": "motions/cry01.mtn"
+            },
+            {
+                "file": "motions/cry02.mtn"
+            }
+        ],
+        "angry": [
+            {
+                "file": "motions/angry01.mtn"
+            },
+            {
+                "file": "motions/angry02.mtn"
+            },
+            {
+                "file": "motions/angry03.mtn"
+            },
+            {
+                "file": "motions/angry04.mtn"
+            }
+        ],
+        "wink": [
+            {
+                "file": "motions/wink01.mtn"
+            }
+        ]
+    },
+    "layout": {
+        "center_x": 0,
+        "center_y": 0,
+        "width": 2
+    },
+    "hit_areas_custom": {
+        "head_x": [
+            -0.35,
+            0.6
+        ],
+        "head_y": [
+            0.19,
+            -0.2
+        ],
+        "body_x": [
+            -0.3,
+            -0.25
+        ],
+        "body_y": [
+            0.3,
+            -0.9
+        ]
+    }
+}

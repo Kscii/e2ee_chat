@@ -17,6 +17,7 @@ import { APIProvider } from './contexts/APIContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CryptoProvider } from './contexts/CryptoContext';
+import { Live2DProvider } from './contexts/Live2DContext';
 import PrivateRoute from './components/PrivateRoute';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import './i18n'; // 导入 i18n 配置
@@ -104,9 +105,11 @@ function App() {
                     <AvatarProvider>
                       <TTSProvider>
                         <AIProvider>
-                          <Router>
-                            <AppContent />
-                          </Router>
+                          <Live2DProvider>
+                            <Router>
+                              <AppContent />
+                            </Router>
+                          </Live2DProvider>
                         </AIProvider>
                       </TTSProvider>
                     </AvatarProvider>

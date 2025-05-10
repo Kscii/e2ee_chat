@@ -56,6 +56,11 @@
       "id": "Bahasa Indonesia",
       "vi": "Tiếng Việt"
     },
+    "live2d": {
+      "title": "Live2Dキャラクター設定",
+      "enable": "Live2Dキャラクターを有効化",
+      "description": "Live2D仮想キャラクターの表示/非表示"
+    },
     "ai": {
       "title": "AI設定",
       "enable": "AIアシスタントを有効化",
@@ -288,4 +293,4 @@
       "passwordsMismatch": "パスワードが一致しません！"
     }
   }
-} 
+}

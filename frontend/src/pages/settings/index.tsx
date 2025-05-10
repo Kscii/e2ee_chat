@@ -8,6 +8,7 @@ import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
 import { useAPI } from '../../contexts/APIContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useLive2D } from '../../contexts/Live2DContext';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import type { UploadChangeParam } from 'antd/es/upload';
@@ -25,6 +26,7 @@ const SettingsPage: React.FC = () => {
   const { aiEnabled, toggleAI } = useAI();
   const { apiKey, setAPIKey } = useAPI();
   const { language, changeLanguage } = useLanguage();
+  const { live2dEnabled, toggleLive2D } = useLive2D();
   const { t } = useTranslation();
   const { user, loading } = useAuth();
 
@@ -152,6 +154,25 @@ const SettingsPage: React.FC = () => {
               <Switch
                 checked={markdownMode}
                 onChange={toggleMarkdownMode}
+                checkedChildren={t('common.save')}
+                unCheckedChildren={t('common.cancel')}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <Title level={2}>{t('settings.live2d.title')}</Title>
+          <Divider />
+          <div className="setting-item">
+            <div className="setting-label">
+              <span className="setting-label-title">{t('settings.live2d.enable')}</span>
+              <span className="setting-label-description">{t('settings.live2d.description')}</span>
+            </div>
+            <div className="setting-control">
+              <Switch
+                checked={live2dEnabled}
+                onChange={toggleLive2D}
                 checkedChildren={t('common.save')}
                 unCheckedChildren={t('common.cancel')}
               />

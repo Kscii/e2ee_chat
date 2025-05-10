@@ -56,6 +56,11 @@
       "id": "印尼语",
       "vi": "越南语"
     },
+    "live2d": {
+      "title": "Live2D设置",
+      "enable": "启用Live2D",
+      "description": "显示/隐藏Live2D虚拟形象"
+    },
     "ai": {
       "title": "AI 设置",
       "enable": "启用 AI 助手",
