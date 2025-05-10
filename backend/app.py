@@ -761,7 +761,18 @@ def upload_avatar():
 @app.route('/api/avatar/<username>', methods=['GET'])
 def get_avatar(username):
     try:
-        # 获取头像路径
+        # 特殊处理AI助手"sakiko"头像
+        if username == "sakiko":
+            avatars_dir = app.config['UPLOAD_FOLDER']
+            sakiko_avatar = "sakiko.png"
+            full_path = os.path.join(avatars_dir, sakiko_avatar)
+            
+            if os.path.exists(full_path):
+                return send_from_directory(avatars_dir, sakiko_avatar)
+            else:
+                return jsonify({"error": "AI助手头像不存在"}), 404
+        
+        # 正常处理其他用户头像
         avatar_path = user_model.get_avatar_path(username)
         
         if not avatar_path:

@@ -58,4 +58,3 @@ __pycache__/  # 根目录的Python缓存
 # 用户上传的文件
 backend/uploads/
 backend/media/
-backend/avatars/

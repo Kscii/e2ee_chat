@@ -166,11 +166,11 @@ class DatabaseManager:
             
             # 创建五个测试用户
             users = [
-                ("Anon", "Anon@tokyo.com", "97110111110", password_hash),
-                ("Tomori", "Tomori@mygo.com", "116111109111114105", password_hash),
-                ("Rana", "Rana@mygo.com", "11497110197", password_hash),
-                ("Soyo", "Soyo@mygo.com", "115111121111", password_hash),
-                ("Taki", "Taki@mygo.com", "11697107105", password_hash)
+                ("anon", "anon@tokyo.com", "97110111110", password_hash),
+                ("tomori", "tomori@mygo.com", "116111109111114105", password_hash),
+                ("rana", "rana@mygo.com", "11497110197", password_hash),
+                ("soyo", "soyo@mygo.com", "115111121111", password_hash),
+                ("taki", "taki@mygo.com", "11697107105", password_hash)
             ]
             
             # 插入用户数据
@@ -180,13 +180,20 @@ class DatabaseManager:
                 cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
                 user = cursor.fetchone()
                 if not user:
+                    # 检查头像文件是否存在
+                    avatar_path = None
+                    avatar_file = f"avatars/{username}.png"
+                    if os.path.exists(avatar_file):
+                        avatar_path = f"avatars/{username}.png"
+                    
+                    # 添加avatar_path参数到插入语句
                     cursor.execute(
-                        "INSERT INTO users (username, email, phone, password_hash) VALUES (?, ?, ?, ?)",
-                        (username, email, phone, pw_hash)
+                        "INSERT INTO users (username, email, phone, password_hash, avatar_path) VALUES (?, ?, ?, ?, ?)",
+                        (username, email, phone, pw_hash, avatar_path)
                     )
                     cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
                     user = cursor.fetchone()
-                    print(f"创建用户: {username}")
+                    print(f"创建用户: {username}" + (f" (带头像)" if avatar_path else ""))
                 
                 user_ids.append(user['id'])
             
@@ -195,7 +202,7 @@ class DatabaseManager:
             if not cursor.fetchone():
                 cursor.execute(
                     "INSERT INTO servers (id, name, description, owner_id) VALUES (?, ?, ?, ?)",
-                    (1, "main server", "默认服务器", user_ids[0])  # Anon作为所有者
+                    (1, "main server", "默认服务器", user_ids[0])  # anon作为所有者
                 )
                 print("创建服务器: 主服务器")
             
@@ -1095,7 +1102,7 @@ class ServerModel:
             )
             
             # 默认添加系统用户作为成员
-            default_users = ["Anon", "Tomori", "Rana", "Soyo", "Taki"]
+            default_users = ["anon", "tomori", "rana", "soyo", "taki"]
             for username in default_users:
                 # 跳过创建者，因为已添加
                 if username == creator_username:

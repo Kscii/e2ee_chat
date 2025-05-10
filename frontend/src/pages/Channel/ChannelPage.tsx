@@ -643,7 +643,7 @@ const ChannelPage: React.FC = () => {
 
       // 如果没有获取到用户列表，使用默认用户
       if (!members.length) {
-        members.push("Anon", "Tomori", "Rana", "Soyo", "Taki");
+        members.push("anon", "tomori", "rana", "soyo", "taki");
       }
 
       // 调用API创建新群组，并为其设置当前服务器ID

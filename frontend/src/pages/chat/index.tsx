@@ -1050,12 +1050,19 @@ const ChatPage: React.FC = () => {
     );
   };
 
+  // 添加AI头像URL常量
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  const AI_AVATAR_URL = `${API_BASE_URL}/avatar/sakiko`;
+
   return (
     <div className="chat-container">
       <div className="chat-main">
         <div className="chat-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Avatar icon={isAIChat ? <RobotOutlined /> : (isGroupChat ? <TeamOutlined /> : <UserOutlined />)} />
+            <Avatar
+              icon={isAIChat ? <RobotOutlined /> : (isGroupChat ? <TeamOutlined /> : <UserOutlined />)}
+              src={isAIChat ? AI_AVATAR_URL : undefined}
+            />
             <div className="chat-info">
               <Text strong>{currentContact.name}</Text>
               <Text type="secondary">{currentContact.isOnline ? t('chat.status.online') : t('chat.status.offline')}</Text>
@@ -1091,7 +1098,8 @@ const ChatPage: React.FC = () => {
                     <div className="message-avatar">
                       <Avatar
                         size={40}
-                        src={msg.sender === 'user' ? avatar : undefined}
+                        src={msg.sender === 'user' ? avatar :
+                          (isAIChat ? AI_AVATAR_URL : undefined)}
                         icon={msg.sender === 'user' ?
                           <UserOutlined /> :
                           (isAIChat ? <RobotOutlined /> :
@@ -1182,6 +1190,7 @@ const ChatPage: React.FC = () => {
               <div className="message-avatar">
                 <Avatar
                   size={40}
+                  src={isAIChat ? AI_AVATAR_URL : undefined}
                   icon={isAIChat ? <RobotOutlined /> : (isGroupChat ? <TeamOutlined /> : <UserOutlined />)}
                 />
               </div>
