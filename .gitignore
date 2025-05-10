@@ -1,4 +1,4 @@
- # Python字节码
+# Python字节码
 backend/__pycache__/
 *.py[cod]
 *$py.class
@@ -36,3 +36,26 @@ build/
 .coverage
 htmlcov/
 .pytest_cache/
+
+# 前端构建和依赖
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.cache/
+frontend/.eslintcache
+
+# 环境变量文件 (但保留示例文件)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 缓存文件
+__pycache__/  # 根目录的Python缓存
+.mypy_cache/
+.ruff_cache/
+
+# 用户上传的文件
+backend/uploads/
+backend/media/
+backend/avatars/
