@@ -7,6 +7,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // 允许外部访问
     port: 5173, // 你可以换成你的端口
-    allowedHosts: ['kscii.tech'], // 允许 kscii.tech 访问
+    allowedHosts: ['kang-mi.com'], // 允许外部域名访问
   },
 })

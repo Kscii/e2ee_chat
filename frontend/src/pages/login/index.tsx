@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
       message.success(t('login.success') || '登录成功');
       setIsAuth(true);
       setUser({ username: response.username });
-      navigate('/chat');
+      navigate('/chat/groups');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('login.error') || '登录失败';
       message.error(errorMessage);

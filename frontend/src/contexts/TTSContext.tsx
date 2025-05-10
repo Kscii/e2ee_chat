@@ -66,9 +66,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
 
-  // 打印apiConfig的值，用于调试
-  console.log('apiConfig loaded:', apiConfig);
-
   const [ttsConfig, setTTSConfig] = useState<TTSConfig>({
     service: 'browser',
     azureKey: apiConfig.azure.apiKey || '',
@@ -82,9 +79,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       textLanguage: 'auto'
     }
   });
-
-  // 打印初始ttsConfig的值，用于调试
-  console.log('Initial ttsConfig:', ttsConfig);
 
   // 加载和更新可用的语音
   useEffect(() => {
@@ -115,11 +109,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const savedAutoRead = localStorage.getItem('auto_read');
     const savedConfig = localStorage.getItem('tts_config');
 
-    console.log('Loading from localStorage:');
-    console.log('- tts_enabled:', savedTTS);
-    console.log('- auto_read:', savedAutoRead);
-    console.log('- tts_config:', savedConfig);
-
     if (savedTTS !== null) {
       setTTSEnabled(savedTTS === 'true');
     }
@@ -129,10 +118,10 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (savedConfig) {
       try {
         const config = JSON.parse(savedConfig);
-        console.log('Parsed config from localStorage:', config);
         setTTSConfig(config);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Failed to parse saved TTS config:', error);
+        message.error('无法解析保存的TTS配置');
       }
     }
   }, []);
@@ -165,13 +154,12 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const newConfig = { ...ttsConfig, ...config };
-    console.log('Updating TTS config:', newConfig);
     setTTSConfig(newConfig);
     try {
       localStorage.setItem('tts_config', JSON.stringify(newConfig));
-      console.log('Saved TTS config to localStorage');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Failed to save TTS config to localStorage:', error);
+      message.error('无法保存TTS配置到本地存储');
     }
   };
 
@@ -196,8 +184,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         message.error('Azure TTS服务配置不完整，请检查API密钥和区域设置');
         return;
       }
-
-      console.log('使用Azure TTS服务:', azureRegion);
 
       const voiceName = getAzureVoiceName(lang);
       const ssml = `
@@ -225,8 +211,8 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
 
       if (!response.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const errorText = await response.text().catch(() => '未知错误');
-        console.error(`Azure TTS请求失败: ${response.status} - ${errorText}`);
         message.error(`语音合成失败: ${response.status} ${response.statusText}`);
         return;
       }
@@ -242,8 +228,8 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       window.currentAudio = audio;
       await audio.play();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Azure TTS error:', error);
       message.error('Azure语音合成失败，请检查API配置和网络连接');
     }
   };
@@ -257,8 +243,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         message.error('Google TTS服务API密钥未配置');
         return;
       }
-
-      console.log('使用Google TTS服务');
 
       const response = await fetch(
         `https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`,
@@ -279,15 +263,14 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
 
       if (!response.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const errorText = await response.text().catch(() => '未知错误');
-        console.error(`Google TTS请求失败: ${response.status} - ${errorText}`);
         message.error(`语音合成失败: ${response.status} ${response.statusText}`);
         return;
       }
 
       const { audioContent } = await response.json();
       if (!audioContent) {
-        console.error('Google TTS响应中没有音频内容');
         message.error('语音合成失败: 响应中没有音频内容');
         return;
       }
@@ -302,8 +285,8 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       window.currentAudio = audio;
       await audio.play();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Google TTS error:', error);
       message.error('Google语音合成失败，请检查API配置和网络连接');
     }
   };
@@ -317,8 +300,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         message.error('GPT-SoVITS服务地址未配置');
         return;
       }
-
-      console.log('使用GPT-SoVITS服务:', gptSovitsUrl);
 
       const response = await fetch(gptSovitsUrl, {
         method: 'POST',
@@ -335,8 +316,8 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const errorText = await response.text().catch(() => '未知错误');
-        console.error(`GPT-SoVITS请求失败: ${response.status} - ${errorText}`);
         message.error(`语音合成失败: ${response.status} ${response.statusText}`);
         return;
       }
@@ -353,14 +334,14 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const audio = new Audio(audioUrl);
       window.currentAudio = audio;
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       audio.onerror = (e) => {
-        console.error('音频播放错误:', e);
         message.error('音频播放失败');
       };
 
       await audio.play();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error in GPT-SoVITS TTS:', error);
       message.error('GPT-SoVITS语音合成失败，请检查服务地址和网络连接');
     }
   };
@@ -375,10 +356,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const detectedLang = detectLanguage(text);
-    console.log('Speaking text:', text.substring(0, 50) + (text.length > 50 ? '...' : ''));
-    console.log('Detected language:', detectedLang);
-    console.log('Using TTS service:', ttsConfig.service);
-    console.log('Current TTS config:', ttsConfig);
 
     try {
       switch (ttsConfig.service) {
@@ -393,7 +370,6 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           break;
         default: {
           // 使用浏览器默认TTS
-          console.log('Using browser TTS with voice:', selectedVoice?.name);
           window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = detectedLang;
@@ -407,8 +383,8 @@ export const TTSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           break;
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('TTS error:', error);
       message.error('语音合成失败');
     }
   };

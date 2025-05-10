@@ -18,12 +18,15 @@ export interface Message {
   is_encrypted?: boolean; // 标记消息是否已加密
 }
 
-export interface GroupMessage {
+// 移除GroupMessage接口，只使用加密消息接口
+export interface EncryptedGroupMessage {
   id: number;
   group_id: number;
   sender_id: number;
   sender_username: string;
+  receiver_id: number;
   content: string;
+  message_timestamp: string;
   created_at: string;
 }
 
@@ -42,8 +45,9 @@ interface MessageResponse {
   messages: Message[];
 }
 
-interface GroupMessageResponse {
-  messages: GroupMessage[];
+// 移除GroupMessageResponse接口
+interface EncryptedGroupMessageResponse {
+  messages: EncryptedGroupMessage[];
 }
 
 interface ConversationsResponse {
@@ -84,14 +88,24 @@ apiClient.interceptors.request.use(
 // 发送加密消息
 export const sendEncryptedMessage = async (receiver: string, encryptedContent: string): Promise<Message> => {
   try {
+    console.log('🚀 Sending encrypted private message request:', { 
+      receiver, 
+      encryptedContent: encryptedContent.substring(0, 100) + (encryptedContent.length > 100 ? '...' : ''),
+      contentLength: encryptedContent.length,
+      isEncrypted: true
+    });
     const response = await apiClient.post('/messages', {
       receiver,
       content: encryptedContent,
       is_encrypted: true // 标记为加密消息
     });
+    console.log('✅ Received private message response:', {
+      ...response.data,
+      content: response.data.content.substring(0, 100) + (response.data.content.length > 100 ? '...' : '')
+    });
     return response.data;
   } catch (error) {
-    console.error('发送加密消息失败:', error);
+    console.error('❌ Failed to send encrypted message:', error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{error: string}>;
       if (axiosError.response?.data) {
@@ -125,13 +139,21 @@ export const sendMessage = async (receiver: string, content: string): Promise<Me
 // 获取与指定用户的消息历史
 export const getMessages = async (otherUsername: string, limit = 50, offset = 0): Promise<Message[]> => {
   try {
+    console.log('🔍 Fetching private messages:', { otherUsername, limit, offset });
     const response = await apiClient.get<MessageResponse>(
       `/messages/${otherUsername}`,
       { params: { limit, offset } }
     );
+    console.log('📥 Received private message history:', {
+      count: response.data.messages.length,
+      messages: response.data.messages.map(msg => ({
+        ...msg,
+        content: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+      }))
+    });
     return response.data.messages;
   } catch (error) {
-    console.error('获取消息失败:', error);
+    console.error('❌ Failed to fetch messages:', error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{error: string}>;
       if (axiosError.response?.data) {
@@ -159,48 +181,6 @@ export const getConversations = async (): Promise<Conversation[]> => {
   }
 };
 
-// 发送群组消息
-export const sendGroupMessage = async (content: string): Promise<GroupMessage> => {
-  try {
-    console.log('调用群组消息API, 内容:', content);
-    const response = await apiClient.post('/group/messages', {
-      content
-    });
-    console.log('群组消息API响应:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('发送群组消息失败:', error);
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{error: string}>;
-      console.error('API错误详情:', axiosError.response?.data, axiosError.message);
-      if (axiosError.response?.data) {
-        throw new Error(axiosError.response.data.error);
-      }
-    }
-    throw new Error('发送群组消息失败，请稍后重试');
-  }
-};
-
-// 获取群组消息
-export const getGroupMessages = async (limit = 50, offset = 0): Promise<GroupMessage[]> => {
-  try {
-    const response = await apiClient.get<GroupMessageResponse>(
-      '/group/messages',
-      { params: { limit, offset } }
-    );
-    return response.data.messages;
-  } catch (error) {
-    console.error('获取群组消息失败:', error);
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{error: string}>;
-      if (axiosError.response?.data) {
-        throw new Error(axiosError.response.data.error);
-      }
-    }
-    throw new Error('获取群组消息失败，请稍后重试');
-  }
-};
-
 // 获取群组成员
 export const getGroupMembers = async (groupId = 1): Promise<{ id: number, username: string }[]> => {
   try {
@@ -219,14 +199,22 @@ export const getGroupMembers = async (groupId = 1): Promise<{ id: number, userna
 };
 
 // 获取加密群组消息
-export const getEncryptedGroupMessages = async (groupId = 1): Promise<any[]> => {
+export const getEncryptedGroupMessages = async (groupId = 1): Promise<EncryptedGroupMessage[]> => {
   try {
-    const response = await apiClient.get('/group/encrypted-messages', {
+    console.log('🔍 Fetching encrypted group messages:', { groupId });
+    const response = await apiClient.get<EncryptedGroupMessageResponse>('/group/encrypted-messages', {
       params: { group_id: groupId }
+    });
+    console.log('📥 Received encrypted group messages:', {
+      count: response.data.messages.length,
+      messages: response.data.messages.map(msg => ({
+        ...msg,
+        content: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+      }))
     });
     return response.data.messages;
   } catch (error) {
-    console.error('获取加密群组消息失败:', error);
+    console.error('❌ Failed to fetch encrypted group messages:', error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{error: string}>;
       if (axiosError.response?.data) {
@@ -238,15 +226,25 @@ export const getEncryptedGroupMessages = async (groupId = 1): Promise<any[]> => 
 };
 
 // 发送加密群组消息 - 添加群组ID参数
-export const sendEncryptedGroupMessages = async (messages: { recipient: string, content: string }[], groupId = 1): Promise<any> => {
+export const sendEncryptedGroupMessages = async (messages: { recipient: string, content: string }[], groupId = 1): Promise<{ success: boolean, message: string }> => {
   try {
+    console.log('🚀 Sending encrypted group messages:', { 
+      recipientsCount: messages.length, 
+      recipients: messages.map(m => m.recipient),
+      encryptedMessages: messages.map(m => ({
+        recipient: m.recipient,
+        content: m.content.substring(0, 100) + (m.content.length > 100 ? '...' : '')
+      })),
+      groupId 
+    });
     const response = await apiClient.post('/group/encrypted-messages', {
       messages,
       group_id: groupId
     });
+    console.log('✅ Received group message response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('发送加密群组消息失败:', error);
+    console.error('❌ Failed to send encrypted group messages:', error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<{error: string}>;
       if (axiosError.response?.data) {

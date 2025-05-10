@@ -239,7 +239,7 @@ def send_message():
     
     return jsonify(result), status_code
 
-# 获取两个用户之间的消息
+# 获取与指定用户的消息接口
 @app.route('/api/messages/<string:other_username>', methods=['GET'])
 def get_messages(other_username):
     auth_header = request.headers.get('Authorization')
@@ -265,7 +265,7 @@ def get_messages(other_username):
     
     return jsonify(result), status_code
 
-# 获取用户的所有会话接口
+# 获取会话列表接口
 @app.route('/api/conversations', methods=['GET'])
 def get_conversations():
     auth_header = request.headers.get('Authorization')
@@ -286,59 +286,6 @@ def get_conversations():
     result, status_code = message_model.get_conversations(username)
     
     return jsonify(result), status_code
-
-# 发送群组消息接口
-@app.route('/api/group/messages', methods=['POST'])
-def send_group_message():
-    auth_header = request.headers.get('Authorization')
-    
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return jsonify({"error": "无效的访问令牌"}), 401
-    
-    token = auth_header.split(' ')[1]
-    payload = verify_token(token)
-    
-    if not payload:
-        return jsonify({"error": "令牌已过期或无效"}), 401
-    
-    # 获取发送者用户名
-    sender_username = payload.get('username')
-    
-    # 获取请求数据
-    data = request.get_json()
-    content = data.get('content')
-    
-    # 验证数据
-    if not content:
-        return jsonify({"error": "消息内容不能为空"}), 400
-    
-    # 发送群组消息
-    result, status_code = message_model.send_group_message(sender_username, content)
-    
-    return jsonify(result), status_code
-
-# 获取群组消息接口
-@app.route('/api/group/messages', methods=['GET'])
-def get_group_messages():
-    auth_header = request.headers.get('Authorization')
-    
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return jsonify({"error": "无效的访问令牌"}), 401
-    
-    token = auth_header.split(' ')[1]
-    payload = verify_token(token)
-    
-    if not payload:
-        return jsonify({"error": "令牌已过期或无效"}), 401
-    
-    # 获取分页参数
-    limit = request.args.get('limit', default=50, type=int)
-    offset = request.args.get('offset', default=0, type=int)
-    
-    # 获取群组消息
-    result, status_code = message_model.get_group_messages(limit, offset)
-    
-    return jsonify({"messages": result}), status_code
 
 # 发送加密群组消息接口
 @app.route('/api/group/encrypted-messages', methods=['POST'])

@@ -576,8 +576,8 @@ const ChannelPage: React.FC = () => {
         id: newServerId,
         name: values.name,
         description: values.description,
-        ownerId: user?.username || 'user1', // 使用username作为所有者ID
-        members: [user?.username || 'user1'],
+        ownerId: user?.username || 'Anon', // 使用username作为所有者ID
+        members: [user?.username || 'Anon'],
         channels: [], // 不再预设频道，由API创建
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -608,9 +608,9 @@ const ChannelPage: React.FC = () => {
   // 修改确认添加频道（创建新群组）的函数
   const handleChannelModalOk = async () => {
     if (isSubmitting) return; // 如果正在提交中，则不执行任何操作
-    
+
     setIsSubmitting(true); // 设置提交状态为true
-    
+
     try {
       const values = await channelForm.validateFields();
 
@@ -643,7 +643,7 @@ const ChannelPage: React.FC = () => {
 
       // 如果没有获取到用户列表，使用默认用户
       if (!members.length) {
-        members.push("kscii", "user1", "user2");
+        members.push("Anon", "Tomori", "Rana", "Soyo", "Taki");
       }
 
       // 调用API创建新群组，并为其设置当前服务器ID

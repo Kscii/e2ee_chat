@@ -25,8 +25,8 @@ export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       id: '1',
       name: t('server.main'),
       description: t('server.mainDescription'),
-      ownerId: 'user1',
-      members: ['kscii', 'user1', 'user2'],
+      ownerId: 'Anon',
+      members: ['Anon', 'Tomori', 'Rana', 'Soyo', 'Taki'],
       channels: [
         // 移除默认的General频道
         // {
@@ -45,8 +45,8 @@ export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       id: '2',
       name: t('server.test'),
       description: t('server.testDescription'),
-      ownerId: 'user1',
-      members: ['user1'],
+      ownerId: 'Tomori',
+      members: ['Tomori'],
       channels: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

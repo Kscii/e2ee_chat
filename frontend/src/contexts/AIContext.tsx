@@ -65,7 +65,7 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         messages: [
           {
             role: "system",
-            content: `你是一个AI助手，你的名字是kscii。${languageInstruction} 请确保以用户所选的语言回答。当前语言设置为: ${currentLanguage}`
+            content: `你是一个AI助手，你的名字是Sakiko。${languageInstruction} 请确保以用户所选的语言回答。当前语言设置为: ${currentLanguage}`
           },
           {
             role: "user",
@@ -77,8 +77,8 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       });
 
       return response.choices[0]?.message?.content || '抱歉，我现在无法回答这个问题。';
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('OpenAI API error:', error);
       message.error(t('errors.api.requestFailed'));
       return t('errors.api.requestFailed');
     }

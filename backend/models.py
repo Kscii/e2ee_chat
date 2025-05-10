@@ -129,20 +129,7 @@ class DatabaseManager:
         )
         ''')
         
-        # 创建群组消息表
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS group_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            group_id INTEGER NOT NULL,
-            sender_id INTEGER NOT NULL,
-            content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (group_id) REFERENCES groups (id),
-            FOREIGN KEY (sender_id) REFERENCES users (id)
-        )
-        ''')
-        
-        # 创建加密群组消息表
+        # 创建加密群组消息表 - 修改表结构，移除original_message_id依赖
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS encrypted_group_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,12 +137,11 @@ class DatabaseManager:
             sender_id INTEGER NOT NULL,
             receiver_id INTEGER NOT NULL,
             content TEXT NOT NULL,
-            original_message_id INTEGER,
+            message_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (group_id) REFERENCES groups (id),
             FOREIGN KEY (sender_id) REFERENCES users (id),
-            FOREIGN KEY (receiver_id) REFERENCES users (id),
-            FOREIGN KEY (original_message_id) REFERENCES group_messages (id)
+            FOREIGN KEY (receiver_id) REFERENCES users (id)
         )
         ''')
         
@@ -178,11 +164,13 @@ class DatabaseManager:
             password_with_pepper = password + PEPPER
             password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt()).decode()
             
-            # 创建三个用户
+            # 创建五个测试用户
             users = [
-                ("kscii", "kscii@example.com", "123456", password_hash),
-                ("user1", "user1@example.com", "123456", password_hash),
-                ("user2", "user2@example.com", "123456", password_hash)
+                ("Anon", "Anon@tokyo.com", "97110111110", password_hash),
+                ("Tomori", "Tomori@mygo.com", "116111109111114105", password_hash),
+                ("Rana", "Rana@mygo.com", "11497110197", password_hash),
+                ("Soyo", "Soyo@mygo.com", "115111121111", password_hash),
+                ("Taki", "Taki@mygo.com", "11697107105", password_hash)
             ]
             
             # 插入用户数据
@@ -207,7 +195,7 @@ class DatabaseManager:
             if not cursor.fetchone():
                 cursor.execute(
                     "INSERT INTO servers (id, name, description, owner_id) VALUES (?, ?, ?, ?)",
-                    (1, "main server", "默认服务器", user_ids[0])  # kscii作为所有者
+                    (1, "main server", "默认服务器", user_ids[0])  # Anon作为所有者
                 )
                 print("创建服务器: 主服务器")
             
@@ -741,108 +729,8 @@ class MessageModel:
         finally:
             conn.close()
     
-    def send_group_message(self, sender_username, content):
-        """发送群组消息"""
-        conn = self.db_manager.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            # 获取发送者ID
-            cursor.execute("SELECT id FROM users WHERE username = ?", (sender_username,))
-            sender = cursor.fetchone()
-            
-            if not sender:
-                return {"error": "发送者不存在"}, 404
-            
-            sender_id = sender['id']
-            
-            # 获取或创建默认群组ID为1
-            cursor.execute("SELECT id FROM groups WHERE id = 1")
-            group = cursor.fetchone()
-            
-            if not group:
-                # 创建默认群组
-                cursor.execute(
-                    "INSERT INTO groups (id, name, description) VALUES (1, '公共聊天室', '所有用户共享的聊天室')"
-                )
-                group_id = 1
-            else:
-                group_id = group['id']
-            
-            # 确保用户是群组成员
-            cursor.execute(
-                "SELECT id FROM group_members WHERE group_id = ? AND user_id = ?",
-                (group_id, sender_id)
-            )
-            member = cursor.fetchone()
-            
-            if not member:
-                # 添加用户为群组成员
-                cursor.execute(
-                    "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
-                    (group_id, sender_id)
-                )
-            
-            # 存储消息
-            cursor.execute(
-                "INSERT INTO group_messages (group_id, sender_id, content) VALUES (?, ?, ?)",
-                (group_id, sender_id, content)
-            )
-            
-            # 获取消息ID
-            message_id = cursor.lastrowid
-            
-            conn.commit()
-            
-            return {
-                "id": message_id,
-                "group_id": group_id,
-                "sender_id": sender_id,
-                "sender_username": sender_username,
-                "content": content,
-                "created_at": datetime.now().isoformat()
-            }, 201
-            
-        except Error as e:
-            conn.rollback()
-            return {"error": f"发送群组消息失败: {str(e)}"}, 500
-            
-        finally:
-            conn.close()
-    
-    def get_group_messages(self, limit=50, offset=0):
-        """获取群组消息"""
-        conn = self.db_manager.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            # 获取默认群组(ID=1)的消息，按时间正序排序
-            cursor.execute(
-                """
-                SELECT g.id, g.group_id, g.sender_id, g.content, g.created_at,
-                       u.username as sender_username
-                FROM group_messages g
-                JOIN users u ON g.sender_id = u.id
-                WHERE g.group_id = 1
-                ORDER BY g.created_at ASC
-                LIMIT ? OFFSET ?
-                """,
-                (limit, offset)
-            )
-            
-            messages = cursor.fetchall()
-            message_list = [dict(msg) for msg in messages]
-            
-            return message_list, 200
-            
-        except Error as e:
-            return {"error": f"获取群组消息失败: {str(e)}"}, 500
-            
-        finally:
-            conn.close()
-    
     def send_encrypted_group_messages(self, sender_username, encrypted_messages, group_id=1):
-        """发送加密群组消息"""
+        """发送加密群组消息 - 修改后不再使用group_messages表"""
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         
@@ -863,14 +751,8 @@ class MessageModel:
             if not group:
                 return {"error": "群组不存在"}, 404
             
-            # 创建一条原始群组消息（可见给所有人，但显示为"加密消息"）
-            cursor.execute(
-                "INSERT INTO group_messages (group_id, sender_id, content) VALUES (?, ?, ?)",
-                (group_id, sender_id, "[加密消息]")
-            )
-            
-            # 获取原始消息ID
-            original_message_id = cursor.lastrowid
+            # 生成共享的消息时间戳，所有加密消息共享相同的时间戳
+            message_timestamp = datetime.now().isoformat()
             
             results = []
             
@@ -894,14 +776,14 @@ class MessageModel:
                     
                 receiver_id = receiver['id']
                 
-                # 存储加密消息
+                # 存储加密消息，不再引用原始消息ID
                 cursor.execute(
                     """
                     INSERT INTO encrypted_group_messages 
-                    (group_id, sender_id, receiver_id, content, original_message_id) 
+                    (group_id, sender_id, receiver_id, content, message_timestamp) 
                     VALUES (?, ?, ?, ?, ?)
                     """,
-                    (group_id, sender_id, receiver_id, encrypted_content, original_message_id)
+                    (group_id, sender_id, receiver_id, encrypted_content, message_timestamp)
                 )
                 
                 message_id = cursor.lastrowid
@@ -915,7 +797,6 @@ class MessageModel:
             
             return {
                 "message": "加密群组消息发送成功",
-                "original_message_id": original_message_id,
                 "results": results
             }, 201
             
@@ -927,7 +808,7 @@ class MessageModel:
             conn.close()
     
     def get_encrypted_group_messages(self, username, group_id=1):
-        """获取针对特定用户的加密群组消息"""
+        """获取针对特定用户的加密群组消息 - 修改以适应新的表结构"""
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         
@@ -941,15 +822,15 @@ class MessageModel:
                 
             user_id = user['id']
             
-            # 获取指定群组发送给该用户的加密消息
+            # 获取指定群组发送给该用户的加密消息，使用message_timestamp代替依赖original_message_id排序
             cursor.execute(
                 """
                 SELECT e.id, e.group_id, e.sender_id, e.receiver_id, e.content, 
-                       e.original_message_id, e.created_at, s.username as sender_username
+                       e.message_timestamp, e.created_at, s.username as sender_username
                 FROM encrypted_group_messages e
                 JOIN users s ON e.sender_id = s.id
                 WHERE e.receiver_id = ? AND e.group_id = ?
-                ORDER BY e.created_at ASC
+                ORDER BY e.message_timestamp ASC, e.created_at ASC
                 """,
                 (user_id, group_id)
             )
@@ -1213,8 +1094,8 @@ class ServerModel:
                 (server_id, creator_id)
             )
             
-            # 默认添加系统用户(kscii, user1, user2)作为成员
-            default_users = ["kscii", "user1", "user2"]
+            # 默认添加系统用户作为成员
+            default_users = ["Anon", "Tomori", "Rana", "Soyo", "Taki"]
             for username in default_users:
                 # 跳过创建者，因为已添加
                 if username == creator_username:

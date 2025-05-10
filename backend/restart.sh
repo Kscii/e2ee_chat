@@ -63,6 +63,17 @@ echo "安装所需的依赖包..."
 pip install -r requirements.txt
 echo "依赖包安装完成"
 
+# 6.5 初始化数据库
+echo "初始化数据库..."
+# 删除现有数据库文件
+if [ -f "users.db" ]; then
+    rm users.db
+    echo "已删除旧数据库文件"
+fi
+# 使用Python初始化数据库
+python -c "from models import DatabaseManager; DatabaseManager().init_db()"
+echo "数据库初始化完成"
+
 # 7. 根据环境启动服务器
 if [ "$ENV" == "prod" ]; then
     echo "启动Gunicorn服务器（生产环境）..."

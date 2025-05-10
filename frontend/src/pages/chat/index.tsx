@@ -18,7 +18,7 @@ import './index.css';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useAuth } from '../../contexts/AuthContext';
 // 使用sendEncryptedMessage发送加密消息
-import { sendEncryptedMessage, getMessages, getGroupMessages, GroupMessage, getGroupMembers, sendEncryptedGroupMessages, getEncryptedGroupMessages } from '../../api/message';
+import { sendEncryptedMessage, getMessages, getEncryptedGroupMessages, getGroupMembers, sendEncryptedGroupMessages } from '../../api/message';
 import { getAllUsers } from '../../api/auth';
 import { useCrypto } from '../../contexts/CryptoContext';
 import { getOrFetchPublicKey } from '../../api/keys';
@@ -132,15 +132,13 @@ const ChatPage: React.FC = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [allUsers, setAllUsers] = useState<{ id: number, username: string }[]>([]);
-  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
-  const [loadingGroupMessages, setLoadingGroupMessages] = useState(false);
   const [encryptedGroupMessages, setEncryptedGroupMessages] = useState<Array<{
     id: number;
     group_id: number;
     sender_id: number;
     receiver_id: number;
     content: string;
-    original_message_id: number;
+    message_timestamp: string;
     created_at: string;
     sender_username: string;
   }>>([]);
@@ -184,22 +182,17 @@ const ChatPage: React.FC = () => {
   const fetchGroupMessages = async () => {
     if (!user) return;
 
-    setLoadingGroupMessages(true);
+    setLoadingMessages(true);
     try {
-      console.log('开始获取群组消息');
-      const messagesData = await getGroupMessages(100, 0);
-      console.log('获取到群组消息:', messagesData);
+      console.log('🔄 Starting to fetch group messages...');
 
-      setGroupMessages(messagesData);
-      console.log('群组消息设置完成');
-
-      // 始终获取加密消息，因为只使用加密模式
+      // 只使用加密消息API
       await fetchEncryptedGroupMessages();
     } catch (error) {
-      console.error('获取群组消息失败详情:', error);
+      console.error('❌ Failed to fetch group messages:', error);
       message.error('获取群组消息失败');
     } finally {
-      setLoadingGroupMessages(false);
+      setLoadingMessages(false);
     }
   };
 
@@ -208,14 +201,18 @@ const ChatPage: React.FC = () => {
     if (!user) return;
 
     try {
+      console.log('📱 Starting to fetch encrypted group messages...');
       // 获取加密消息
       const encryptedMessages = await getEncryptedGroupMessages();
+      console.log(`📩 Received ${encryptedMessages.length} encrypted group messages`);
       setEncryptedGroupMessages(encryptedMessages);
 
       // 解密消息
+      console.log('🔄 Starting to decrypt group messages...');
       await decryptGroupMessages(encryptedMessages);
+      console.log('✅ Group message decryption completed');
     } catch (error) {
-      console.error('获取加密群组消息失败:', error);
+      console.error('❌ Failed to fetch encrypted group messages:', error);
       message.error('获取加密群组消息失败');
     }
   };
@@ -227,22 +224,27 @@ const ChatPage: React.FC = () => {
     sender_id: number;
     receiver_id: number;
     content: string;
-    original_message_id: number;
+    message_timestamp: string;
     created_at: string;
     sender_username: string;
   }>) => {
     if (!encryptedMessages.length) return;
 
+    console.log(`🔍 Starting to decrypt ${encryptedMessages.length} group messages...`);
+
     const myKeyPair = CryptoService.getUserKeyPair();
     if (!myKeyPair) {
+      console.error('❌ Key pair not found, cannot decrypt messages');
       message.error('未找到密钥对，无法解密消息');
       return;
     }
 
     const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+    console.log('🔑 Current user key loaded');
 
     // 获取并缓存所有发送者的公钥
     const senderPublicKeys = new Map<string, Uint8Array>();
+    console.log('👥 Starting to fetch sender public keys...');
 
     for (const msg of encryptedMessages) {
       if (senderPublicKeys.has(msg.sender_username)) continue;
@@ -253,18 +255,29 @@ const ChatPage: React.FC = () => {
           msg.sender_username,
           CryptoService.stringToKey(publicKey)
         );
+        console.log(`🔑 Successfully fetched public key for user ${msg.sender_username}`);
       } catch (error) {
-        console.error(`获取用户 ${msg.sender_username} 的公钥失败:`, error);
+        console.error(`❌ Failed to fetch public key for user ${msg.sender_username}:`, error);
       }
     }
 
+    console.log(`✅ Fetched ${senderPublicKeys.size} user public keys in total`);
+
     // 解密消息并更新UI
     const decryptedMessages = new Map<string, string>();
+    console.log('🔄 Starting to decrypt messages one by one...');
 
     for (const msg of encryptedMessages) {
       try {
         const senderPublicKey = senderPublicKeys.get(msg.sender_username);
-        if (!senderPublicKey) continue;
+        if (!senderPublicKey) {
+          console.warn(`⚠️ Skipping message ${msg.id}, public key for sender ${msg.sender_username} not found`);
+          continue;
+        }
+
+        console.log(`🔓 Decrypting message from ${msg.sender_username} ID:${msg.id}...`, {
+          encryptedContent: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+        });
 
         const decrypted = CryptoService.decryptMessage(
           msg.content,
@@ -274,14 +287,20 @@ const ChatPage: React.FC = () => {
 
         if (decrypted) {
           decryptedMessages.set(msg.id.toString(), decrypted);
+          console.log(`✅ Message ${msg.id} decryption successful`);
+        } else {
+          console.error(`❌ Message ${msg.id} decryption result is empty`);
         }
       } catch (error) {
-        console.error(`解密消息 ${msg.id} 失败:`, error);
+        console.error(`❌ Failed to decrypt message ${msg.id}:`, error);
       }
     }
 
+    console.log(`📊 Decryption statistics: ${decryptedMessages.size}/${encryptedMessages.length} messages successfully decrypted`);
+
     // 更新UI，在渲染消息时使用
     setDecryptedGroupMessages(decryptedMessages);
+    console.log('✅ Message decryption completed, UI state updated');
   };
 
   // 根据chatId加载对应的聊天记录和联系人信息
@@ -342,9 +361,12 @@ const ChatPage: React.FC = () => {
 
     setLoadingMessages(true);
     try {
+      console.log('📱 Fetching chat history with user:', otherUsername);
       const messagesData = await getMessages(otherUsername);
+      console.log('📩 Received message count:', messagesData.length);
 
       // 转换API消息格式为UI消息格式
+      console.log('🔄 Starting to process and decrypt messages...');
       const uiMessages: Message[] = await Promise.all(messagesData.map(async msg => {
         let content = msg.content;
 
@@ -353,18 +375,23 @@ const ChatPage: React.FC = () => {
           try {
             // 获取发送者的公钥
             const senderPublicKey = await getOrFetchPublicKey(msg.sender_username);
+            console.log(`🔑 Retrieved public key for user ${msg.sender_username}`);
+            console.log(`🔒 Encrypted message from ${msg.sender_username}:`, {
+              content: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+            });
 
             // 解密消息内容
             const decrypted = decryptMessage(content, senderPublicKey);
             if (decrypted) {
               content = decrypted;
+              console.log(`🔓 Successfully decrypted message from ${msg.sender_username}`);
             } else {
-              console.error('无法解密消息:', msg.id);
-              content = '[加密消息 - 无法解密]';
+              console.error(`❌ Unable to decrypt message:`, msg.id);
+              content = '[Encrypted message - Unable to decrypt]';
             }
           } catch (error) {
-            console.error('解密消息失败:', error);
-            content = '[加密消息 - 解密失败]';
+            console.error('❌ Message decryption failed:', error);
+            content = '[Encrypted message - Decryption failed]';
           }
         }
 
@@ -377,9 +404,10 @@ const ChatPage: React.FC = () => {
         };
       }));
 
+      console.log('✅ Message processing complete, updating UI');
       setMessages(uiMessages);
     } catch (error) {
-      console.error('获取消息失败:', error);
+      console.error('❌ Failed to fetch messages:', error);
       message.error('获取历史消息失败');
     } finally {
       setLoadingMessages(false);
@@ -391,6 +419,10 @@ const ChatPage: React.FC = () => {
     if (!user) return;
 
     try {
+      console.log('📝 Preparing to send group message:', {
+        messageLength: content.length
+      });
+
       // 获取我的密钥
       const myKeyPair = CryptoService.getUserKeyPair();
       if (!myKeyPair) {
@@ -401,9 +433,12 @@ const ChatPage: React.FC = () => {
       const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
 
       // 获取群组所有成员
+      console.log('👥 Fetching group members...');
       const members = await getGroupMembers(1); // 默认群组ID为1
+      console.log('👥 Group members:', members);
 
       // 为每个成员加密消息（包括自己）
+      console.log('🔐 Starting to encrypt message for each group member...');
       const encryptedMessages = await Promise.all(
         members
           // 移除过滤自己的代码，这样自己也会收到加密消息
@@ -420,12 +455,16 @@ const ChatPage: React.FC = () => {
                 mySecretKey
               );
 
+              console.log(`🔒 Message encrypted for member ${member.username}:`, {
+                encryptedContent: encrypted.substring(0, 100) + (encrypted.length > 100 ? '...' : '')
+              });
+
               return {
                 recipient: member.username,
                 content: encrypted
               };
             } catch (error) {
-              console.error(`为用户 ${member.username} 加密消息失败:`, error);
+              console.error(`❌ Failed to encrypt message for user ${member.username}:`, error);
               return null;
             }
           })
@@ -433,6 +472,7 @@ const ChatPage: React.FC = () => {
 
       // 过滤掉失败的加密
       const validMessages = encryptedMessages.filter(msg => msg !== null);
+      console.log(`✅ Successfully encrypted messages: ${validMessages.length}/${members.length}`);
 
       if (validMessages.length === 0) {
         message.error('所有加密操作失败，无法发送消息');
@@ -447,7 +487,7 @@ const ChatPage: React.FC = () => {
 
       return true;
     } catch (error) {
-      console.error('发送加密群组消息失败:', error);
+      console.error('❌ Failed to send encrypted group message:', error);
       message.error('发送加密群组消息失败');
       return false;
     }
@@ -460,7 +500,8 @@ const ChatPage: React.FC = () => {
       return;
     }
 
-    console.log('开始发送消息，聊天类型:', isGroupChat ? 'groups' : chatType);
+    console.log('🚀 Starting to send message, chat type:', isGroupChat ? 'groups' : chatType);
+    console.log('📝 Message to be encrypted');
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -476,6 +517,7 @@ const ChatPage: React.FC = () => {
 
     // 自动朗读发送的消息
     if (autoRead) {
+      console.log('🔊 Text-to-speech activated for outgoing message');
       speak(userMessage.content);
     }
 
@@ -499,11 +541,13 @@ const ChatPage: React.FC = () => {
         setMessages(prev => [...prev, tempMessage]);
         setTypingMessageId(tempId);
 
+        console.log('🤖 Sending message to AI...');
         // 获取AI回复
         const aiResponse = await sendAiMessage(inputValue.trim());
 
         if (aiResponse) {
           // 更新消息内容
+          console.log('✅ Received AI response');
           setMessages(prev =>
             prev.map(msg =>
               msg.id === tempId
@@ -514,6 +558,7 @@ const ChatPage: React.FC = () => {
 
           // 自动朗读接收到的消息
           if (autoRead) {
+            console.log('🔊 Text-to-speech activated for AI response');
             speak(aiResponse);
           }
         }
@@ -524,9 +569,11 @@ const ChatPage: React.FC = () => {
         }, aiResponse.length * 30 + 500);
       } else if (isGroupChat) {
         // 删除条件判断，直接使用加密群组消息发送
+        console.log('👥 Sending encrypted group message...');
         const success = await sendEncryptedGroupMessage(userMessage.content);
 
         if (!success) {
+          console.error('❌ Group message sending failed');
           // 更新消息状态为发送失败
           setMessages(prev =>
             prev.map(msg =>
@@ -536,6 +583,7 @@ const ChatPage: React.FC = () => {
             )
           );
         } else {
+          console.log('✅ Group message sent successfully');
           // 更新消息状态
           setTimeout(() => {
             setMessages(prev =>
@@ -548,6 +596,7 @@ const ChatPage: React.FC = () => {
 
             // 2秒后更新为已读
             setTimeout(() => {
+              console.log('📱 Updating message status to read');
               setMessages(prev =>
                 prev.map(msg =>
                   msg.id === userMessage.id
@@ -561,17 +610,32 @@ const ChatPage: React.FC = () => {
       } else if (chatType === 'user' && currentContact.name) {
         // 发送消息到后端
         try {
+          console.log('📝 Preparing to send private message to:', currentContact.name);
+          console.log('📄 Message length:', userMessage.content.length);
+
           // 获取接收者的公钥用于加密
+          console.log('🔑 Fetching recipient public key...');
           const receiverPublicKey = await getOrFetchPublicKey(currentContact.name);
+          console.log('🔑 Successfully obtained recipient public key');
 
           // 加密消息内容
+          console.log('🔐 Encrypting message content...');
           const encryptedContent = encryptMessage(userMessage.content, receiverPublicKey);
+          console.log('🔒 Message encryption completed:', {
+            encryptedContent: encryptedContent.substring(0, 100) + (encryptedContent.length > 100 ? '...' : '')
+          });
 
           // 发送加密消息
           const response = await sendEncryptedMessage(currentContact.name, encryptedContent);
 
           // 防止页面崩溃的安全处理
-          console.log('后端响应:', response);
+          console.log('✅ Message sent successfully:', {
+            id: response.id,
+            sender_id: response.sender_id,
+            receiver_id: response.receiver_id,
+            is_encrypted: response.is_encrypted,
+            content: response.content.substring(0, 100) + (response.content.length > 100 ? '...' : '')
+          });
 
           // 安全地更新消息状态为已发送
           setMessages(prev =>
@@ -592,6 +656,7 @@ const ChatPage: React.FC = () => {
 
           // 2秒后更新为已读状态
           setTimeout(() => {
+            console.log('📱 Updating message status to read:', messageId);
             setMessages(prev =>
               prev.map(msg =>
                 msg.id === messageId
@@ -604,11 +669,12 @@ const ChatPage: React.FC = () => {
           // 在发送消息后主动刷新消息列表
           if (currentContact.name) {
             setTimeout(() => {
+              console.log('🔄 Refreshing message list...');
               fetchMessages(currentContact.name);
             }, 2500);
           }
         } catch (error) {
-          console.error('发送消息失败:', error);
+          console.error('❌ Failed to send private message:', error);
           message.error('发送消息失败');
 
           // 更新消息状态为发送失败
@@ -654,6 +720,7 @@ const ChatPage: React.FC = () => {
               );
 
               if (autoRead) {
+                console.log('🔊 Text-to-speech activated for received message');
                 speak(pendingMessage.content);
               }
             }, 1000);
@@ -683,7 +750,7 @@ const ChatPage: React.FC = () => {
         }, 1000);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       message.error(t('errors.chat.sendFailed'));
 
       // 更新消息状态为发送失败
@@ -747,10 +814,17 @@ const ChatPage: React.FC = () => {
     const type = getFileType(file);
     const content = t(`chat.fileMessages.${type}`, { filename: file.name });
 
+    console.log('📄 File upload:', {
+      type,
+      name: file.name,
+      size: Math.round(file.size / 1024) + 'KB'
+    });
+
     // 如果是文本文件，创建预览URL
     let previewUrl;
     if (type === 'txt') {
       const text = await file.text();
+      console.log('📝 Text file processed, length:', text.length);
       const blob = new Blob([text], { type: 'text/plain' });
       previewUrl = URL.createObjectURL(blob);
     }
@@ -773,6 +847,7 @@ const ChatPage: React.FC = () => {
     setFileList([]);
 
     if (autoRead) {
+      console.log('🔊 Text-to-speech activated for file message');
       speak(content);
     }
   };
@@ -959,7 +1034,10 @@ const ChatPage: React.FC = () => {
                       type="text"
                       size="small"
                       icon={<SoundOutlined />}
-                      onClick={() => speak(decryptedContent)}
+                      onClick={() => {
+                        console.log('🔊 Text-to-speech activated for group message');
+                        speak(decryptedContent);
+                      }}
                       className="tts-button"
                     />
                   )}
@@ -986,11 +1064,11 @@ const ChatPage: React.FC = () => {
         </div>
         <Divider style={{ margin: '0 0 16px 0' }} />
         <div className="message-container" ref={messageContainerRef}>
-          {loadingMessages || loadingGroupMessages ? (
+          {loadingMessages ? (
             <div className="loading-center">
               <LoadingAnimation />
             </div>
-          ) : messages.length === 0 && (!isGroupChat || groupMessages.length === 0) ? (
+          ) : messages.length === 0 && (!isGroupChat || encryptedGroupMessages.length === 0) ? (
             <div className="empty-messages">
               <Text type="secondary">{t('chat.emptyMessages')}</Text>
             </div>
@@ -1085,7 +1163,10 @@ const ChatPage: React.FC = () => {
                             type="text"
                             size="small"
                             icon={<SoundOutlined />}
-                            onClick={() => speak(msg.content)}
+                            onClick={() => {
+                              console.log('🔊 Text-to-speech activated for private message');
+                              speak(msg.content);
+                            }}
                             className="tts-button"
                           />
                         )}
