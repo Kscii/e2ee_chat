@@ -233,6 +233,25 @@
   z-index: 1;
 }
 
+/* 添加标题区域样式 */
+.channel-title-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-title-area .back-to-channels-btn {
+  padding: 0 8px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.channel-title-area h2 {
+  margin: 0;
+}
+
 .channel-header h2 {
   margin: 0;
   color: var(--header-primary);
@@ -433,12 +452,12 @@
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(59, 165, 93, 0.7);
   }
-  
+
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 6px rgba(59, 165, 93, 0);
   }
-  
+
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(59, 165, 93, 0);
@@ -460,7 +479,7 @@
   color: var(--interactive-active);
 }
 
-.channel-list .voice-channel > span {
+.channel-list .voice-channel>span {
   display: flex;
   align-items: center;
   width: 100%;
@@ -523,6 +542,7 @@
 
 /* 添加移动端响应式样式 */
 @media screen and (max-width: 768px) {
+
   /* 确保Channel页面在移动端占满整个屏幕 */
   .channel-page {
     position: fixed;
@@ -530,56 +550,69 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 1000; /* 高于MainLayout但低于菜单按钮 */
-    transition: opacity 0.3s ease;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    /* 防止内容溢出 */
   }
-  
+
   /* 当MainLayout菜单打开时的Channel页面样式 */
   .channel-page.dimmed {
     opacity: 0.3;
     pointer-events: none;
   }
-  
+
   /* 服务器列表容器样式 */
   .server-list-container {
     display: flex;
     width: 100%;
     height: 100%;
+    position: absolute;
+    transition: transform 0.3s ease;
+    left: 0;
+    /* 确保起始位置正确 */
+    right: 0;
   }
-  
+
   /* 确保移动端按钮在Channel页面上方可见 */
   .mobile-menu-button {
     z-index: 1002 !important;
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
   }
-  
+
   /* 隐藏MainLayout的内容区域 */
-  .main-content > .channel-page {
+  .main-content>.channel-page {
     position: fixed;
     background: var(--background-primary);
   }
-  
+
   /* 确保服务器列表容器全屏显示 */
   .channel-page.mobile .server-list-container {
     width: 100%;
     height: 100vh;
-    z-index: 1001; /* 需要高于channel-page本身但低于菜单按钮 */
+    z-index: 1001;
+    transform: translateX(0);
+    left: 0;
+    right: auto;
   }
-  
+
   /* 调整菜单按钮在Channel页面的位置 */
-  .channel-page ~ .mobile-menu-button {
-    z-index: 1002; /* 确保菜单按钮在最上层 */
+  .channel-page~.mobile-menu-button {
+    z-index: 1002;
   }
-  
+
   /* 修复移动端按钮和Channel内容的层级关系 */
   .channel-page.mobile.show-content .channel-content {
     z-index: 1001;
   }
-  
+
   .channel-page {
     flex-direction: column;
     overflow: hidden;
   }
-  
+
   .channel-page.mobile .server-list-container {
     display: flex;
     width: 100%;
@@ -589,21 +622,29 @@
     top: 0;
     left: 0;
     z-index: 10;
+    backface-visibility: hidden;
+    will-change: transform;
   }
-  
+
   .channel-page.mobile.show-content .server-list-container {
     transform: translateX(-100%);
+    visibility: hidden;
+    /* 完全隐藏，防止在某些宽度显示部分内容 */
   }
-  
+
   .channel-page.mobile .server-list {
     width: 70px;
     flex-shrink: 0;
   }
-  
+
   .channel-page.mobile .channel-list {
     flex: 1;
+    width: calc(100% - 70px) !important;
+    /* 确保列表宽度正确 */
+    min-width: auto !important;
+    /* 覆盖默认的最小宽度 */
   }
-  
+
   .channel-page.mobile .channel-content {
     position: absolute;
     top: 0;
@@ -613,37 +654,101 @@
     transform: translateX(100%);
     transition: transform 0.3s ease;
     z-index: 9;
+    backface-visibility: hidden;
+    will-change: transform;
+    overflow-x: hidden;
+    /* 防止水平溢出 */
   }
-  
+
+  /* 添加加载状态下的样式，防止闪烁 */
+  .channel-page.mobile.show-content .channel-content.loading {
+    opacity: 0.8;
+  }
+
   .channel-page.mobile.show-content .channel-content {
     transform: translateX(0);
+    width: 100%;
+    left: 0;
   }
-  
+
   /* 返回按钮样式 */
   .back-to-channels-btn {
-    margin: 12px;
+    padding: 0 4px;
+    margin: 0;
+    height: 32px;
+    font-weight: 500;
+    z-index: 10;
+  }
+
+  .channel-title-area {
     display: flex;
     align-items: center;
+    gap: 4px;
   }
-  
+
+  .channel-title-area .back-to-channels-btn {
+    margin-right: 4px;
+  }
+
   /* 调整移动端的频道内容区域 */
   .channel-page.mobile .channel-header {
     padding: 0 12px;
     margin-top: 10px;
+    width: 100%;
+    /* 确保头部宽度正确 */
   }
-  
+
+  /* 针对480-580px宽度区间的特殊修复 */
+  @media screen and (min-width: 480px) and (max-width: 580px) {
+    .channel-page.mobile.show-content .server-list-container {
+      transform: translateX(-200%);
+      /* 确保完全移出视图 */
+      display: none;
+      /* 完全隐藏 */
+    }
+
+    .channel-page.mobile .channel-content {
+      width: 100vw;
+    }
+
+    .channel-page.mobile.show-content .channel-content {
+      left: 0;
+      width: 100%;
+    }
+  }
+
   /* 隐藏无用元素 */
   .channel-page.mobile.show-content .no-channel-selected {
     display: none;
   }
-  
+
   /* 为MainLayout侧边栏添加过渡效果 */
   .app-sider {
     transition: left 0.3s ease !important;
   }
-  
+
   /* 当菜单展开时，确保它在Channel页面上方 */
   .app-sider.show {
     z-index: 1003 !important;
   }
-} 
+
+  /* 加载状态样式 */
+  .channel-main.loading {
+    position: relative;
+  }
+
+  .channel-main.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--interactive-active);
+  }
+}

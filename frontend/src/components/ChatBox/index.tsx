@@ -32,6 +32,7 @@ interface ChatBoxProps {
   placeholder?: string;
   showAvatar?: boolean;
   showUsername?: boolean;
+  loading?: boolean;
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({
@@ -40,6 +41,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   placeholder,
   showAvatar = true,
   showUsername = true,
+  loading = false,
 }) => {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
@@ -105,44 +107,59 @@ const ChatBox: React.FC<ChatBoxProps> = ({
 
   return (
     <div className="chat-box">
-      <div className="messages">
-        {messages.map((message) => (
-          <div key={message.id} className="message">
-            {showAvatar && (
-              <Avatar
-                src={message.sender.avatar}
-                icon={!message.sender.avatar && <UserOutlined />}
-                className="avatar"
-              />
-            )}
-            <div className="message-content">
-              {showUsername && (
-                <div className="sender-name">{message.sender.name}</div>
-              )}
-              <div className="text">{message.content}</div>
-              {message.files && message.files.length > 0 && (
-                <div className="message-files">
-                  {message.files.map((file, fileIndex) => (
-                    <div key={fileIndex} className="file-item">
-                      {file.type.startsWith('image/') ? (
-                        <img src={file.url} alt={file.name} onClick={() => {
-                          setPreviewImage(file.url);
-                          setPreviewTitle(file.name);
-                          setPreviewOpen(true);
-                        }} />
-                      ) : (
-                        <a href={file.url} target="_blank" rel="noopener noreferrer">
-                          <FileOutlined /> {file.name}
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="timestamp">{formatTime(message.timestamp)}</div>
+      <div className={`messages ${loading ? 'loading' : ''}`}>
+        {loading ? (
+          <div className="chat-loading-indicator">
+            <div className="loading-animation">
+              <div className="loading-dots">
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+                <div className="loading-dot"></div>
+              </div>
             </div>
+            <div className="loading-text">加载消息中...</div>
           </div>
-        ))}
+        ) : messages.length === 0 ? (
+          <div className="empty-messages">暂无消息</div>
+        ) : (
+          messages.map((message) => (
+            <div key={message.id} className="message">
+              {showAvatar && (
+                <Avatar
+                  src={message.sender.avatar}
+                  icon={!message.sender.avatar && <UserOutlined />}
+                  className="avatar"
+                />
+              )}
+              <div className="message-content">
+                {showUsername && (
+                  <div className="sender-name">{message.sender.name}</div>
+                )}
+                <div className="text">{message.content}</div>
+                {message.files && message.files.length > 0 && (
+                  <div className="message-files">
+                    {message.files.map((file, fileIndex) => (
+                      <div key={fileIndex} className="file-item">
+                        {file.type.startsWith('image/') ? (
+                          <img src={file.url} alt={file.name} onClick={() => {
+                            setPreviewImage(file.url);
+                            setPreviewTitle(file.name);
+                            setPreviewOpen(true);
+                          }} />
+                        ) : (
+                          <a href={file.url} target="_blank" rel="noopener noreferrer">
+                            <FileOutlined /> {file.name}
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="timestamp">{formatTime(message.timestamp)}</div>
+              </div>
+            </div>
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div className="input-area">

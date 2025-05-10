@@ -18,6 +18,7 @@ import type { MenuProps } from 'antd';
 import './MainLayout.css';
 import { useAI } from '../contexts/AIContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useAvatar } from '../contexts/AvatarContext';
 import { getAllUsers } from '../api/auth';
 
 const { Content } = Layout;
@@ -45,6 +46,7 @@ const MainLayout: React.FC = () => {
   const { aiEnabled } = useAI();
   const { t } = useTranslation();
   const { user } = useAuth(); // 获取当前登录的用户信息
+  const { avatar } = useAvatar(); // 获取用户头像
   const isChannelsPage = location.pathname === '/channels';
   const [users, setUsers] = useState<{ id: number, username: string }[]>([]);
 
@@ -255,7 +257,11 @@ const MainLayout: React.FC = () => {
             <div className="user-profile">
               <Dropdown menu={{ items: userMenuItems }} placement="topRight">
                 <div className="user-info">
-                  <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />} />
+                  {avatar ? (
+                    <Avatar src={avatar} />
+                  ) : (
+                    <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />} />
+                  )}
                   {!collapsed && <span className="username">{user?.username || t('settings.profile.name')}</span>}
                 </div>
               </Dropdown>

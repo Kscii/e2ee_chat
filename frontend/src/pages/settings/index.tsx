@@ -1,10 +1,10 @@
-import React from 'react';
-import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Form, Slider } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Slider, Spin } from 'antd';
 import { UserOutlined, CameraOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
 import { useAvatar } from '../../contexts/AvatarContext';
-import { useTTS, TTSService } from '../../contexts/TTSContext';
+import { useTTS } from '../../contexts/TTSContext';
 import { useAI } from '../../contexts/AIContext';
 import { useAPI } from '../../contexts/APIContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -13,7 +13,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import type { UploadChangeParam } from 'antd/es/upload';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import './index.css';
-import apiConfig from '../../config/apiConfig';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -22,12 +21,28 @@ const SettingsPage: React.FC = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const { markdownMode, toggleMarkdownMode } = useMarkdown();
   const { avatar, setAvatar } = useAvatar();
-  const { ttsEnabled, autoRead, ttsSpeed, toggleTTS, toggleAutoRead, setTTSSpeed, selectedVoice, setSelectedVoice, availableVoices, ttsConfig, updateTTSConfig } = useTTS();
+  const { ttsEnabled, autoRead, ttsSpeed, toggleTTS, toggleAutoRead, setTTSSpeed } = useTTS();
   const { aiEnabled, toggleAI } = useAI();
   const { apiKey, setAPIKey } = useAPI();
   const { language, changeLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // 使用本地状态保存用户数据
+  const [userData, setUserData] = useState({
+    username: '',
+    email: ''
+  });
+
+  // 监听用户数据变化
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        username: user.username || '',
+        email: user.email || ''
+      });
+    }
+  }, [user]);
 
   const beforeUpload = (file: RcFile) => {
     const isImage = file.type.startsWith('image/');
@@ -43,13 +58,23 @@ const SettingsPage: React.FC = () => {
     return true;
   };
 
-  const handleChange = (info: UploadChangeParam<UploadFile>) => {
+  const handleChange = async (info: UploadChangeParam<UploadFile>) => {
     if (info.file.status === 'uploading') {
       return;
     }
+
     if (info.file.status === 'done') {
-      const imageUrl = URL.createObjectURL(info.file.originFileObj as Blob);
-      setAvatar(imageUrl);
+      try {
+        // 如果有原始文件对象，使用文件URL
+        if (info.file.originFileObj) {
+          const imageUrl = URL.createObjectURL(info.file.originFileObj as Blob);
+          setAvatar(imageUrl);
+          message.success(t('settings.profile.avatarSuccess') || '头像设置成功');
+        }
+      } catch (error) {
+        console.error('设置头像失败:', error);
+        message.error(t('settings.profile.avatarError') || '头像设置失败');
+      }
     }
   };
 
@@ -61,12 +86,16 @@ const SettingsPage: React.FC = () => {
           <Divider />
           <div className="profile-section">
             <Upload
-              name="avatar"
+              name="file"
               listType="picture-circle"
               className="avatar-upload"
               showUploadList={false}
               beforeUpload={beforeUpload}
               onChange={handleChange}
+              action={`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/upload-avatar`}
+              headers={{
+                Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+              }}
             >
               {avatar ? (
                 <div className="avatar-upload">
@@ -85,8 +114,14 @@ const SettingsPage: React.FC = () => {
               )}
             </Upload>
             <div className="profile-info">
-              <span className="setting-label-title">{user?.username || t('settings.profile.name')}</span>
-              <span className="setting-label-description">{user?.email || t('settings.profile.email')}</span>
+              {loading ? (
+                <Spin size="small" />
+              ) : (
+                <>
+                  <span className="setting-label-title">{userData.username || t('settings.profile.name')}</span>
+                  <span className="setting-label-description">{userData.email || t('settings.profile.email')}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -137,7 +172,7 @@ const SettingsPage: React.FC = () => {
                 value={language}
                 style={{ width: 180 }}
                 onChange={changeLanguage}
-                dropdownMatchSelectWidth={false}
+                popupMatchSelectWidth={false}
               >
                 <Option value="zh">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -334,192 +369,6 @@ const SettingsPage: React.FC = () => {
               />
             </div>
           </div>
-          <div className="setting-item">
-            <div className="setting-label">
-              <span className="setting-label-title">{t('settings.tts.service')}</span>
-              <span className="setting-label-description">{t('settings.tts.service')}</span>
-            </div>
-            <div className="setting-control">
-              <Select
-                value={ttsConfig.service}
-                onChange={(value: TTSService) => updateTTSConfig({ ...ttsConfig, service: value })}
-                style={{ width: 200 }}
-                disabled={!ttsEnabled}
-              >
-                <Select.Option value="browser">{t('settings.tts.browser')}</Select.Option>
-                <Select.Option value="azure">{t('settings.tts.azure')}</Select.Option>
-                <Select.Option value="google">{t('settings.tts.google')}</Select.Option>
-                <Select.Option value="gpt-sovits">{t('settings.tts.gptSovits')}</Select.Option>
-              </Select>
-            </div>
-          </div>
-
-          {ttsConfig.service === 'browser' && (
-            <div className="setting-item">
-              <div className="setting-label">
-                <span className="setting-label-title">{t('settings.tts.voice')}</span>
-                <span className="setting-label-description">{t('settings.tts.voice')}</span>
-              </div>
-              <div className="setting-control">
-                <Select
-                  value={selectedVoice?.name}
-                  onChange={(value) => setSelectedVoice(availableVoices.find(v => v.name === value) || null)}
-                  style={{ width: 200 }}
-                  disabled={!ttsEnabled}
-                >
-                  {availableVoices.map((voice) => (
-                    <Select.Option key={voice.name} value={voice.name}>
-                      {`${voice.name} (${voice.lang})`}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {ttsConfig.service === 'azure' && (
-            <>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <span className="setting-label-title">{t('settings.tts.azureKey')}</span>
-                  <span className="setting-label-description">{t('settings.tts.azureKey')}</span>
-                </div>
-                <div className="setting-control">
-                  <Input.Password
-                    value={ttsConfig.azureKey === apiConfig.azure.apiKey ? '' : ttsConfig.azureKey}
-                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureKey: e.target.value })}
-                    style={{ width: 300 }}
-                    disabled={!ttsEnabled}
-                    placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
-                  />
-                </div>
-              </div>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <span className="setting-label-title">{t('settings.tts.azureRegion')}</span>
-                  <span className="setting-label-description">{t('settings.tts.azureRegion')}</span>
-                </div>
-                <div className="setting-control">
-                  <Input
-                    value={ttsConfig.azureRegion === apiConfig.azure.region ? '' : ttsConfig.azureRegion}
-                    onChange={(e) => updateTTSConfig({ ...ttsConfig, azureRegion: e.target.value })}
-                    style={{ width: 200 }}
-                    disabled={!ttsEnabled}
-                    placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          {ttsConfig.service === 'google' && (
-            <div className="setting-item">
-              <div className="setting-label">
-                <span className="setting-label-title">{t('settings.tts.googleKey')}</span>
-                <span className="setting-label-description">{t('settings.tts.googleKey')}</span>
-              </div>
-              <div className="setting-control">
-                <Input.Password
-                  value={ttsConfig.googleKey === apiConfig.google.apiKey ? '' : ttsConfig.googleKey}
-                  onChange={(e) => updateTTSConfig({ ...ttsConfig, googleKey: e.target.value })}
-                  style={{ width: 300 }}
-                  disabled={!ttsEnabled}
-                  placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
-                />
-              </div>
-            </div>
-          )}
-
-          {ttsConfig.service === 'gpt-sovits' && (
-            <>
-              <Form.Item label={language === 'zh' ? 'GPT-SoVITS 服务地址' : 'GPT-SoVITS Service URL'}>
-                <Input
-                  placeholder={language === 'zh' ? '留空将使用默认配置' : 'Leave blank for default'}
-                  value={ttsConfig.gptSovitsUrl === apiConfig.gptSovits.url ? '' : ttsConfig.gptSovitsUrl}
-                  onChange={(e) => updateTTSConfig({ gptSovitsUrl: e.target.value })}
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  {language === 'zh' ? `默认值: ${apiConfig.gptSovits.url}` : `Default: ${apiConfig.gptSovits.url}`}
-                </div>
-              </Form.Item>
-              <Form.Item label={language === 'zh' ? '角色' : 'Character'}>
-                <Input
-                  placeholder={language === 'zh' ? '角色名称' : 'Character name'}
-                  value={ttsConfig.gptSovitsConfig?.character || ''}
-                  onChange={(e) => updateTTSConfig({
-                    gptSovitsConfig: {
-                      ...(ttsConfig.gptSovitsConfig || {
-                        emotion: 0,
-                        speed: 1.5,
-                        textLanguage: 'auto'
-                      }),
-                      character: e.target.value || 'Anon'
-                    }
-                  })}
-                />
-              </Form.Item>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <span className="setting-label-title">{t('settings.tts.emotion')}</span>
-                  <span className="setting-label-description">{t('settings.tts.emotion')}</span>
-                </div>
-                <div className="setting-control">
-                  <Select
-                    value={ttsConfig.gptSovitsConfig?.emotion ?? 0}
-                    onChange={(value) => updateTTSConfig({
-                      ...ttsConfig,
-                      gptSovitsConfig: {
-                        ...ttsConfig.gptSovitsConfig || {
-                          character: 'Anon',
-                          emotion: 0,
-                          speed: 1.5,
-                          textLanguage: 'auto'
-                        },
-                        emotion: value
-                      }
-                    })}
-                    style={{ width: 200 }}
-                    disabled={!ttsEnabled}
-                  >
-                    {Array.from({ length: 23 }, (_, i) => (
-                      <Select.Option key={i} value={i}>
-                        {i}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-              <div className="setting-item">
-                <div className="setting-label">
-                  <span className="setting-label-title">{t('settings.tts.speed')}</span>
-                  <span className="setting-label-description">{t('settings.tts.speed')}</span>
-                </div>
-                <div className="setting-control">
-                  <Input
-                    type="number"
-                    value={ttsConfig.gptSovitsConfig?.speed ?? 1.5}
-                    onChange={(e) => updateTTSConfig({
-                      ...ttsConfig,
-                      gptSovitsConfig: {
-                        ...ttsConfig.gptSovitsConfig || {
-                          character: 'Anon',
-                          emotion: 0,
-                          speed: 1.5,
-                          textLanguage: 'auto'
-                        },
-                        speed: parseFloat(e.target.value)
-                      }
-                    })}
-                    style={{ width: 200 }}
-                    disabled={!ttsEnabled}
-                    step={0.1}
-                    min={0.5}
-                    max={2.0}
-                  />
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>

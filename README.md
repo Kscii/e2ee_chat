@@ -11,12 +11,16 @@ If you want to experience this project, you can visit:
 
 ### Key Features
 - AI Chat Assistant (powered by OpenAI)
+- End-to-End Encryption (E2EE) for secure communication
+- Group chat with encryption support
 - User authentication (register/login)
 - Multi-service Text-to-Speech support
   - Browser native TTS
   - Azure TTS
   - Google Cloud TTS
   - GPT-SoVITS
+- User avatar and profile management
+- Server and channel system (similar to Discord)
 - Internationalization (i18n) support
   - English
   - Chinese
@@ -33,6 +37,7 @@ If you want to experience this project, you can visit:
 - UI Framework: Ant Design 5
 - State Management: React Context
 - Router: React Router 6
+- Encryption: TweetNaCl.js
 - Rich Text Editor: Tiptap
 - Internationalization: i18next
 - Code Quality: ESLint
@@ -41,6 +46,7 @@ If you want to experience this project, you can visit:
 - Framework: Flask
 - Database: SQLite
 - Authentication: JWT
+- Encryption: Public/Private key infrastructure 
 - Password security: bcrypt with salt and pepper
 
 ### Prerequisites
@@ -113,6 +119,7 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 
 The backend server will run on `http://localhost:8000` by default.
 
+
 ---
 
 ## 中文
@@ -125,12 +132,16 @@ The backend server will run on `http://localhost:8000` by default.
 
 ### 主要功能
 - AI 聊天助手（由 OpenAI 驱动）
+- 端到端加密通信（E2EE），确保消息安全
+- 支持加密的群组聊天功能
 - 用户认证（注册/登录）
 - 多服务语音合成支持
   - 浏览器原生语音
   - Azure 语音服务
   - Google Cloud 语音服务
   - GPT-SoVITS 语音合成
+- 用户头像和个人资料管理
+- 服务器和频道系统（类似 Discord）
 - 国际化支持
   - 中文
   - 英文
@@ -147,6 +158,7 @@ The backend server will run on `http://localhost:8000` by default.
 - UI 框架：Ant Design 5
 - 状态管理：React Context
 - 路由管理：React Router 6
+- 加密实现：TweetNaCl.js
 - 富文本编辑器：Tiptap
 - 国际化：i18next
 - 代码质量：ESLint
@@ -155,6 +167,7 @@ The backend server will run on `http://localhost:8000` by default.
 - 框架：Flask
 - 数据库：SQLite
 - 认证机制：JWT
+- 加密系统：公钥/私钥基础设施
 - 密码安全：bcrypt 加盐加胡椒
 
 ### 环境要求
@@ -226,5 +239,3 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 ```
 
 后端服务器默认运行在 `http://localhost:8000`。
-
-

@@ -262,16 +262,20 @@ const ChannelPage: React.FC = () => {
     setDecryptedMessages(decryptedMsgs);
   };
 
-  // 在选择频道后加载消息
+  // 在选择频道后加载消息 - 修改为仅在直接加载时执行
   useEffect(() => {
-    if (selectedChannel) {
-      // 移除系统欢迎消息，直接初始化为空数组
-      setMessages([]);
+    if (selectedChannel && !loading) {
+      // 仅当selectedChannel变化且不是由handleChannelSelect函数触发的加载时执行
+      // 避免与handleChannelSelect中的加载重复
+      if (!isMobile) {
+        // 移除系统欢迎消息，直接初始化为空数组
+        setMessages([]);
 
-      // 加载加密消息
-      fetchEncryptedMessages();
+        // 加载加密消息
+        fetchEncryptedMessages();
+      }
     }
-  }, [selectedChannel, t]);
+  }, [selectedChannel]);
 
   // 检测屏幕尺寸
   useEffect(() => {
@@ -496,12 +500,51 @@ const ChannelPage: React.FC = () => {
     setSelectedChannel(null);
   };
 
-  const handleChannelSelect = (channel: Channel) => {
+  const handleChannelSelect = async (channel: Channel) => {
     setSelectedChannel(channel);
+
+    // 先开始加载消息
+    if (channel.type === 'text') {
+      setLoading(true);
+      try {
+        // 清空消息，准备加载新消息
+        setMessages([]);
+
+        // 获取群组ID
+        let groupId = 1;
+        if (channel.id && channel.id.startsWith('channel-')) {
+          const idMatch = channel.id.match(/channel-(\d+)/);
+          if (idMatch && idMatch[1]) {
+            groupId = parseInt(idMatch[1], 10);
+          }
+        }
+
+        // 预加载消息数据
+        await fetchEncryptedMessages();
+      } catch (error) {
+        console.error('加载频道消息失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
     // 在移动端选择频道后显示内容区域
     if (isMobile) {
-      setShowContent(true);
+      // 添加短暂延迟确保DOM更新
+      setTimeout(() => {
+        setShowContent(true);
+
+        // 强制重排确保移动端视图切换
+        if (window.innerWidth >= 480 && window.innerWidth <= 580) {
+          const contentElement = document.querySelector('.channel-content') as HTMLElement;
+          if (contentElement) {
+            // 触发重排
+            contentElement.style.display = 'none';
+            void contentElement.offsetHeight; // 强制重排
+            contentElement.style.display = 'flex';
+          }
+        }
+      }, 50);
     }
   };
 
@@ -700,6 +743,19 @@ const ChannelPage: React.FC = () => {
   // 添加返回按钮的处理函数
   const handleBackToChannels = () => {
     setShowContent(false);
+
+    // 确保在480-580px宽度区间下的视图切换正确
+    if (window.innerWidth >= 480 && window.innerWidth <= 580) {
+      // 延迟一下确保状态先更新
+      setTimeout(() => {
+        const serverListContainer = document.querySelector('.server-list-container') as HTMLElement;
+        if (serverListContainer) {
+          serverListContainer.style.visibility = 'visible';
+          serverListContainer.style.display = 'flex';
+          serverListContainer.style.transform = 'translateX(0)';
+        }
+      }, 50);
+    }
   };
 
   const renderChannelItem = (channel: Channel) => {
@@ -821,19 +877,20 @@ const ChannelPage: React.FC = () => {
       <Content className="channel-content">
         {selectedChannel ? (
           <>
-            {/* 在移动端和内容区域添加返回按钮 */}
-            {isMobile && (
-              <Button
-                type="text"
-                className="back-to-channels-btn"
-                icon={<ArrowLeftOutlined />}
-                onClick={handleBackToChannels}
-              >
-                {t('common.back')}
-              </Button>
-            )}
             <div className="channel-header">
-              <h2>{selectedChannel.name}</h2>
+              <div className="channel-title-area">
+                {isMobile && (
+                  <Button
+                    type="text"
+                    className="back-to-channels-btn"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={handleBackToChannels}
+                  >
+                    {t('')}
+                  </Button>
+                )}
+                <h2>{selectedChannel.name}</h2>
+              </div>
               <div className="channel-header-actions">
                 <Tooltip title={t('channel.actions.notifications')}>
                   <Button type="text" icon={<BellOutlined />} />
@@ -860,6 +917,7 @@ const ChannelPage: React.FC = () => {
                   onSendMessage={handleSendMessage}
                   showAvatar={true}
                   showUsername={true}
+                  loading={loading}
                 />
               ) : (
                 <div className="welcome-message">

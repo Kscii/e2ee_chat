@@ -1,14 +1,24 @@
-from flask import Flask, request, jsonify, make_response, g
+from flask import Flask, request, jsonify, make_response, g, send_from_directory
 from flask_cors import CORS
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 from models import DatabaseManager, UserModel, MessageModel, ServerModel
 import config
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
+
+# 创建头像存储目录
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'avatars')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 限制上传文件大小为5MB
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # 初始化数据库
 db_manager = DatabaseManager()
@@ -18,6 +28,10 @@ db_manager.init_db()
 user_model = UserModel()
 message_model = MessageModel()
 server_model = ServerModel()  # 初始化服务器模型
+
+# 验证文件扩展名
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # 定义权限验证装饰器
 def protected_endpoint(f):
@@ -746,6 +760,79 @@ def update_server(server_id):
     )
     
     return jsonify(result), status_code
+
+# 上传头像接口
+@app.route('/api/upload-avatar', methods=['POST'])
+def upload_avatar():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取用户名
+    username = payload.get('username')
+    
+    # 检查是否上传了文件
+    if 'file' not in request.files:
+        return jsonify({"error": "没有上传文件"}), 400
+    
+    file = request.files['file']
+    
+    if not file.filename:
+        return jsonify({"error": "没有选择文件"}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({"error": "不支持的文件格式"}), 400
+    
+    try:
+        # 确保上传目录存在
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        
+        # 生成唯一文件名
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4()}_{filename}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        
+        # 保存文件
+        file.save(file_path)
+        
+        # 更新用户头像路径
+        result, status_code = user_model.save_avatar(username, unique_filename)
+        
+        return jsonify(result), status_code
+    except Exception as e:
+        print(f"上传头像错误: {str(e)}")
+        return jsonify({"error": f"上传头像失败: {str(e)}"}), 500
+
+# 获取头像接口
+@app.route('/api/avatar/<username>', methods=['GET'])
+def get_avatar(username):
+    try:
+        # 获取头像路径
+        avatar_path = user_model.get_avatar_path(username)
+        
+        if not avatar_path:
+            return jsonify({"error": "未找到头像"}), 404
+        
+        # 获取avatars目录的绝对路径
+        avatars_dir = app.config['UPLOAD_FOLDER']
+        
+        # 检查文件是否存在
+        full_path = os.path.join(avatars_dir, os.path.basename(avatar_path))
+        if not os.path.exists(full_path):
+            return jsonify({"error": "头像文件不存在"}), 404
+            
+        # 返回头像文件
+        return send_from_directory(avatars_dir, os.path.basename(avatar_path))
+    except Exception as e:
+        print(f"获取头像错误: {str(e)}")
+        return jsonify({"error": f"获取头像失败: {str(e)}"}), 500
 
 # 运行应用
 if __name__ == '__main__':

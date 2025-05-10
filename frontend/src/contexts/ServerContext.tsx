@@ -26,7 +26,7 @@ export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       name: t('server.main'),
       description: t('server.mainDescription'),
       ownerId: 'user1',
-      members: ['user1', 'user2'],
+      members: ['kscii', 'user1', 'user2'],
       channels: [
         // 移除默认的General频道
         // {

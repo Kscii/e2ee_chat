@@ -3,6 +3,8 @@ from sqlite3 import Error
 import bcrypt
 from datetime import datetime
 from config import DATABASE_PATH, PEPPER
+import os
+import uuid
 
 class DatabaseManager:
     def __init__(self, db_path=DATABASE_PATH):
@@ -27,6 +29,7 @@ class DatabaseManager:
             email TEXT UNIQUE,
             phone TEXT,
             password_hash TEXT NOT NULL,
+            avatar_path TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP
         )
@@ -366,7 +369,7 @@ class UserModel:
         
         try:
             cursor.execute(
-                "SELECT id, username, email, phone, created_at, last_login FROM users WHERE username = ?",
+                "SELECT id, username, email, phone, avatar_path, created_at, last_login FROM users WHERE username = ?",
                 (username,)
             )
             user = cursor.fetchone()
@@ -390,7 +393,7 @@ class UserModel:
         
         try:
             cursor.execute(
-                "SELECT id, username, email, created_at, last_login FROM users"
+                "SELECT id, username, email, avatar_path, created_at, last_login FROM users"
             )
             users = cursor.fetchall()
             
@@ -416,7 +419,7 @@ class UserModel:
             params = []
             
             for key, value in data.items():
-                if key in ['email', 'phone']:
+                if key in ['email', 'phone', 'avatar_path']:
                     update_fields.append(f"{key} = ?")
                     params.append(value)
             
@@ -441,6 +444,56 @@ class UserModel:
         except Error as e:
             conn.rollback()
             return {"error": f"更新用户信息失败: {str(e)}"}, 500
+        
+        finally:
+            conn.close()
+    
+    def save_avatar(self, username, filename):
+        """保存用户头像路径到数据库"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 更新用户的头像路径
+            avatar_path = f"avatars/{filename}"
+            cursor.execute(
+                "UPDATE users SET avatar_path = ? WHERE username = ?",
+                (avatar_path, username)
+            )
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                return {"message": "头像更新成功", "avatar_path": avatar_path}, 200
+            else:
+                return {"error": "用户不存在"}, 404
+                
+        except Error as e:
+            conn.rollback()
+            return {"error": f"保存头像失败: {str(e)}"}, 500
+            
+        finally:
+            conn.close()
+    
+    def get_avatar_path(self, username):
+        """获取用户头像路径"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                "SELECT avatar_path FROM users WHERE username = ?",
+                (username,)
+            )
+            result = cursor.fetchone()
+            
+            if not result or not result['avatar_path']:
+                return None
+                
+            return result['avatar_path']
+            
+        except Error as e:
+            print(f"获取头像路径失败: {str(e)}")
+            return None
         
         finally:
             conn.close()
@@ -482,6 +535,23 @@ class UserModel:
         finally:
             conn.close()
 
+    def update_avatar(self, username, file_path):
+        """更新用户头像"""
+        # 获取文件扩展名
+        _, ext = os.path.splitext(file_path)
+        
+        # 生成唯一文件名
+        new_filename = f"{username}_{uuid.uuid4()}{ext}"
+        new_path = os.path.join(os.path.dirname(file_path), new_filename)
+        
+        # 重命名文件
+        try:
+            os.rename(file_path, new_path)
+        except OSError as e:
+            return {"error": f"保存头像文件失败: {str(e)}"}, 500
+        
+        # 更新数据库中的头像路径
+        return self.save_avatar(username, new_filename)
 
 class MessageModel:
     def __init__(self):

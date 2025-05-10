@@ -1,10 +1,10 @@
  # Python字节码
-__pycache__/
+backend/__pycache__/
 *.py[cod]
 *$py.class
 
 # 虚拟环境
-venv/
+backend/venv/
 env/
 ENV/
 .env

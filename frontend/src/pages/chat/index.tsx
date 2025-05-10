@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Typography, Input, Button, Avatar, Divider, message, Upload, Popover, Tooltip, Modal } from 'antd';
+import { Typography, Input, Button, Avatar, Divider, message, Upload, Tooltip, Modal } from 'antd';
 import { UserOutlined, RobotOutlined, UploadOutlined, FileOutlined, SendOutlined, TeamOutlined, SmileOutlined, CheckOutlined, CheckCircleOutlined, DownloadOutlined, SoundOutlined } from '@ant-design/icons';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -92,17 +92,6 @@ const LoadingAnimation: React.FC = () => {
         <div className="loading-dot"></div>
         <div className="loading-dot"></div>
       </div>
-    </div>
-  );
-};
-
-// 简单的消息操作组件
-const MessageActions: React.FC<{ message: Message }> = ({ message }) => {
-  return (
-    <div className="message-actions">
-      <Button size="small" onClick={() => window.open(message.fileInfo?.url)}>
-        下载
-      </Button>
     </div>
   );
 };
@@ -821,9 +810,6 @@ const ChatPage: React.FC = () => {
             <div className="file-icon">{icon}</div>
             <div className="file-name">{message.fileInfo.name}</div>
             <div className="file-actions">
-              <Popover content={<MessageActions message={message} />}>
-                <Button type="text" icon={<UploadOutlined />} />
-              </Popover>
               <Tooltip title={t('common.download')}>
                 <Button type="text" icon={<DownloadOutlined />} onClick={(e) => {
                   e.stopPropagation();
@@ -950,8 +936,11 @@ const ChatPage: React.FC = () => {
               <div className="message-avatar">
                 <Avatar
                   size={40}
-                  src={msg.sender_username === user?.username ? avatar : undefined}
-                  icon={msg.sender_username === user?.username ? <UserOutlined /> : <UserOutlined />}
+                  src={msg.sender_username === user?.username ? avatar :
+                    // 为其他用户尝试获取头像
+                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/avatar/${msg.sender_username}?t=${new Date().getTime()}`
+                  }
+                  icon={<UserOutlined />}
                 />
               </div>
               <div className="message-content">
@@ -1143,6 +1132,7 @@ const ChatPage: React.FC = () => {
                 title={t('chat.emojiButton')}
               />
               <Upload
+                accept="*/*"  // 接受所有文件类型
                 fileList={fileList}
                 onChange={({ fileList, file }) => {
                   setFileList(fileList);
@@ -1151,6 +1141,7 @@ const ChatPage: React.FC = () => {
                   }
                 }}
                 beforeUpload={(file) => {
+                  // 统一文件大小限制为10MB
                   const isLt10M = file.size / 1024 / 1024 < 10;
                   if (!isLt10M) {
                     message.error(t('errors.file.sizeLimitExceeded', { size: 10 }));
@@ -1167,41 +1158,7 @@ const ChatPage: React.FC = () => {
                 <Button
                   type="text"
                   icon={<UploadOutlined />}
-                  title={t('chat.uploadButton')}
-                />
-              </Upload>
-              <Upload
-                accept="image/*"
-                fileList={fileList}
-                onChange={({ fileList, file }) => {
-                  setFileList(fileList);
-                  if (file.status === 'done') {
-                    handleFileUpload(file.originFileObj as File);
-                  }
-                }}
-                beforeUpload={(file) => {
-                  const isImage = file.type.startsWith('image/');
-                  if (!isImage) {
-                    message.error(t('errors.file.imageOnly'));
-                    return false;
-                  }
-                  const isLt5M = file.size / 1024 / 1024 < 5;
-                  if (!isLt5M) {
-                    message.error(t('errors.file.sizeLimitExceeded', { size: 5 }));
-                    return false;
-                  }
-                  return true;
-                }}
-                customRequest={({ onSuccess }) => {
-                  setTimeout(() => {
-                    onSuccess?.('ok');
-                  }, 0);
-                }}
-              >
-                <Button
-                  type="text"
-                  icon={<UploadOutlined />}
-                  title={t('chat.uploadButton')}
+                  title={t('chat.attachFiles')}
                 />
               </Upload>
               <Button
@@ -1247,7 +1204,7 @@ const ChatPage: React.FC = () => {
         onCancel={handleCloseImagePreview}
         width="auto"
         centered
-        bodyStyle={{ padding: 0 }}
+        styles={{ body: { padding: 0 } }}
         className="image-preview-modal"
       >
         {imagePreview && (
