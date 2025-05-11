@@ -67,9 +67,10 @@ interface EncryptedMessage {
   sender_id: number;
   receiver_id: number;
   content: string;
-  original_message_id: number;
+  original_message_id?: number;
   created_at: string;
   sender_username: string;
+  message_timestamp?: string;
 }
 
 const ChannelPage: React.FC = () => {
@@ -198,10 +199,10 @@ const ChannelPage: React.FC = () => {
 
       // 使用频道ID作为群组ID获取加密消息
       const encryptedMessagesData = await getEncryptedGroupMessages(groupId);
-      setEncryptedMessages(encryptedMessagesData);
+      setEncryptedMessages(encryptedMessagesData as unknown as EncryptedMessage[]);
 
       // 解密消息
-      await decryptMessages(encryptedMessagesData);
+      await decryptMessages(encryptedMessagesData as unknown as EncryptedMessage[]);
     } catch (error) {
       console.error('获取加密消息失败:', error);
       message.error('获取加密消息失败');
