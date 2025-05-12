@@ -20,7 +20,7 @@
 const live2d_settings = {
     // 基本设置
     'modelUrl': '/live2d/model',                 // 存放模型的文件夹路径，末尾不需要斜杠
-    'tipsMessage': '/live2d/waifu-tips.json',    // 看板娘提示消息文件的路径，可以留空不加载
+    'tipsMessage': '',    // 看板娘提示消息文件的路径，可以留空不加载
     // 模型设置
     'modelName': 'anon',                      // 默认加载的模型名称，仅在无本地记录的情况下有效
     'modelStorage': true,                       // 记忆模型，下次打开页面会加载上次选择的模型
@@ -588,15 +588,6 @@ function randomExpressionMotion(event) {
         }
     }
 
-    // 输出位置信息到控制台
-    if (live2d_settings.debugMousemove) {
-        console.log('=== 模型位置信息 ===');
-        console.log(`模型位置: 左=${modelRect.left.toFixed(2)}, 上=${modelRect.top.toFixed(2)}, 宽=${modelRect.width.toFixed(2)}, 高=${modelRect.height.toFixed(2)}`);
-        console.log(`画布位置: 左=${canvasRect.left.toFixed(2)}, 上=${canvasRect.top.toFixed(2)}, 宽=${canvasRect.width.toFixed(2)}, 高=${canvasRect.height.toFixed(2)}`);
-        console.log(`点击坐标: X=${clickX.toFixed(2)}, Y=${clickY.toFixed(2)}`);
-        console.log(`相对坐标: X=${relativeX.toFixed(2)}, Y=${relativeY.toFixed(2)}`);
-        console.log('==================');
-    }
 
     if (window.live2dCurrentVersion === 2) {
         // 根据权重随机选择一个表情和动作对

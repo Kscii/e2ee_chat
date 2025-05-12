@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 *.txt
+node_modules
 
 src/config/apiConfig.ts

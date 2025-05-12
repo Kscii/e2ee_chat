@@ -254,7 +254,7 @@
     z-index: 1001;
   }
 
-  .app-sider.show + .mobile-menu-button {
+  .app-sider.show+.mobile-menu-button {
     right: 20px;
   }
 }
