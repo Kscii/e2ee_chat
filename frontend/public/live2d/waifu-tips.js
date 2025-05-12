@@ -197,24 +197,367 @@ function changePosition(position) {
     }
 }
 
-// 表情和动作对应关系
+// 表情和动作对应关系 - 扩展为更丰富的组合
 const expressionMotionPairs = [
-    { expression: 'f01', motion: 'idle' },        // 默认表情 - 空闲动作
-    { expression: 'f02', motion: 'tap_body' },    // 微笑表情 - 点击身体动作
-    { expression: 'f03', motion: 'surprised' },   // 惊讶表情 - 惊讶动作
-    { expression: 'f04', motion: 'angry' },       // 生气表情 - 生气动作
-    { expression: 'f05', motion: 'sad' },         // 悲伤表情 - 悲伤动作
-    { expression: 'f06', motion: 'thinking' },    // 思考表情 - 思考动作
-    { expression: 'f07', motion: 'wink' },        // 眨眼表情 - 眨眼动作
-    { expression: 'f08', motion: 'sad' },         // 哭泣表情 - 悲伤动作
-    { expression: 'f09', motion: 'tap_body' },    // 微笑2表情 - 点击身体动作
-    { expression: 'f10', motion: 'angry' },       // 生气2表情 - 生气动作
-    { expression: 'f11', motion: 'flick_head' },  // 严肃表情 - 摇头动作
-    { expression: 'f12', motion: 'thinking' }     // 害羞表情 - 思考动作
+    // 基础表情和动作
+    { expression: 'f01', motion: 'idle', weight: 10 },        // 默认表情 - 空闲动作
+    { expression: 'f02', motion: 'tap_body', weight: 8 },     // 微笑表情 - 点击身体动作
+    { expression: 'f03', motion: 'surprised', weight: 5 },    // 惊讶表情 - 惊讶动作
+    { expression: 'f04', motion: 'angry', weight: 5 },        // 生气表情 - 生气动作
+    { expression: 'f05', motion: 'sad', weight: 5 },          // 悲伤表情 - 悲伤动作
+    { expression: 'f06', motion: 'thinking', weight: 7 },     // 思考表情 - 思考动作
+    { expression: 'f07', motion: 'wink', weight: 6 },         // 眨眼表情 - 眨眼动作
+    { expression: 'f08', motion: 'sad', weight: 4 },          // 哭泣表情 - 悲伤动作
+    { expression: 'f09', motion: 'tap_body', weight: 7 },     // 微笑2表情 - 点击身体动作
+    { expression: 'f10', motion: 'angry', weight: 5 },        // 生气2表情 - 生气动作
+    { expression: 'f11', motion: 'flick_head', weight: 7 },   // 严肃表情 - 摇头动作
+    { expression: 'f12', motion: 'thinking', weight: 6 },     // 害羞表情 - 思考动作
+
+    // 新增组合
+    { expression: 'default', motion: 'idle', weight: 5 },
+    { expression: 'smile01', motion: 'smile01', weight: 8 },
+    { expression: 'smile02', motion: 'smile02', weight: 7 },
+    { expression: 'smile03', motion: 'smile03', weight: 7 },
+    { expression: 'smile04', motion: 'smile04', weight: 6 },
+    { expression: 'sad01', motion: 'sad01', weight: 5 },
+    { expression: 'sad02', motion: 'sad02', weight: 4 },
+    { expression: 'angry01', motion: 'angry01', weight: 4 },
+    { expression: 'angry02', motion: 'angry02', weight: 4 },
+    { expression: 'angry03', motion: 'angry03', weight: 3 },
+    { expression: 'angry04', motion: 'angry04', weight: 3 },
+    { expression: 'serious01', motion: 'serious01', weight: 6 },
+    { expression: 'serious02', motion: 'serious02', weight: 5 },
+    { expression: 'shame01', motion: 'shame01', weight: 5 },
+    { expression: 'shame02', motion: 'shame02', weight: 4 },
+    { expression: 'thinking01', motion: 'thinking01', weight: 6 },
+    { expression: 'thinking02', motion: 'thinking02', weight: 5 },
+    { expression: 'thinking03', motion: 'thinking03', weight: 5 },
+    { expression: 'wink01', motion: 'wink01', weight: 7 },
+    { expression: 'surprised01', motion: 'surprised01', weight: 6 },
+    { expression: 'cry01', motion: 'cry01', weight: 3 },
+    { expression: 'cry02', motion: 'cry02', weight: 3 },
+
+    // 创意组合 - 不同类型的表情和动作组合在一起
+    { expression: 'smile01', motion: 'wink01', weight: 6 },
+    { expression: 'wink01', motion: 'smile01', weight: 6 },
+    { expression: 'thinking01', motion: 'flick_head', weight: 5 },
+    { expression: 'smile02', motion: 'thinking01', weight: 4 },
+    { expression: 'serious01', motion: 'nf_left01', weight: 4 },
+    { expression: 'serious02', motion: 'nf_right01', weight: 4 },
+    { expression: 'surprised01', motion: 'kandou01', weight: 5 },
+    { expression: 'smile04', motion: 'kandou02', weight: 5 },
+    { expression: 'shame01', motion: 'serious01', weight: 4 },
+    { expression: 'wink01', motion: 'nf01', weight: 5 },
+    { expression: 'angry01', motion: 'thinking01', weight: 3 }, // 生气表情但做思考动作
+    { expression: 'sad01', motion: 'smile01', weight: 2 },     // 悲伤表情但做微笑动作
 ];
+
+// 微小动作列表 - 用于在静止状态下随机触发的小动作
+const microMotions = [
+    { expression: 'f01', motion: 'idle', weight: 20 },        // 基础待机
+    { expression: 'wink01', motion: 'wink01', weight: 20 },   // 眨眼
+    { expression: 'f07', motion: 'wink', weight: 15 },        // 另一种眨眼
+    { expression: 'smile01', motion: 'smile01', weight: 10 }, // 微笑
+    { expression: 'smile02', motion: 'smile02', weight: 10 }, // 微笑2
+    { expression: 'nf01', motion: 'nf01', weight: 8 },        // 轻微点头
+    { expression: 'nf_left01', motion: 'nf_left01', weight: 5 }, // 向左轻微摇头
+    { expression: 'nf_right01', motion: 'nf_right01', weight: 5 }, // 向右轻微摇头
+];
+
+// 动作序列 - 为特定情境预定义的动作序列
+const motionSequences = [
+    {
+        name: "思考序列",
+        sequence: [
+            { expression: 'thinking01', motion: 'thinking01', duration: 3000 },
+            { expression: 'thinking02', motion: 'thinking02', duration: 3000 },
+            { expression: 'thinking03', motion: 'thinking03', duration: 3000 },
+            { expression: 'smile01', motion: 'smile01', duration: 2500 }
+        ],
+        weight: 3
+    },
+    {
+        name: "打招呼序列",
+        sequence: [
+            { expression: 'smile01', motion: 'smile01', duration: 2000 },
+            { expression: 'wink01', motion: 'wink01', duration: 1500 },
+            { expression: 'smile02', motion: 'smile02', duration: 2000 }
+        ],
+        weight: 4
+    },
+    {
+        name: "惊讶序列",
+        sequence: [
+            { expression: 'surprised01', motion: 'surprised01', duration: 2000 },
+            { expression: 'kandou01', motion: 'kandou01', duration: 2500 },
+            { expression: 'smile01', motion: 'smile01', duration: 2000 }
+        ],
+        weight: 2
+    },
+    {
+        name: "害羞序列",
+        sequence: [
+            { expression: 'shame01', motion: 'shame01', duration: 2500 },
+            { expression: 'shame02', motion: 'shame02', duration: 2500 },
+            { expression: 'serious01', motion: 'serious01', duration: 2000 }
+        ],
+        weight: 2
+    }
+];
+
+// 最近使用的表情和动作，用于避免短时间内重复
+let recentExpressions = [];
+let recentMotions = [];
+const MAX_RECENT_ITEMS = 5; // 记录最近使用的项目数量
+
+// 当前正在执行的序列
+let currentSequence = null;
+let sequenceIndex = 0;
+let sequenceTimer = null;
+
+// 自动定时切换表情和动作的计时器ID
+let autoMotionTimerId = null;
+
+// 微小动作的计时器ID
+let microMotionTimerId = null;
+
+// 自动定时切换表情和动作
+function startAutoMotionChange() {
+    // 清除之前的计时器（如果存在）
+    if (autoMotionTimerId) {
+        clearInterval(autoMotionTimerId);
+    }
+
+    // 清除微小动作计时器（如果存在）
+    if (microMotionTimerId) {
+        clearInterval(microMotionTimerId);
+    }
+
+    // 设置新的计时器，每5秒切换一次（原来是10秒）
+    autoMotionTimerId = setInterval(() => {
+        // 有20%的几率播放动作序列，其余时间随机选择单个表情动作（原来是10%）
+        if (Math.random() < 0.2 && motionSequences.length > 0) {
+            playRandomMotionSequence();
+        } else {
+            // 如果当前没有在播放序列，则随机切换表情和动作
+            if (!currentSequence) {
+                randomExpressionMotion();
+            }
+        }
+
+        if (live2d_settings.debug) {
+            console.log('[Live2D] 自动切换动作已执行，下一次将在5秒后');
+        }
+    }, 5000);
+
+    // 设置微小动作计时器，每1.5-3秒随机触发一次微小动作
+    startMicroMotions();
+
+    if (live2d_settings.debug) {
+        console.log('[Live2D] 自动动作切换已启动，间隔5秒');
+    }
+}
+
+// 启动微小动作系统
+function startMicroMotions() {
+    // 如果已经有计时器，先清除
+    if (microMotionTimerId) {
+        clearInterval(microMotionTimerId);
+    }
+
+    // 随机触发微小动作
+    function triggerMicroMotion() {
+        // 如果当前正在播放序列或者主要动作，不触发微小动作
+        if (currentSequence) return;
+
+        // 随机决定是否触发动作（60%的几率触发某种动作）
+        if (Math.random() < 0.6) {
+            // 决定触发大动作还是微小动作
+            // 有15%的几率触发大动作，85%的几率触发微小动作
+            const triggerMajorMotion = Math.random() < 0.15;
+
+            if (triggerMajorMotion) {
+                // 触发大动作 - 从表情动作对中选择
+                // 过滤出适合作为大动作的动作类型
+                const majorMotionTypes = [
+                    'tap_body', 'surprised', 'angry', 'thinking',
+                    'flick_head', 'kandou01', 'kandou02'
+                ];
+
+                // 从完整的表情动作对中选择一些权重较高的作为随机大动作
+                let availablePairs = expressionMotionPairs.filter(pair =>
+                    majorMotionTypes.includes(pair.motion) && (pair.weight || 0) > 4
+                );
+
+                if (availablePairs.length === 0) {
+                    availablePairs = expressionMotionPairs.filter(pair =>
+                        majorMotionTypes.includes(pair.motion)
+                    );
+                }
+
+                // 如果还是没有，就从所有表情动作对中选择
+                if (availablePairs.length === 0) {
+                    availablePairs = [...expressionMotionPairs];
+                }
+
+                // 根据权重随机选择
+                const totalWeight = availablePairs.reduce((sum, pair) => sum + (pair.weight || 1), 0);
+                let randomWeight = Math.random() * totalWeight;
+                let selectedPair = null;
+
+                for (const pair of availablePairs) {
+                    randomWeight -= (pair.weight || 1);
+                    if (randomWeight <= 0) {
+                        selectedPair = pair;
+                        break;
+                    }
+                }
+
+                // 如果选中了一个大动作，执行它
+                if (selectedPair && window.live2dCurrentVersion === 2 && window.live2dv2.model) {
+                    // 切换表情
+                    if (window.live2dv2.model.expressions) {
+                        window.live2dv2.model.setExpression(selectedPair.expression);
+                    }
+
+                    // 执行动作
+                    if (window.live2dv2.model.motions[selectedPair.motion]) {
+                        const motions = window.live2dv2.model.motions[selectedPair.motion];
+                        const randomMotionIndex = Math.floor(Math.random() * motions.length);
+                        window.live2dv2.model.startMotion(selectedPair.motion, randomMotionIndex, 2);
+
+                        if (live2d_settings.debug) {
+                            console.log(`[Live2D] 触发大动作: ${selectedPair.expression}, ${selectedPair.motion}`);
+                        }
+                    }
+                }
+            } else {
+                // 触发微小动作 - 从微小动作列表中选择
+                const totalWeight = microMotions.reduce((sum, motion) => sum + (motion.weight || 1), 0);
+                let randomWeight = Math.random() * totalWeight;
+                let selectedMotion = null;
+
+                for (const motion of microMotions) {
+                    randomWeight -= (motion.weight || 1);
+                    if (randomWeight <= 0) {
+                        selectedMotion = motion;
+                        break;
+                    }
+                }
+
+                // 如果选到了动作，执行它
+                if (selectedMotion && window.live2dCurrentVersion === 2 && window.live2dv2.model) {
+                    // 切换表情（如果必要）
+                    if (selectedMotion.expression && window.live2dv2.model.expressions) {
+                        window.live2dv2.model.setExpression(selectedMotion.expression);
+                    }
+
+                    // 执行动作
+                    if (selectedMotion.motion && window.live2dv2.model.motions[selectedMotion.motion]) {
+                        const motions = window.live2dv2.model.motions[selectedMotion.motion];
+                        const randomMotionIndex = Math.floor(Math.random() * motions.length);
+                        window.live2dv2.model.startMotion(selectedMotion.motion, randomMotionIndex, 1); // 优先级设为1，低于主要动作
+
+                        if (live2d_settings.debug) {
+                            console.log(`[Live2D] 触发微小动作: ${selectedMotion.expression}, ${selectedMotion.motion}`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 随机设定下一次触发时间
+        // 大动作后需要更长的恢复时间 (2-4秒)，微小动作后间隔短 (1-2秒)
+        const baseInterval = 1000 + Math.random() * 1000;  // 1-2秒的基础间隔
+        const nextInterval = baseInterval * (triggerMajorMotion ? 2 : 1); // 如果刚触发了大动作，延长间隔
+
+        microMotionTimerId = setTimeout(triggerMicroMotion, nextInterval);
+    }
+
+    // 启动第一次触发
+    triggerMicroMotion();
+}
+
+// 播放随机动作序列
+function playRandomMotionSequence() {
+    // 如果已经在播放序列，则先停止
+    if (currentSequence) {
+        clearTimeout(sequenceTimer);
+        currentSequence = null;
+    }
+
+    // 根据权重随机选择一个序列
+    const totalWeight = motionSequences.reduce((sum, seq) => sum + (seq.weight || 1), 0);
+    let randomWeight = Math.random() * totalWeight;
+    let selectedSequence = null;
+
+    for (const sequence of motionSequences) {
+        randomWeight -= (sequence.weight || 1);
+        if (randomWeight <= 0) {
+            selectedSequence = sequence;
+            break;
+        }
+    }
+
+    // 如果没有选到序列（可能是权重计算问题），则选第一个
+    if (!selectedSequence && motionSequences.length > 0) {
+        selectedSequence = motionSequences[0];
+    }
+
+    // 开始播放序列
+    if (selectedSequence) {
+        currentSequence = selectedSequence;
+        sequenceIndex = 0;
+        playCurrentSequenceStep();
+
+        if (live2d_settings.debug) {
+            console.log(`[Live2D] 开始播放动作序列: ${selectedSequence.name}`);
+        }
+    }
+}
+
+// 播放当前序列的当前步骤
+function playCurrentSequenceStep() {
+    if (!currentSequence || sequenceIndex >= currentSequence.sequence.length) {
+        currentSequence = null;
+        return;
+    }
+
+    const step = currentSequence.sequence[sequenceIndex];
+
+    // 设置表情和动作
+    if (window.live2dCurrentVersion === 2 && window.live2dv2.model) {
+        // 切换表情
+        if (window.live2dv2.model.expressions) {
+            window.live2dv2.model.setExpression(step.expression);
+        }
+
+        // 切换动作
+        if (window.live2dv2.model.motions[step.motion]) {
+            const motions = window.live2dv2.model.motions[step.motion];
+            const randomMotionIndex = Math.floor(Math.random() * motions.length);
+            window.live2dv2.model.startMotion(step.motion, randomMotionIndex, 2);
+        }
+
+        if (live2d_settings.debug) {
+            console.log(`[Live2D] 序列步骤 ${sequenceIndex + 1}/${currentSequence.sequence.length}: ${step.expression}, ${step.motion}`);
+        }
+    }
+
+    // 计划下一步
+    sequenceIndex++;
+    if (sequenceIndex < currentSequence.sequence.length) {
+        sequenceTimer = setTimeout(playCurrentSequenceStep, step.duration);
+    } else {
+        setTimeout(() => { currentSequence = null; }, step.duration);
+    }
+}
 
 // 随机切换表情和动作
 function randomExpressionMotion(event) {
+    // 如果当前正在播放序列，则不要打断
+    if (currentSequence) return;
+
     // 获取并记录模型当前位置
     const modelElement = waifu;
     const modelRect = modelElement.getBoundingClientRect();
@@ -227,32 +570,117 @@ function randomExpressionMotion(event) {
     const relativeX = clickX - canvasRect.left;
     const relativeY = clickY - canvasRect.top;
 
+    // 根据点击位置选择不同的动作类型 (如果是点击事件)
+    let motionType = null;
+    if (event) {
+        // 计算点击区域 (头部、身体等)
+        const headXRange = [canvasRect.width * 0.3, canvasRect.width * 0.7];
+        const headYRange = [0, canvasRect.height * 0.3];
+        const bodyYRange = [canvasRect.height * 0.3, canvasRect.height * 0.7];
+
+        if (relativeX >= headXRange[0] && relativeX <= headXRange[1] &&
+            relativeY >= headYRange[0] && relativeY <= headYRange[1]) {
+            // 头部点击 - 使用flick_head类型的动作
+            motionType = 'flick_head';
+        } else if (relativeY >= bodyYRange[0] && relativeY <= bodyYRange[1]) {
+            // 身体点击 - 使用tap_body类型的动作
+            motionType = 'tap_body';
+        }
+    }
+
     // 输出位置信息到控制台
-    console.log('=== 模型位置信息 ===');
-    console.log(`模型位置: 左=${modelRect.left.toFixed(2)}, 上=${modelRect.top.toFixed(2)}, 宽=${modelRect.width.toFixed(2)}, 高=${modelRect.height.toFixed(2)}`);
-    console.log(`画布位置: 左=${canvasRect.left.toFixed(2)}, 上=${canvasRect.top.toFixed(2)}, 宽=${canvasRect.width.toFixed(2)}, 高=${canvasRect.height.toFixed(2)}`);
-    console.log(`点击坐标: X=${clickX.toFixed(2)}, Y=${clickY.toFixed(2)}`);
-    console.log(`相对坐标: X=${relativeX.toFixed(2)}, Y=${relativeY.toFixed(2)}`);
-    console.log('==================');
+    if (live2d_settings.debugMousemove) {
+        console.log('=== 模型位置信息 ===');
+        console.log(`模型位置: 左=${modelRect.left.toFixed(2)}, 上=${modelRect.top.toFixed(2)}, 宽=${modelRect.width.toFixed(2)}, 高=${modelRect.height.toFixed(2)}`);
+        console.log(`画布位置: 左=${canvasRect.left.toFixed(2)}, 上=${canvasRect.top.toFixed(2)}, 宽=${canvasRect.width.toFixed(2)}, 高=${canvasRect.height.toFixed(2)}`);
+        console.log(`点击坐标: X=${clickX.toFixed(2)}, Y=${clickY.toFixed(2)}`);
+        console.log(`相对坐标: X=${relativeX.toFixed(2)}, Y=${relativeY.toFixed(2)}`);
+        console.log('==================');
+    }
 
     if (window.live2dCurrentVersion === 2) {
-        // 随机选择一个表情和动作对
-        const randomPair = expressionMotionPairs[Math.floor(Math.random() * expressionMotionPairs.length)];
+        // 根据权重随机选择一个表情和动作对
+        // 过滤出有效的表情动作对 (如果指定了motionType，则只选择该类型的动作)
+        let availablePairs = [...expressionMotionPairs];
 
-        // 切换表情
-        if (window.live2dv2.model && window.live2dv2.model.expressions) {
-            window.live2dv2.model.setExpression(randomPair.expression);
+        if (motionType) {
+            availablePairs = availablePairs.filter(pair => {
+                return window.live2dv2.model.motions[motionType] &&
+                    window.live2dv2.model.expressions &&
+                    window.live2dv2.model.expressions[pair.expression];
+            });
+        } else {
+            availablePairs = availablePairs.filter(pair => {
+                return window.live2dv2.model.motions[pair.motion] &&
+                    window.live2dv2.model.expressions &&
+                    window.live2dv2.model.expressions[pair.expression];
+            });
         }
 
-        // 切换动作
-        if (window.live2dv2.model && window.live2dv2.model.motions[randomPair.motion]) {
-            const motions = window.live2dv2.model.motions[randomPair.motion];
-            const randomMotionIndex = Math.floor(Math.random() * motions.length);
-            window.live2dv2.model.startMotion(randomPair.motion, randomMotionIndex, 2);
+        // 尽量避免选择最近使用过的表情和动作
+        const lessDuplicatedPairs = availablePairs.filter(pair => {
+            return !recentExpressions.includes(pair.expression) &&
+                !recentMotions.includes(pair.motion);
+        });
+
+        // 如果过滤后没有可用的组合，则使用所有有效组合
+        const pairsToUse = lessDuplicatedPairs.length > 0 ? lessDuplicatedPairs : availablePairs;
+
+        // 根据权重随机选择
+        const totalWeight = pairsToUse.reduce((sum, pair) => sum + (pair.weight || 1), 0);
+        let randomWeight = Math.random() * totalWeight;
+        let randomPair = null;
+
+        for (const pair of pairsToUse) {
+            randomWeight -= (pair.weight || 1);
+            if (randomWeight <= 0) {
+                randomPair = pair;
+                break;
+            }
         }
 
-        if (live2d_settings.debug)
-            console.log(`[Live2D] 随机切换表情: ${randomPair.expression}, 动作: ${randomPair.motion}`);
+        // 如果没有选到，则选第一个 (理论上不应该发生)
+        if (!randomPair && pairsToUse.length > 0) {
+            randomPair = pairsToUse[0];
+        }
+
+        // 如果指定了motionType，则使用该type下的动作，但保留选择的表情
+        if (motionType && randomPair) {
+            randomPair = {
+                expression: randomPair.expression,
+                motion: motionType
+            };
+        }
+
+        if (randomPair) {
+            // 更新最近使用记录
+            recentExpressions.push(randomPair.expression);
+            recentMotions.push(randomPair.motion);
+
+            // 保持最近使用记录不超过限制
+            if (recentExpressions.length > MAX_RECENT_ITEMS) {
+                recentExpressions.shift();
+            }
+            if (recentMotions.length > MAX_RECENT_ITEMS) {
+                recentMotions.shift();
+            }
+
+            // 切换表情
+            if (window.live2dv2.model.expressions) {
+                window.live2dv2.model.setExpression(randomPair.expression);
+            }
+
+            // 切换动作
+            if (window.live2dv2.model.motions[randomPair.motion]) {
+                const motions = window.live2dv2.model.motions[randomPair.motion];
+                const randomMotionIndex = Math.floor(Math.random() * motions.length);
+                window.live2dv2.model.startMotion(randomPair.motion, randomMotionIndex, 2);
+            }
+
+            if (live2d_settings.debug) {
+                console.log(`[Live2D] 随机切换表情: ${randomPair.expression}, 动作: ${randomPair.motion}`);
+            }
+        }
     }
 
     // 保持模型位置固定，避免动作导致位置变化
@@ -268,7 +696,9 @@ function randomExpressionMotion(event) {
             } else if (style.right !== 'auto' && style.right !== '0px') {
                 modelElement.style.right = (window.innerWidth - modelRect.right) + 'px';
             }
-            console.log('[WaifuTips] 位置已修复');
+            if (live2d_settings.debug) {
+                console.log('[Live2D] 位置已修复');
+            }
         }
     }, 300);
 }
@@ -359,41 +789,47 @@ function initModel() {
 }
 
 function loadModel(modelName) {
-    if (live2d_settings.modelStorage)
-        setLS('modelName', modelName);
-    else
-        setSS('modelName', modelName);
-    live2d_settings.debug && console.log(`[WaifuTips] 加载模型 ${modelName}`);
-    let modelVersion = 2;
-    // 在配置中找到要加载模型的版本
-    for (let model of live2d_models) {
-        if (model.name === modelName) {
-            modelVersion = model.version;
-            changePosition(model.position);
-            break;
-        }
+    let modelVersion;
+    if (live2d_models.findIndex(m => m.name === modelName) === -1) modelName = live2d_settings.modelName;
+    const index = live2d_models.findIndex(m => m.name === modelName);
+    const modelInfo = live2d_models[index];
+    if (!modelInfo) {
+        console.error(`未找到模型: ${modelName}`);
+        return;
     }
-    // 如果要加载的模型版本不同，先释放之前的SDK并隐藏canvas
-    if (window.live2dCurrentVersion !== modelVersion) {
-        if (window.live2dCurrentVersion === 2) {
-            window.live2dv2.release();
-            $$(`#${live2dId2}`).style.display = 'none';
-        } else {
-            window.live2dv4.release();
-            $$(`#${live2dId4}`).style.display = 'none';
-        }
-    }
-    // 根据模型版本选择不同的SDK加载
+    modelVersion = modelInfo.version !== undefined ? modelInfo.version : 2;
+    waifuTips.style.opacity = 0;
+    waifuTips.style.visibility = 'hidden';
+    // 隐藏看板娘，防止加载前显示太久
+    waifu.style.visibility = 'hidden';
+    waifu.style.bottom = '-500px';
+    window.setTimeout(function () {
+        waifu.style.visibility = '';
+        waifu.style.bottom = '0';
+    }, 0);
+
+    if (live2d_settings.debug) console.log('[Live2D]', `加载模型: ${modelName}`);
+    // 载入模型
     if (modelVersion === 2) {
-        $$(`#${live2dId2}`).style.display = 'block';
-        window.live2dv2.load(live2dId2, `${live2d_settings.modelUrl}/${modelName}/model.json`);
-    } else if (window.live2dCurrentVersion === modelVersion) {
-        window.live2dv4.change(`${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+        // v2.0
+        window.live2dCurrentVersion = 2;
+        $$(`#${live2dId2}`).style.display = '';
+        $$(`#${live2dId4}`).style.display = 'none';
+        window.live2dv2.loadModel(`${live2d_settings.modelUrl}/${modelName}/model.json`);
     } else {
-        $$(`#${live2dId4}`).style.display = 'block';
-        window.live2dv4.load(live2dId4, `${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+        // v4.0
+        window.live2dCurrentVersion = 4;
+        window.live2d = window.l2d = window.live2dv4;
+        $$(`#${live2dId2}`).style.display = 'none';
+        $$(`#${live2dId4}`).style.display = '';
+        live2dv4.init(`${live2d_settings.modelUrl}/${modelName}`, null, { default_motion: 'idle' });
     }
-    window.live2dCurrentVersion = modelVersion;
+
+    // 记录到模型到LocalStorage
+    if (live2d_settings.modelStorage) setLS('modelName', modelName);
+
+    // 启动自动切换动作
+    startAutoMotionChange();
 }
 
 // 读取记忆的模型
