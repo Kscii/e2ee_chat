@@ -1,6 +1,7 @@
 import nacl from 'tweetnacl';
 import naclUtil from 'tweetnacl-util';
 import { savePrivateKey, getPrivateKey, getUserPublicKey } from '../api/keys';
+import { getSystemSalts, SystemSalts } from '../api/salt';
 
 // 密钥对接口
 export interface KeyPair {
@@ -16,6 +17,29 @@ export interface StringKeyPair {
 
 // 加密工具类
 export class CryptoService {
+  // 缓存的盐值
+  private static systemSalts: SystemSalts | null = null;
+  
+  // 初始化盐值
+  private static async initSalts(): Promise<void> {
+    if (!this.systemSalts) {
+      this.systemSalts = await getSystemSalts();
+      console.log('[CryptoService] 系统盐值初始化完成');
+    }
+  }
+  
+  // 获取加密盐值
+  private static async getEncryptionSalt(): Promise<string> {
+    await this.initSalts();
+    return this.systemSalts?.encryption_salt || 'fallback_encryption_salt';
+  }
+  
+  // 获取认证盐值
+  private static async getAuthSalt(): Promise<string> {
+    await this.initSalts();
+    return this.systemSalts?.auth_salt || 'fallback_auth_salt';
+  }
+  
   // 生成新的密钥对
   static generateKeyPair(): KeyPair {
     return nacl.box.keyPair();
@@ -97,11 +121,52 @@ export class CryptoService {
     // 将二进制转换回文本
     return naclUtil.encodeUTF8(decryptedMessage);
   }
+  
+  // 第一次哈希 - 生成用于加密私钥的密钥（存储在本地，永不发送到服务器）
+  static async generateEncryptionKey(password: string): Promise<Uint8Array> {
+    const encoder = new TextEncoder();
+    const passwordData = encoder.encode(password);
+    
+    // 获取服务器提供的盐值
+    const salt = await this.getEncryptionSalt();
+    
+    // 添加动态盐值增加安全性
+    const saltedPassword = new Uint8Array([
+      ...passwordData, 
+      ...encoder.encode(salt)
+    ]);
+    
+    // 使用SHA-512哈希并取前32字节作为密钥
+    const hashKey = nacl.hash(saltedPassword);
+    return hashKey.slice(0, 32); // 用于加密私钥的密钥
+  }
+  
+  // 第二次哈希 - 生成用于服务器验证的哈希（发送到服务器）
+  // 现在使用第一次哈希结果作为输入，而不是原始密码
+  static async generateAuthHash(password: string): Promise<string> {
+    // 先生成第一次哈希结果 (加密密钥)
+    const encryptionKey = await this.generateEncryptionKey(password);
+    
+    // 获取服务器提供的认证盐值
+    const authSalt = await this.getAuthSalt();
+    
+    // 将加密密钥与认证盐值组合
+    const saltedKey = new Uint8Array([
+      ...encryptionKey, 
+      ...new TextEncoder().encode(authSalt)
+    ]);
+    
+    // 使用SHA-512哈希函数
+    const hashKey = nacl.hash(saltedKey);
+    
+    // 转换为Base64格式以便于传输和存储
+    return naclUtil.encodeBase64(hashKey);
+  }
 
-  // 使用密码加密私钥
-  static encryptPrivateKey(secretKey: string, password: string): string {
-    // 创建从密码派生的密钥
-    const passwordKey = this.createPasswordKey(password);
+  // 使用加密密钥加密私钥 - 使用哈希值a而非原始密码
+  static async encryptPrivateKey(secretKey: string, password: string): Promise<string> {
+    // 生成加密密钥（使用第一次哈希）
+    const encryptionKey = await this.generateEncryptionKey(password);
     
     // 创建一次性随机数
     const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
@@ -109,11 +174,11 @@ export class CryptoService {
     // 将私钥转换为二进制
     const secretKeyUint8 = naclUtil.decodeBase64(secretKey);
     
-    // 使用密码密钥加密私钥
+    // 使用加密密钥加密私钥
     const encryptedSecretKey = nacl.secretbox(
       secretKeyUint8,
       nonce,
-      passwordKey
+      encryptionKey
     );
     
     // 将nonce和加密后的私钥合并
@@ -131,11 +196,11 @@ export class CryptoService {
     return naclUtil.encodeBase64(fullEncrypted);
   }
 
-  // 解密私钥
-  static decryptPrivateKey(encryptedSecretKeyBase64: string, password: string): string | null {
+  // 解密私钥 - 使用哈希值a而非原始密码
+  static async decryptPrivateKey(encryptedSecretKeyBase64: string, password: string): Promise<string | null> {
     try {
-      // 创建从密码派生的密钥
-      const passwordKey = this.createPasswordKey(password);
+      // 生成加密密钥（使用第一次哈希）
+      const encryptionKey = await this.generateEncryptionKey(password);
       
       // 将Base64字符串转换回二进制
       const encryptedWithNonce = naclUtil.decodeBase64(encryptedSecretKeyBase64);
@@ -146,11 +211,11 @@ export class CryptoService {
       // 提取加密私钥
       const encryptedSecretKey = encryptedWithNonce.slice(nacl.secretbox.nonceLength);
       
-      // 使用密码密钥解密私钥
+      // 使用加密密钥解密私钥
       const decryptedSecretKey = nacl.secretbox.open(
         encryptedSecretKey,
         nonce,
-        passwordKey
+        encryptionKey
       );
       
       // 如果解密失败，返回null
@@ -170,15 +235,9 @@ export class CryptoService {
     }
   }
 
-  // 从密码创建密钥（用于加密私钥）
-  private static createPasswordKey(password: string): Uint8Array {
-    // 使用SHA-256哈希密码以得到固定长度的密钥
-    const encoder = new TextEncoder();
-    const passwordData = encoder.encode(password);
-    
-    // 创建32字节（256位）密钥，必须是nacl.secretbox所需的长度
-    const hashKey = nacl.hash(passwordData);
-    return hashKey.slice(0, 32); // 取前32字节作为密钥
+  // 从密码创建密钥（用于加密私钥）- 已弃用，保留兼容性
+  private static async createPasswordKey(password: string): Promise<Uint8Array> {
+    return this.generateEncryptionKey(password);
   }
 
   // 创建密钥对并保存到localStorage
@@ -211,7 +270,7 @@ export class CryptoService {
         if (encryptedSecretKey) {
           console.log('[CryptoService] 已从服务器检索到加密私钥，正在解密...');
           // 解密私钥
-          const decryptedSecretKey = this.decryptPrivateKey(encryptedSecretKey, password);
+          const decryptedSecretKey = await this.decryptPrivateKey(encryptedSecretKey, password);
           
           if (decryptedSecretKey) {
             console.log('[CryptoService] 私钥解密成功，正在获取公钥...');
@@ -257,7 +316,7 @@ export class CryptoService {
       
       // 加密私钥
       console.log('[CryptoService] 正在使用密码加密私钥...');
-      const encryptedPrivateKey = this.encryptPrivateKey(stringKeyPair.secretKey, password);
+      const encryptedPrivateKey = await this.encryptPrivateKey(stringKeyPair.secretKey, password);
       
       // 保存加密的私钥到服务器
       try {

@@ -1,8 +1,6 @@
 import axios, { AxiosError } from 'axios';
-import { validateServerDomain } from '../utils/certificateValidator';
-
-// 从环境变量获取API URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+import { CryptoService } from '../utils/crypto';
+import { apiClient } from './client';
 
 // 定义API响应类型
 interface ApiErrorResponse {
@@ -28,48 +26,18 @@ interface UsersResponse {
   users: User[];
 }
 
-// 创建axios实例
-const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  // 在浏览器环境中，不需要显式配置HTTPS证书验证
-  // 浏览器会自动处理证书验证
-  withCredentials: import.meta.env.VITE_SECURE_MODE === 'true' // 允许跨域请求携带凭证
-});
-
-// 请求拦截器添加token和验证服务器
-apiClient.interceptors.request.use(
-  (config) => {
-    // 生产环境下验证域名和协议
-    if (import.meta.env.MODE === 'production') {
-      if (!validateServerDomain()) {
-        throw new Error('服务器验证失败，为保护您的账户安全，已阻止请求');
-      }
-    }
-    
-    // 添加认证token
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // 用户注册
 export const register = async (username: string, password: string, email: string, phone: string) => {
   try {
-    // 服务器验证在拦截器中完成
+    // 对密码进行哈希用于服务器认证，而不发送明文密码
+    const passwordHash = await CryptoService.generateAuthHash(password);
+    
     const response = await apiClient.post('/register', {
       username,
-      password,
+      password: passwordHash,
       email,
-      phone
+      phone,
+      is_hashed: true  // 告知服务器密码已经哈希处理
     });
     return response.data;
   } catch (error: unknown) {
@@ -86,10 +54,13 @@ export const register = async (username: string, password: string, email: string
 // 用户登录
 export const login = async (username: string, password: string) => {
   try {
-    // 服务器验证在拦截器中完成
+    // 对密码进行哈希用于服务器认证，而不发送明文密码
+    const passwordHash = await CryptoService.generateAuthHash(password);
+    
     const response = await apiClient.post<LoginResponse>('/login', {
       username,
-      password
+      password: passwordHash,
+      is_hashed: true  // 告知服务器密码已经哈希处理
     });
     
     // 保存token到localStorage

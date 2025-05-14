@@ -5,6 +5,7 @@ from datetime import datetime
 from config import DATABASE_PATH, PEPPER
 import os
 import uuid
+import secrets  # 用于生成安全的随机盐值
 
 class DatabaseManager:
     def __init__(self, db_path=DATABASE_PATH):
@@ -32,6 +33,17 @@ class DatabaseManager:
             avatar_path TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP
+        )
+        ''')
+        
+        # 创建系统盐值表
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS system_salts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            salt_name TEXT UNIQUE NOT NULL,
+            salt_value TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
@@ -149,6 +161,10 @@ class DatabaseManager:
         conn.commit()
         conn.close()
         print("数据库初始化完成")
+        
+        # 初始化盐值
+        salt_model = SaltModel()
+        salt_model.init_system_salts()
         
         # 初始化测试数据
         self.init_test_data()
@@ -281,8 +297,15 @@ class UserModel:
     def __init__(self):
         self.db_manager = DatabaseManager()
     
-    def create_user(self, username, password, email=None, phone=None):
-        """创建新用户"""
+    def create_user(self, username, password, email=None, phone=None, is_hashed=False):
+        """创建新用户
+        参数:
+            username: 用户名
+            password: 密码（明文或已哈希）
+            email: 邮箱
+            phone: 电话
+            is_hashed: 密码是否已经哈希处理
+        """
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         
@@ -300,14 +323,19 @@ class UserModel:
                     conn.close()
                     return {"error": "邮箱已被注册"}, 409
             
-            # 密码加密（加入pepper）
-            password_with_pepper = password + PEPPER
-            password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt())
+            # 处理密码
+            if is_hashed:
+                # 如果密码已经哈希过，直接存储客户端发送的哈希值
+                password_hash = password
+            else:
+                # 对明文密码加盐和哈希（传统方式）
+                password_with_pepper = password + PEPPER
+                password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt()).decode()
             
             # 存储用户信息
             cursor.execute(
                 "INSERT INTO users (username, email, phone, password_hash) VALUES (?, ?, ?, ?)",
-                (username, email, phone, password_hash.decode())
+                (username, email, phone, password_hash)
             )
             conn.commit()
             
@@ -320,8 +348,13 @@ class UserModel:
         finally:
             conn.close()
     
-    def authenticate_user(self, username, password):
-        """验证用户凭据"""
+    def authenticate_user(self, username, password, is_hashed=False):
+        """验证用户凭据
+        参数:
+            username: 用户名
+            password: 密码（明文或已哈希）
+            is_hashed: 密码是否已经哈希处理
+        """
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
         
@@ -333,10 +366,19 @@ class UserModel:
             if not user:
                 return None, "用户不存在"
             
-            # 验证密码
-            password_with_pepper = password + PEPPER
-            if bcrypt.checkpw(password_with_pepper.encode(), user['password_hash'].encode()):
-                # 更新最后登录时间
+            authenticated = False
+            
+            if is_hashed:
+                # 对于哈希密码验证，直接比较字符串
+                stored_hash = user['password_hash']
+                authenticated = (stored_hash == password)
+            else:
+                # 验证明文密码（添加pepper再验证）
+                password_with_pepper = password + PEPPER
+                authenticated = bcrypt.checkpw(password_with_pepper.encode(), user['password_hash'].encode())
+            
+            if authenticated:
+                # 验证成功，更新最后登录时间
                 cursor.execute(
                     "UPDATE users SET last_login = ? WHERE username = ?",
                     (datetime.now().isoformat(), username)
@@ -1258,5 +1300,151 @@ class ServerModel:
             conn.rollback()
             return {"error": f"更新服务器信息失败: {str(e)}"}, 500
             
+        finally:
+            conn.close()
+
+class SaltModel:
+    """管理系统盐值的模型"""
+    def __init__(self):
+        self.db_manager = DatabaseManager()
+        
+    def init_system_salts(self):
+        """初始化系统盐值，如果不存在则创建"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 检查是否已存在盐值
+            cursor.execute("SELECT COUNT(*) as count FROM system_salts")
+            result = cursor.fetchone()
+            
+            # 如果盐值表为空，初始化默认盐值
+            if result['count'] == 0:
+                # 盐值名称定义
+                salt_names = ["encryption_salt", "auth_salt"]
+                
+                # 为每个盐值生成安全的随机值并存储
+                for salt_name in salt_names:
+                    # 生成32字节(256位)的随机盐值并转为base64字符串
+                    salt_value = secrets.token_urlsafe(32)
+                    
+                    # 存储盐值
+                    cursor.execute(
+                        """
+                        INSERT INTO system_salts (salt_name, salt_value, created_at, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        """,
+                        (salt_name, salt_value, datetime.now().isoformat(), datetime.now().isoformat())
+                    )
+                
+                conn.commit()
+                print("系统盐值初始化完成")
+        
+        except Error as e:
+            conn.rollback()
+            print(f"初始化系统盐值失败: {str(e)}")
+        
+        finally:
+            conn.close()
+    
+    def get_salt(self, salt_name):
+        """获取指定名称的盐值"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                "SELECT salt_value FROM system_salts WHERE salt_name = ?",
+                (salt_name,)
+            )
+            
+            result = cursor.fetchone()
+            
+            if not result:
+                # 如果盐值不存在，创建一个新的
+                salt_value = secrets.token_urlsafe(32)
+                
+                cursor.execute(
+                    """
+                    INSERT INTO system_salts (salt_name, salt_value, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (salt_name, salt_value, datetime.now().isoformat(), datetime.now().isoformat())
+                )
+                
+                conn.commit()
+                return salt_value
+            
+            return result['salt_value']
+        
+        except Error as e:
+            print(f"获取盐值失败: {str(e)}")
+            return None
+        
+        finally:
+            conn.close()
+    
+    def get_all_salts(self):
+        """获取所有系统盐值"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                "SELECT salt_name, salt_value FROM system_salts"
+            )
+            
+            results = cursor.fetchall()
+            salts = {row['salt_name']: row['salt_value'] for row in results}
+            
+            return salts
+        
+        except Error as e:
+            print(f"获取盐值失败: {str(e)}")
+            return {}
+        
+        finally:
+            conn.close()
+    
+    def update_salt(self, salt_name, new_value=None):
+        """更新指定盐值，如果不提供新值则生成随机值"""
+        conn = self.db_manager.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 如果没有提供新值，生成一个随机值
+            if new_value is None:
+                new_value = secrets.token_urlsafe(32)
+            
+            cursor.execute(
+                """
+                UPDATE system_salts 
+                SET salt_value = ?, updated_at = ?
+                WHERE salt_name = ?
+                """,
+                (new_value, datetime.now().isoformat(), salt_name)
+            )
+            
+            conn.commit()
+            
+            if cursor.rowcount > 0:
+                return {"message": f"盐值 {salt_name} 更新成功"}, 200
+            else:
+                # 如果更新失败，可能是盐值不存在，尝试创建
+                cursor.execute(
+                    """
+                    INSERT INTO system_salts (salt_name, salt_value, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (salt_name, new_value, datetime.now().isoformat(), datetime.now().isoformat())
+                )
+                
+                conn.commit()
+                return {"message": f"盐值 {salt_name} 创建成功"}, 201
+        
+        except Error as e:
+            conn.rollback()
+            return {"error": f"更新盐值失败: {str(e)}"}, 500
+        
         finally:
             conn.close() 

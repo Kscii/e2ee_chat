@@ -7,7 +7,7 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 
-from models import DatabaseManager, UserModel, MessageModel, ServerModel
+from models import DatabaseManager, UserModel, MessageModel, ServerModel, SaltModel
 import config
 
 app = Flask(__name__)
@@ -28,6 +28,9 @@ db_manager.init_db()
 user_model = UserModel()
 message_model = MessageModel()
 server_model = ServerModel()  # 初始化服务器模型
+
+# 初始化 SaltModel
+salt_model = SaltModel()
 
 # 验证文件扩展名
 def allowed_file(filename):
@@ -78,19 +81,18 @@ def verify_token(token):
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
-    
-    # 获取必要字段
     username = data.get('username')
-    email = data.get('email', '')
-    phone = data.get('phone', '')
     password = data.get('password')
+    email = data.get('email')
+    phone = data.get('phone')
+    is_hashed = data.get('is_hashed', False)  # 新增：检查密码是否已哈希
     
-    # 验证必要字段
+    # 验证输入
     if not username or not password:
         return jsonify({"error": "用户名和密码不能为空"}), 400
     
     # 创建用户
-    result, status_code = user_model.create_user(username, password, email, phone)
+    result, status_code = user_model.create_user(username, password, email, phone, is_hashed)
     
     return jsonify(result), status_code
 
@@ -100,13 +102,14 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    is_hashed = data.get('is_hashed', False)  # 新增：检查密码是否已哈希
     
     # 验证输入
     if not username or not password:
         return jsonify({"error": "用户名和密码不能为空"}), 400
     
-    # 验证用户凭据
-    user, error_message = user_model.authenticate_user(username, password)
+    # 验证用户凭据 - 如果密码已哈希，传递is_hashed标志
+    user, error_message = user_model.authenticate_user(username, password, is_hashed)
     
     if user:
         # 生成JWT Token
@@ -914,6 +917,22 @@ def get_user_private_key():
         
     finally:
         conn.close()
+
+# 获取系统盐值接口 - 不需要认证，供初始化使用
+@app.route('/api/system/salts', methods=['GET'])
+def get_system_salts():
+    """获取系统盐值"""
+    try:
+        # 获取所有系统盐值
+        salts = salt_model.get_all_salts()
+        
+        if not salts:
+            return jsonify({"error": "无法获取系统盐值"}), 500
+            
+        return jsonify({"salts": salts}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取系统盐值失败: {str(e)}"}), 500
 
 # 运行应用
 if __name__ == '__main__':
