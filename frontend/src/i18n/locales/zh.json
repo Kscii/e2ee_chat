@@ -20,7 +20,8 @@
     "settings": "设置",
     "logout": "退出登录",
     "system": "系统",
-    "back": "返回"
+    "back": "返回",
+    "required": "必填"
   },
   "settings": {
     "title": "设置",
@@ -96,6 +97,7 @@
     "uploadButton": "上传文件",
     "emojiButton": "插入表情",
     "emptyMessages": "没有消息",
+    "attachFiles": "附加文件",
     "status": {
       "sending": "发送中...",
       "sent": "已发送",
@@ -256,7 +258,9 @@
       "add": "添加新服务器"
     },
     "main": "主服务器",
-    "test": "测试服务器"
+    "test": "测试服务器",
+    "mainDescription": "这是主服务器，所有用户的默认服务器",
+    "testDescription": "这是用于测试的服务器"
   },
   "login": {
     "title": "登录",
@@ -297,5 +301,10 @@
       "confirmRequired": "请确认密码！",
       "passwordsMismatch": "两次输入的密码不一致！"
     }
+  },
+  "upload": {
+    "file": "上传文件",
+    "image": "上传图片",
+    "message": "输入消息或上传文件..."
   }
 }

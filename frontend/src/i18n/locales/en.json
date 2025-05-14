@@ -20,7 +20,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "system": "System",
-    "back": "Back"
+    "back": "Back",
+    "required": "Required"
   },
   "settings": {
     "title": "Settings",
@@ -98,6 +99,7 @@
     "uploadButton": "Upload File",
     "emojiButton": "Insert Emoji",
     "emptyMessages": "No messages",
+    "attachFiles": "Attach Files",
     "status": {
       "sending": "Sending...",
       "sent": "Sent",
@@ -258,7 +260,9 @@
       "add": "Add New Server"
     },
     "main": "Main Server",
-    "test": "Test Server"
+    "test": "Test Server",
+    "mainDescription": "This is the main server, the default server for all users",
+    "testDescription": "This is a server for testing purposes"
   },
   "login": {
     "title": "Sign In",
