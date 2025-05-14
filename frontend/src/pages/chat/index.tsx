@@ -109,7 +109,7 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   const isAIChat = location.pathname === '/ai';
-  const { encryptMessage, decryptMessage } = useCrypto();
+  const { encryptMessage, decryptMessage, getMyPublicKey } = useCrypto();
 
   // 获取聊天对象ID或用户名
   const chatId = params.id || 'ai';
@@ -275,6 +275,14 @@ const ChatPage: React.FC = () => {
           continue;
         }
 
+        // 判断是否是自己发送给别人的消息
+        if (user && msg.sender_username === user.username && msg.receiver_id !== user.id) {
+          // 这是自己发送给别人的消息，我们不能解密，显示提示
+          console.log(`👤 Group message ${msg.id} sent by me to others, skipping decryption`);
+          decryptedMessages.set(msg.id.toString(), '[Encrypted message sent by me]');
+          continue;
+        }
+
         console.log(`🔓 Decrypting message from ${msg.sender_username} ID:${msg.id}...`, {
           encryptedContent: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
         });
@@ -362,36 +370,107 @@ const ChatPage: React.FC = () => {
     setLoadingMessages(true);
     try {
       console.log('📱 Fetching chat history with user:', otherUsername);
+      // 获取与对方的聊天记录
       const messagesData = await getMessages(otherUsername);
       console.log('📩 Received message count:', messagesData.length);
 
+      // 同时获取自己发给自己的消息副本
+      console.log('📱 Fetching self-copies of messages...');
+      let selfMessages: any[] = [];
+      try {
+        // 只有当聊天对象不是自己时，才需要单独获取自己的消息副本
+        if (user.username !== otherUsername) {
+          selfMessages = await getMessages(user.username);
+          console.log('📩 Received self-messages count:', selfMessages.length);
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to fetch self messages:', error);
+      }
+
+      // 合并两组消息并按时间排序
+      const allMessagesData = [...messagesData, ...selfMessages]
+        .filter(msg => {
+          // 只保留与当前聊天相关的消息副本
+          if (msg.receiver_username === user.username && msg.sender_username === user.username) {
+            // 这是自己发给自己的消息，检查它是否包含了当前对话中的内容
+            // 如果能找到相应的原始消息，则保留这个副本
+            return messagesData.some(origMsg =>
+              origMsg.sender_username === user.username &&
+              origMsg.receiver_username === otherUsername &&
+              new Date(origMsg.created_at).getTime() - new Date(msg.created_at).getTime() < 5000 // 5秒内发送的消息视为同一条
+            );
+          }
+
+          // 如果是自己发给对方的消息，去除它，我们会显示自己的副本
+          if (msg.sender_username === user.username && msg.receiver_username === otherUsername) {
+            // 查看是否有对应的自己发给自己的副本
+            const hasSelfCopy = selfMessages.some(selfMsg =>
+              selfMsg.sender_username === user.username &&
+              selfMsg.receiver_username === user.username &&
+              Math.abs(new Date(selfMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000
+            );
+
+            // 如果有自己的副本，则不显示发给对方的版本
+            return !hasSelfCopy;
+          }
+
+          return true; // 保留所有其他消息
+        })
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+      console.log('📩 Combined message count:', allMessagesData.length);
+
       // 转换API消息格式为UI消息格式
       console.log('🔄 Starting to process and decrypt messages...');
-      const uiMessages: Message[] = await Promise.all(messagesData.map(async msg => {
+      const uiMessages: Message[] = await Promise.all(allMessagesData.map(async msg => {
         let content = msg.content;
 
         // 如果是加密消息，尝试解密
         if (msg.is_encrypted) {
-          try {
-            // 获取发送者的公钥
-            const senderPublicKey = await getOrFetchPublicKey(msg.sender_username);
-            console.log(`🔑 Retrieved public key for user ${msg.sender_username}`);
-            console.log(`🔒 Encrypted message from ${msg.sender_username}:`, {
-              content: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
-            });
+          // 添加调试信息，查看完整的消息属性
+          console.log(`📨 消息详情:`, {
+            id: msg.id,
+            sender: msg.sender_username,
+            receiver: msg.receiver_username,
+            isSelf: msg.sender_username === user.username,
+            isSelfReceiver: msg.receiver_username === user.username
+          });
 
-            // 解密消息内容
-            const decrypted = decryptMessage(content, senderPublicKey);
-            if (decrypted) {
-              content = decrypted;
-              console.log(`🔓 Successfully decrypted message from ${msg.sender_username}`);
-            } else {
-              console.error(`❌ Unable to decrypt message:`, msg.id);
-              content = '[Encrypted message - Unable to decrypt]';
+          // 判断是否是自己发给自己的副本
+          const isSelfCopy = msg.sender_username === user.username && msg.receiver_username === user.username;
+
+          // 修改判断条件：只有当消息是自己发送给他人且不是自己的副本时才跳过解密
+          if (msg.sender_username === user.username && msg.receiver_username !== user.username && !isSelfCopy) {
+            console.log(`👤 消息${msg.id}是自己发给他人的，不解密显示`);
+            content = '[Encrypted message sent by me]';
+          } else {
+            try {
+              // 获取发送者的公钥
+              const senderPublicKey = await getOrFetchPublicKey(msg.sender_username);
+              console.log(`🔑 Retrieved public key for user ${msg.sender_username}`);
+              console.log(`🔒 Encrypted message from ${msg.sender_username}:`, {
+                content: msg.content.substring(0, 100) + (msg.content.length > 100 ? '...' : '')
+              });
+
+              // 解密消息内容
+              const decrypted = decryptMessage(content, senderPublicKey);
+              if (decrypted) {
+                content = decrypted;
+                console.log(`🔓 Successfully decrypted message from ${msg.sender_username}`);
+
+                // 如果是自己发给自己的副本，在内容前添加标记
+                if (isSelfCopy) {
+                  // 不再添加前缀标记
+                  // content = `📝 ${content}`;
+                }
+              } else {
+                console.error(`❌ Unable to decrypt message:`, msg.id);
+                content = '[Encrypted message - Unable to decrypt]';
+              }
+            } catch (error) {
+              console.error('❌ Message decryption failed:', error);
+              content = '[Encrypted message - Decryption failed]';
             }
-          } catch (error) {
-            console.error('❌ Message decryption failed:', error);
-            content = '[Encrypted message - Decryption failed]';
           }
         }
 
@@ -431,6 +510,7 @@ const ChatPage: React.FC = () => {
       }
 
       const mySecretKey = CryptoService.stringToKey(myKeyPair.secretKey);
+      const myPublicKey = CryptoService.stringToKey(myKeyPair.publicKey);
 
       // 获取群组所有成员
       console.log('👥 Fetching group members...');
@@ -441,12 +521,19 @@ const ChatPage: React.FC = () => {
       console.log('🔐 Starting to encrypt message for each group member...');
       const encryptedMessages = await Promise.all(
         members
-          // 移除过滤自己的代码，这样自己也会收到加密消息
           .map(async (member) => {
             try {
-              // 获取成员公钥
-              const publicKey = await getOrFetchPublicKey(member.username);
-              const publicKeyBytes = CryptoService.stringToKey(publicKey);
+              let publicKeyBytes;
+
+              // 如果是发给自己的消息，直接使用自己的公钥
+              if (member.username === user.username) {
+                console.log(`🔑 Using my own public key for my copy`);
+                publicKeyBytes = myPublicKey;
+              } else {
+                // 获取成员公钥
+                const publicKey = await getOrFetchPublicKey(member.username);
+                publicKeyBytes = CryptoService.stringToKey(publicKey);
+              }
 
               // 加密消息
               const encrypted = CryptoService.encryptMessage(
@@ -618,15 +705,40 @@ const ChatPage: React.FC = () => {
           const receiverPublicKey = await getOrFetchPublicKey(currentContact.name);
           console.log('🔑 Successfully obtained recipient public key');
 
-          // 加密消息内容
-          console.log('🔐 Encrypting message content...');
+          // 获取自己的公钥，用于给自己发送副本
+          console.log('🔑 Getting my own public key...');
+          const myPublicKey = getMyPublicKey();
+          if (!myPublicKey) {
+            console.error('❌ Cannot get my public key for self-copy encryption');
+            throw new Error('无法获取自己的公钥');
+          }
+          console.log('🔑 Successfully got my own public key');
+
+          // 加密发给对方的消息
+          console.log('🔐 Encrypting message content for recipient...');
           const encryptedContent = encryptMessage(userMessage.content, receiverPublicKey);
           console.log('🔒 Message encryption completed:', {
             encryptedContent: encryptedContent.substring(0, 100) + (encryptedContent.length > 100 ? '...' : '')
           });
 
-          // 发送加密消息
+          // 加密发给自己的消息副本
+          console.log('🔐 Encrypting message content for myself...');
+          const selfEncryptedContent = encryptMessage(userMessage.content, myPublicKey);
+          console.log('🔒 Self message encryption completed');
+
+          // 发送给接收者的加密消息
+          console.log('📤 Sending encrypted message to recipient...');
           const response = await sendEncryptedMessage(currentContact.name, encryptedContent);
+
+          // 发送给自己的加密消息副本（如果接口支持）
+          try {
+            console.log('📤 Sending self copy of the message...');
+            await sendEncryptedMessage(user.username, selfEncryptedContent);
+            console.log('✅ Self copy sent successfully');
+          } catch (selfCopyError) {
+            // 如果发送给自己的消息副本失败，只记录错误但不中断主要流程
+            console.error('⚠️ Failed to send self copy:', selfCopyError);
+          }
 
           // 防止页面崩溃的安全处理
           console.log('✅ Message sent successfully:', {

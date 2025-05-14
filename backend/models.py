@@ -98,6 +98,7 @@ class DatabaseManager:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL UNIQUE,
             public_key TEXT NOT NULL,
+            encrypted_private_key TEXT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )

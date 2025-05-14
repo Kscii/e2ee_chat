@@ -3,7 +3,6 @@ import { Form, Input, Button, Checkbox, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { login } from '../../api/auth';
 import { useAuth } from '../../contexts/AuthContext';
 import './index.css';
 
@@ -17,18 +16,17 @@ interface LoginFormValues {
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { setIsAuth, setUser } = useAuth();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onFinish = async (values: LoginFormValues) => {
     try {
       setLoading(true);
-      const response = await login(values.username, values.password);
+      await login(values.username, values.password);
+      // 登录成功后自行处理导航
       message.success(t('login.success') || '登录成功');
-      setIsAuth(true);
-      setUser({ username: response.username });
-      navigate('/chat/groups');
+      navigate('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('login.error') || '登录失败';
       message.error(errorMessage);

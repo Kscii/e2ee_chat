@@ -1,15 +1,15 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface PrivateRouteProps {
-    children: ReactElement;
+    children: React.ReactNode;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-    const { isAuth, loading } = useAuth();
+    const { isAuth, isLoading } = useAuth();
 
-    if (loading) {
+    if (isLoading) {
         // 可以显示一个加载组件
         return <div>加载中...</div>;
     }

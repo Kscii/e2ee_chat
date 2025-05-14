@@ -98,4 +98,41 @@ export const getOrFetchPublicKey = async (username: string): Promise<string> => 
   // 缓存结果
   publicKeyCache.set(username, publicKey);
   return publicKey;
+};
+
+// 保存加密的私钥到服务器
+export const savePrivateKey = async (encryptedPrivateKey: string): Promise<void> => {
+  try {
+    await apiClient.post('/keys/private', { encryptedPrivateKey });
+  } catch (error) {
+    console.error('保存加密私钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('保存加密私钥失败，请稍后重试');
+  }
+};
+
+// 从服务器获取加密的私钥
+export const getPrivateKey = async (): Promise<string | null> => {
+  try {
+    const response = await apiClient.get('/keys/private');
+    return response.data.encryptedPrivateKey;
+  } catch (error) {
+    console.error('获取加密私钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      // 如果是404错误，说明私钥不存在，返回null而不是抛出错误
+      if (axiosError.response?.status === 404) {
+        return null;
+      }
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取加密私钥失败，请稍后重试');
+  }
 }; 

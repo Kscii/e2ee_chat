@@ -45,7 +45,7 @@ const MainLayout: React.FC = () => {
   const { isDarkMode } = useTheme();
   const { aiEnabled } = useAI();
   const { t } = useTranslation();
-  const { user } = useAuth(); // 获取当前登录的用户信息
+  const { user, logout } = useAuth(); // 获取当前登录的用户信息和logout函数
   const { avatar } = useAvatar(); // 获取用户头像
   const isChannelsPage = location.pathname === '/channels';
   const [users, setUsers] = useState<{ id: number, username: string }[]>([]);
@@ -178,7 +178,10 @@ const MainLayout: React.FC = () => {
       key: 'logout',
       label: t('common.logout'),
       icon: <LogoutOutlined />,
-      onClick: () => navigate('/login'),
+      onClick: () => {
+        logout();  // 调用从context获取的logout函数
+        navigate('/login');
+      },
     },
   ];
 

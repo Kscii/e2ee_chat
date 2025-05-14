@@ -792,6 +792,129 @@ def get_avatar(username):
         print(f"获取头像错误: {str(e)}")
         return jsonify({"error": f"获取头像失败: {str(e)}"}), 500
 
+# 保存加密私钥
+@app.route('/api/keys/private', methods=['POST'])
+def save_user_private_key():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取用户名
+    username = payload.get('username')
+    print(f"正在为用户 {username} 保存加密私钥...")
+    
+    # 获取请求数据
+    data = request.get_json()
+    encrypted_private_key = data.get('encryptedPrivateKey')
+    
+    if not encrypted_private_key:
+        return jsonify({"error": "加密私钥不能为空"}), 400
+    
+    # 保存加密私钥
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # 检查用户是否存在
+        cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            print(f"用户 {username} 不存在")
+            return jsonify({"error": "用户不存在"}), 404
+        
+        user_id = user['id']
+        
+        # 检查用户是否已有记录
+        cursor.execute("SELECT id, public_key FROM user_keys WHERE user_id = ?", (user_id,))
+        key_record = cursor.fetchone()
+        
+        if key_record:
+            # 已有记录，只更新encrypted_private_key
+            print(f"用户 {username} 已有记录，更新加密私钥")
+            cursor.execute(
+                """
+                UPDATE user_keys 
+                SET encrypted_private_key = ?, updated_at = ? 
+                WHERE user_id = ?
+                """, 
+                (encrypted_private_key, datetime.now().isoformat(), user_id)
+            )
+        else:
+            # 没有记录，需要同时插入user_id、空的public_key和encrypted_private_key
+            print(f"用户 {username} 没有记录，创建新记录")
+            cursor.execute(
+                """
+                INSERT INTO user_keys (user_id, public_key, encrypted_private_key, updated_at) 
+                VALUES (?, ?, ?, ?)
+                """, 
+                (user_id, "", encrypted_private_key, datetime.now().isoformat())
+            )
+        
+        conn.commit()
+        print(f"用户 {username} 加密私钥保存成功")
+        return jsonify({"message": "加密私钥保存成功"}), 200
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"保存加密私钥失败: {str(e)}")
+        return jsonify({"error": f"保存加密私钥失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
+
+# 获取用户加密私钥
+@app.route('/api/keys/private', methods=['GET'])
+def get_user_private_key():
+    auth_header = request.headers.get('Authorization')
+    
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "无效的访问令牌"}), 401
+    
+    token = auth_header.split(' ')[1]
+    payload = verify_token(token)
+    
+    if not payload:
+        return jsonify({"error": "令牌已过期或无效"}), 401
+    
+    # 获取用户名
+    username = payload.get('username')
+    
+    # 获取加密私钥
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            """
+            SELECT k.encrypted_private_key 
+            FROM user_keys k
+            JOIN users u ON k.user_id = u.id
+            WHERE u.username = ?
+            """, 
+            (username,)
+        )
+        
+        result = cursor.fetchone()
+        
+        if not result or not result['encrypted_private_key']:
+            return jsonify({"error": "未找到该用户的加密私钥"}), 404
+            
+        return jsonify({"encryptedPrivateKey": result['encrypted_private_key']}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取加密私钥失败: {str(e)}"}), 500
+        
+    finally:
+        conn.close()
+
 # 运行应用
 if __name__ == '__main__':
     app.run(
