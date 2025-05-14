@@ -1,59 +1,138 @@
-import axios from 'axios';
-import { apiClient } from './client';
+import axios, { AxiosError } from 'axios';
 
-// 盐值接口
-export interface SystemSalts {
-  encryption_salt: string;
-  auth_salt: string;
-  [key: string]: string;
+// 从环境变量获取API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+// 创建axios实例
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  withCredentials: import.meta.env.VITE_SECURE_MODE === 'true' // 允许跨域请求携带凭证
+});
+
+// 请求拦截器添加token
+apiClient.interceptors.request.use(
+  (config) => {
+    // 添加认证token
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// 用户公钥信息接口
+export interface PublicKeyInfo {
+  username: string;
+  publicKey: string;
 }
 
-// 用于缓存盐值，避免频繁请求
-let cachedSalts: SystemSalts | null = null;
-
-/**
- * 从服务器获取系统盐值
- * @returns 返回包含所有盐值的对象
- */
-export const getSystemSalts = async (): Promise<SystemSalts> => {
-  // 如果已经有缓存的盐值，直接返回
-  if (cachedSalts && 'encryption_salt' in cachedSalts && 'auth_salt' in cachedSalts) {
-    return cachedSalts;
-  }
-
+// 保存用户公钥
+export const savePublicKey = async (publicKey: string): Promise<void> => {
   try {
-    const response = await apiClient.get('/system/salts');
-    const responseData = response.data.salts;
-    
-    // 验证响应数据是否符合SystemSalts接口要求
-    if (responseData && 
-        typeof responseData === 'object' && 
-        'encryption_salt' in responseData && 
-        'auth_salt' in responseData) {
-      
-      // 使用类型断言确保类型安全
-      const salts = responseData as SystemSalts;
-      cachedSalts = salts;
-      return salts;
-    } else {
-      throw new Error('服务器返回的盐值格式不正确');
-    }
+    await apiClient.post('/keys', { publicKey });
   } catch (error) {
-    console.error('获取系统盐值失败:', error);
-    
-    // 如果请求失败，返回默认盐值（仅作为临时后备方案）
-    const defaultSalts: SystemSalts = {
-      encryption_salt: 'fallback_encryption_salt_value',
-      auth_salt: 'fallback_auth_salt_value'
-    };
-    
-    return defaultSalts;
+    console.error('保存公钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('保存公钥失败，请稍后重试');
   }
 };
 
-/**
- * 清除盐值缓存，强制下次调用重新获取
- */
-export const clearSaltCache = () => {
-  cachedSalts = null;
+// 获取指定用户的公钥
+export const getUserPublicKey = async (username: string): Promise<string> => {
+  try {
+    const response = await apiClient.get(`/keys/${username}`);
+    return response.data.publicKey;
+  } catch (error) {
+    console.error(`获取用户 ${username} 的公钥失败:`, error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error(`无法获取用户 ${username} 的公钥`);
+  }
+};
+
+// 获取所有用户的公钥
+export const getAllPublicKeys = async (): Promise<PublicKeyInfo[]> => {
+  try {
+    const response = await apiClient.get('/keys');
+    return response.data.keys;
+  } catch (error) {
+    console.error('获取所有公钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取用户公钥列表失败');
+  }
+};
+
+// 本地缓存公钥
+const publicKeyCache: Map<string, string> = new Map();
+
+// 从缓存或服务器获取用户公钥
+export const getOrFetchPublicKey = async (username: string): Promise<string> => {
+  // 先检查缓存
+  if (publicKeyCache.has(username)) {
+    return publicKeyCache.get(username)!;
+  }
+  
+  // 从服务器获取
+  const publicKey = await getUserPublicKey(username);
+  // 缓存结果
+  publicKeyCache.set(username, publicKey);
+  return publicKey;
+};
+
+// 保存加密的私钥到服务器
+export const savePrivateKey = async (encryptedPrivateKey: string): Promise<void> => {
+  try {
+    await apiClient.post('/keys/private', { encryptedPrivateKey });
+  } catch (error) {
+    console.error('保存加密私钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('保存加密私钥失败，请稍后重试');
+  }
+};
+
+// 从服务器获取加密的私钥
+export const getPrivateKey = async (): Promise<string | null> => {
+  try {
+    const response = await apiClient.get('/keys/private');
+    return response.data.encryptedPrivateKey;
+  } catch (error) {
+    console.error('获取加密私钥失败:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{error: string}>;
+      // 如果是404错误，说明私钥不存在，返回null而不是抛出错误
+      if (axiosError.response?.status === 404) {
+        return null;
+      }
+      if (axiosError.response?.data) {
+        throw new Error(axiosError.response.data.error);
+      }
+    }
+    throw new Error('获取加密私钥失败，请稍后重试');
+  }
 }; 

@@ -23,7 +23,7 @@ export const getSystemSalts = async (): Promise<SystemSalts> => {
 
   try {
     const response = await apiClient.get('/system/salts');
-    cachedSalts = response.data.salts;
+    cachedSalts = response.data.salts as SystemSalts;
     return cachedSalts;
   } catch (error) {
     console.error('获取系统盐值失败:', error);
