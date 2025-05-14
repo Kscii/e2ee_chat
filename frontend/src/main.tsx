@@ -13,7 +13,7 @@ if (import.meta.env.MODE === 'production') {
   enforceSecureConnection();
 } else {
   // 在开发环境下输出环境信息，帮助调试
-  console.info('开发环境配置:', getEnvironmentInfo());
+  console.info('Development environment configuration:', getEnvironmentInfo());
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

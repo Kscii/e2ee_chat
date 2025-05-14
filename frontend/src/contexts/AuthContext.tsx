@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     // 尝试从sessionStorage恢复密码
                     const savedPassword = sessionStorage.getItem('userPassword');
                     if (savedPassword) {
-                        console.log('从sessionStorage恢复密码');
+                        console.log('Recovering password from sessionStorage');
                         setPassword(savedPassword);
                     }
                 }

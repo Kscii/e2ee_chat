@@ -187,7 +187,7 @@ const MainLayout: React.FC = () => {
 
   // 处理菜单点击
   const handleMenuClick: MenuProps['onClick'] = (e) => {
-    console.log('点击菜单项:', e.key);
+    console.log('Menu item clicked:', e.key);
     if (e.key === 'channels') {
       navigate('/channels');
       handleCollapse(true);
@@ -198,7 +198,7 @@ const MainLayout: React.FC = () => {
     } else if (e.key === 'ai') {
       navigate('/ai');
     } else if (e.key === 'groups') {
-      console.log('导航到群组聊天');
+      console.log('Navigating to group chat');
       navigate('/chat/groups');
     }
 

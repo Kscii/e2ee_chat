@@ -3,7 +3,7 @@ import { validateServerDomain } from '../utils/certificateValidator';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-console.log('使用API URL:', API_URL);
+console.log('Using API URL:', API_URL);
 
 // 消息相关类型定义
 export interface Message {

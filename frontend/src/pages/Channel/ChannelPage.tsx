@@ -155,7 +155,7 @@ const ChannelPage: React.FC = () => {
             currentServer.channels = [...currentServer.channels, ...newChannels];
             // 更新当前服务器状态，触发重新渲染
             setCurrentServer(currentServer.id);
-            console.log('已从数据库同步群组到频道:', newChannels);
+            console.log('Groups synchronized to channels from database:', newChannels);
           }
 
           // 如果有频道但没有选中的频道，选择第一个频道
@@ -195,7 +195,7 @@ const ChannelPage: React.FC = () => {
         return;
       }
 
-      console.log('获取群组ID:', groupId, '的消息');
+      console.log('Fetching messages for group ID:', groupId);
 
       // 使用频道ID作为群组ID获取加密消息
       const encryptedMessagesData = await getEncryptedGroupMessages(groupId);
@@ -894,7 +894,6 @@ const ChannelPage: React.FC = () => {
                     icon={<ArrowLeftOutlined />}
                     onClick={handleBackToChannels}
                   >
-                    {t('')}
                   </Button>
                 )}
                 <h2>{selectedChannel.name}</h2>
