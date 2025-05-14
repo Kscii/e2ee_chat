@@ -96,6 +96,11 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 - Avatar upload and management
 - File storage and retrieval
 
+#### 5. Security Updates
+- No default users are created during initialization
+- First registered user becomes the owner of the default server
+- Enhanced security by removing pre-configured accounts
+
 ### API Overview
 The backend provides the following main API endpoints:
 
@@ -239,6 +244,11 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 #### 4. 文件处理
 - 头像上传和管理
 - 文件存储和检索
+
+#### 5. 安全更新
+- 初始化过程中不再创建默认用户
+- 第一个注册的用户自动成为默认服务器所有者
+- 通过移除预配置账户增强系统安全性
 
 ### API概述
 后端提供以下主要API端点:

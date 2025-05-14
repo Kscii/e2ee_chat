@@ -171,72 +171,19 @@ class DatabaseManager:
         print("测试数据初始化完成")
 
     def init_test_data(self):
-        """初始化测试用户和群组数据"""
+        """初始化测试数据"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
         try:
-            # 初始密码(统一使用info2222)
-            password = "info2222"
-            password_with_pepper = password + PEPPER
-            password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt()).decode()
-            
-            # 创建五个测试用户
-            users = [
-                ("anon", "anon@tokyo.com", "97110111110", password_hash),
-                ("tomori", "tomori@mygo.com", "116111109111114105", password_hash),
-                ("rana", "rana@mygo.com", "11497110197", password_hash),
-                ("soyo", "soyo@mygo.com", "115111121111", password_hash),
-                ("taki", "taki@mygo.com", "11697107105", password_hash)
-            ]
-            
-            # 插入用户数据
-            user_ids = []
-            for username, email, phone, pw_hash in users:
-                # 检查用户是否已存在
-                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-                user = cursor.fetchone()
-                if not user:
-                    # 检查头像文件是否存在
-                    avatar_path = None
-                    avatar_file = f"avatars/{username}.png"
-                    if os.path.exists(avatar_file):
-                        avatar_path = f"avatars/{username}.png"
-                    
-                    # 添加avatar_path参数到插入语句
-                    cursor.execute(
-                        "INSERT INTO users (username, email, phone, password_hash, avatar_path) VALUES (?, ?, ?, ?, ?)",
-                        (username, email, phone, pw_hash, avatar_path)
-                    )
-                    cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-                    user = cursor.fetchone()
-                    print(f"创建用户: {username}" + (f" (带头像)" if avatar_path else ""))
-                
-                user_ids.append(user['id'])
-            
             # 创建默认服务器
             cursor.execute("SELECT id FROM servers WHERE id = 1")
             if not cursor.fetchone():
                 cursor.execute(
                     "INSERT INTO servers (id, name, description, owner_id) VALUES (?, ?, ?, ?)",
-                    (1, "main server", "默认服务器", user_ids[0])  # anon作为所有者
+                    (1, "main server", "默认服务器", 1)  # 设置owner_id为1，将由第一个注册的用户拥有
                 )
                 print("创建服务器: 主服务器")
-            
-            # 将用户添加到服务器
-            for user_id in user_ids:
-                # 检查用户是否已在服务器中
-                cursor.execute(
-                    "SELECT id FROM server_members WHERE server_id = 1 AND user_id = ?",
-                    (user_id,)
-                )
-                
-                if not cursor.fetchone():
-                    cursor.execute(
-                        "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
-                        (1, user_id)
-                    )
-                    print(f"将用户ID {user_id} 加入服务器1")
             
             # 创建默认群组1 (公共聊天室)
             cursor.execute("SELECT id FROM groups WHERE id = 1")
@@ -256,40 +203,12 @@ class DatabaseManager:
                 )
                 print("创建群组: general (服务器1)")
             
-            # 将用户加入群组1
-            for user_id in user_ids:
-                # 检查用户是否已在群组中
-                cursor.execute(
-                    "SELECT id FROM group_members WHERE group_id = 1 AND user_id = ?",
-                    (user_id,)
-                )
-                
-                if not cursor.fetchone():
-                    cursor.execute(
-                        "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
-                        (1, user_id)
-                    )
-                    print(f"将用户ID {user_id} 加入群组1")
-            
-            # 将用户加入群组2 (general)
-            for user_id in user_ids:
-                # 检查用户是否已在群组中
-                cursor.execute(
-                    "SELECT id FROM group_members WHERE group_id = 2 AND user_id = ?",
-                    (user_id,)
-                )
-                
-                if not cursor.fetchone():
-                    cursor.execute(
-                        "INSERT INTO group_members (group_id, user_id) VALUES (?, ?)",
-                        (2, user_id)
-                    )
-                    print(f"将用户ID {user_id} 加入群组2 (general)")
-            
             conn.commit()
-        except Exception as e:
+            
+        except Error as e:
+            print(f"初始化测试数据出错: {e}")
             conn.rollback()
-            print(f"初始化测试数据失败: {str(e)}")
+        
         finally:
             conn.close()
 
@@ -1143,24 +1062,6 @@ class ServerModel:
                 "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
                 (server_id, creator_id)
             )
-            
-            # 默认添加系统用户作为成员
-            default_users = ["anon", "tomori", "rana", "soyo", "taki"]
-            for username in default_users:
-                # 跳过创建者，因为已添加
-                if username == creator_username:
-                    continue
-                    
-                # 获取用户ID
-                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-                user = cursor.fetchone()
-                
-                if user:
-                    # 添加用户为成员
-                    cursor.execute(
-                        "INSERT INTO server_members (server_id, user_id) VALUES (?, ?)",
-                        (server_id, user['id'])
-                    )
             
             conn.commit()
             
