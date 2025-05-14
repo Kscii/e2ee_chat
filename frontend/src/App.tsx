@@ -24,6 +24,7 @@ import './i18n'; // 导入 i18n 配置
 import './styles/theme.css';
 import './App.css';
 import { ServerProvider } from './contexts/ServerContext';
+import { useRef } from 'react';
 
 // Discord主题配置
 const discordTheme = {
@@ -50,6 +51,7 @@ const AppContent = () => {
   const { algorithm, themeMode } = useTheme();
   const { language } = useLanguage();
   const location = useLocation();
+  const nodeRef = useRef(null);
 
   // 根据当前语言选择 Ant Design 的语言包
   const antdLocale = language.startsWith('zh') ? zhCN : enUS;
@@ -69,22 +71,25 @@ const AppContent = () => {
           key={location.key}
           classNames="page-transition"
           timeout={300}
+          nodeRef={nodeRef}
         >
-          <Routes location={location}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={
-              <PrivateRoute>
-                <MainLayout />
-              </PrivateRoute>
-            }>
-              <Route index element={<Navigate to="/chat/groups" replace />} />
-              <Route path="chat/:id?" element={<ChatPage />} />
-              <Route path="channels" element={<ChannelPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="ai" element={<ChatPage />} />
-            </Route>
-          </Routes>
+          <div ref={nodeRef}>
+            <Routes location={location}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/" element={
+                <PrivateRoute>
+                  <MainLayout />
+                </PrivateRoute>
+              }>
+                <Route index element={<Navigate to="/chat/groups" replace />} />
+                <Route path="chat/:id?" element={<ChatPage />} />
+                <Route path="channels" element={<ChannelPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="ai" element={<ChatPage />} />
+              </Route>
+            </Routes>
+          </div>
         </CSSTransition>
       </TransitionGroup>
     </ConfigProvider>
