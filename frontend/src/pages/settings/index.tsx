@@ -28,7 +28,7 @@ const SettingsPage: React.FC = () => {
   const { language, changeLanguage } = useLanguage();
   const { live2dEnabled, toggleLive2D } = useLive2D();
   const { t } = useTranslation();
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   // 使用本地状态保存用户数据
   const [userData, setUserData] = useState({
@@ -116,7 +116,7 @@ const SettingsPage: React.FC = () => {
               )}
             </Upload>
             <div className="profile-info">
-              {loading ? (
+              {isLoading ? (
                 <Spin size="small" />
               ) : (
                 <>

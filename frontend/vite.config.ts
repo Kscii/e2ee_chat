@@ -10,6 +10,8 @@ export default defineConfig({
     allowedHosts: ['kang-mi.com'], // 允许外部域名访问
   },
   build: {
+    // 配置chunk大小警告限制
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -33,8 +35,6 @@ export default defineConfig({
           // 其他工具库分离
           'utils-vendor': ['axios', 'socket.io-client', 'tweetnacl', 'tweetnacl-util'],
         },
-        // 配置chunk大小警告限制
-        chunkSizeWarningLimit: 1000,
         // 对于大型资源，采用hash命名
         assetFileNames: 'assets/[name].[hash].[ext]',
         // 入口文件配置
