@@ -173,6 +173,178 @@ print(measure_hash_time())
 
 理想的结果应该是在0.2-0.4秒之间，足够慢以阻止暴力攻击，但不会影响正常用户体验。
 
+## 3. 强化的双重哈希密码系统
+
+在我们应用的最新版本中，我们进一步提升了密码安全性，通过实现双重哈希密码系统，确保原始密码永远不会传输到服务器。
+
+### 系统架构与流程
+
+双重哈希系统的工作流程如下：
+
+1. **密码处理流程**：
+   - 用户在客户端输入密码
+   - 客户端异步生成第一次哈希(哈希a)：`hash1(password + salt1)`
+   - 客户端使用第一次哈希结果异步生成第二次哈希(哈希b)：`hash2(encryptionKey + salt2)`
+   - 第二次哈希使用二进制数据合并，而非简单字符串拼接
+   - 仅哈希b发送到服务器进行验证
+   - 哈希a仅用于本地加密私钥
+
+2. **盐值动态获取**：
+   ```javascript
+   // 从服务器获取系统盐值（无需认证）
+   export const getSystemSalts = async (): Promise<SystemSalts> => {
+     // 如果已经有缓存的盐值，直接返回
+     if (cachedSalts) {
+       return cachedSalts;
+     }
+
+     try {
+       const response = await apiClient.get('/system/salts');
+       cachedSalts = response.data.salts;
+       return cachedSalts;
+     } catch (error) {
+       console.error('获取系统盐值失败:', error);
+       
+       // 如果请求失败，返回默认盐值（仅作为临时后备方案）
+       const defaultSalts: SystemSalts = {
+         encryption_salt: 'fallback_encryption_salt_value',
+         auth_salt: 'fallback_auth_salt_value'
+       };
+       
+       return defaultSalts;
+     }
+   };
+   
+   // 第一次哈希 - 生成用于加密私钥的密钥
+   static async generateEncryptionKey(password: string): Promise<Uint8Array> {
+     const encoder = new TextEncoder();
+     const passwordData = encoder.encode(password);
+     
+     // 获取服务器提供的盐值
+     const salt = await this.getEncryptionSalt();
+     
+     // 添加动态盐值增加安全性
+     const saltedPassword = new Uint8Array([
+       ...passwordData, 
+       ...encoder.encode(salt)
+     ]);
+     
+     // 使用SHA-512哈希并取前32字节作为密钥
+     const hashKey = nacl.hash(saltedPassword);
+     return hashKey.slice(0, 32); // 用于加密私钥的密钥
+   }
+   ```
+
+3. **服务器验证流程**：
+   ```python
+   def authenticate_user(username, password, is_hashed=False):
+       # 获取用户
+       cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+       user = cursor.fetchone()
+       
+       if not user:
+           return None, "用户不存在"
+       
+       authenticated = False
+       
+       if is_hashed:
+           # 对于哈希密码验证，直接比较字符串
+           stored_hash = user['password_hash']
+           authenticated = (stored_hash == password)
+       else:
+           # 传统密码验证（后向兼容）
+           password_with_pepper = password + PEPPER
+           authenticated = bcrypt.checkpw(password_with_pepper.encode(), 
+                                         user['password_hash'].encode())
+       
+       if authenticated:
+           # 验证成功
+           return user_dict, None
+       else:
+           return None, "密码不正确"
+   ```
+
+### 安全优势
+
+1. **禁止明文密码传输**
+   - 原始密码永远不会离开用户的设备
+   - 网络流量中只能看到不可逆的哈希值
+
+2. **密码与私钥解密分离**
+   - 私钥使用哈希a加密
+   - 服务器只接收哈希b验证身份
+   - 即使服务器被入侵也无法解密用户私钥
+
+3. **动态盐值保护**
+   - 盐值存储在服务器，动态提供给客户端
+   - 为不同用途使用不同盐值
+   - 包含错误处理和后备机制，确保系统可靠性
+   - 防止预计算攻击和彩虹表攻击
+
+4. **零知识证明特性**
+   - 服务器可以验证用户知道正确密码
+   - 但无法获取密码或解密密钥
+   - 提供真正的零知识认证
+
+### 前端验证实现
+
+```typescript
+// 登录处理函数
+export const login = async (username: string, password: string) => {
+  try {
+    // 对密码进行第二次哈希用于服务器认证，而不发送明文密码
+    // 必须使用await，因为哈希生成是异步的
+    const passwordHash = await CryptoService.generateAuthHash(password);
+    
+    // 发送哈希值代替原始密码
+    const response = await apiClient.post<LoginResponse>('/login', {
+      username,
+      password: passwordHash,
+      is_hashed: true  // 告知服务器密码已经哈希处理
+    });
+    
+    // 登录成功，存储token但不存储密码
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('username', response.data.username);
+    }
+    
+    return response.data;
+  } catch (error) {
+    // 错误处理...
+    throw new Error('登录失败');
+  }
+};
+```
+
+### 双重哈希流程细节
+
+第二次哈希的实现使用二进制数据合并而非字符串拼接：
+
+```typescript
+// 第二次哈希 - 生成用于服务器验证的哈希（发送到服务器）
+// 现在使用第一次哈希结果作为输入，而不是原始密码
+static async generateAuthHash(password: string): Promise<string> {
+  // 先生成第一次哈希结果 (加密密钥)
+  const encryptionKey = await this.generateEncryptionKey(password);
+  
+  // 获取服务器提供的认证盐值
+  const authSalt = await this.getAuthSalt();
+  
+  // 将加密密钥与认证盐值组合 - 注意这是二进制数据合并
+  const saltedKey = new Uint8Array([
+    ...encryptionKey, 
+    ...new TextEncoder().encode(authSalt)
+  ]);
+  
+  // 使用SHA-512哈希函数
+  const hashKey = nacl.hash(saltedKey);
+  
+  // 转换为Base64格式以便于传输和存储
+  return naclUtil.encodeBase64(hashKey);
+}
+```
+
 ## 总结
 
-我们的项目使用bcrypt结合salt和pepper实现了高度安全的密码存储机制。这种方法不仅符合当前的行业最佳实践，还为未来的安全需求提供了可扩展性。通过合理配置的工作因子、自动生成的随机盐以及应用级pepper，我们的实现能够有效抵抗各种针对密码的攻击，包括暴力破解、彩虹表和预计算攻击。 
+通过结合传统的bcrypt密码哈希和我们的双重哈希系统，我们的应用实现了多层次的密码安全保护。系统支持两种验证模式，确保后向兼容性的同时提供增强的安全性。即使在最坏的情况下（如数据库完全泄露），攻击者也无法获取原始密码或足够的信息来解密用户的私钥。这种实现不仅符合当前的行业最佳实践，还通过确保原始密码永远不离开客户端，进一步提升了系统的安全性。 

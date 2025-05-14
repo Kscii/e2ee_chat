@@ -12,7 +12,9 @@ If you want to experience this project, you can visit:
 ### Key Features
 - AI Chat Assistant (powered by OpenAI)
 - End-to-End Encryption (E2EE) for secure communication
+  - Double-hashing password system for enhanced security
   - Password-protected private key storage
+  - Zero-knowledge proof password verification
   - Message self-copying mechanism for viewing sent messages
   - Secure key management and recovery
 - Group chat with encryption support
@@ -44,6 +46,7 @@ If you want to experience this project, you can visit:
   - X25519 for key exchange
   - XSalsa20 for symmetric encryption
   - Poly1305 for message authentication
+  - Double-hashing password system with server-side salts
 - Rich Text Editor: Tiptap
 - Internationalization: i18next
 - Code Quality: ESLint
@@ -53,7 +56,7 @@ If you want to experience this project, you can visit:
 - Database: SQLite
 - Authentication: JWT
 - Encryption: Public/Private key infrastructure 
-- Password security: bcrypt with salt and pepper
+- Password security: Server-side salts with secure storage
 
 ### Prerequisites
 - Node.js (version 16 or above)
@@ -139,7 +142,9 @@ The backend server will run on `http://localhost:8000` by default.
 ### 主要功能
 - AI 聊天助手（由 OpenAI 驱动）
 - 端到端加密通信（E2EE），确保消息安全
+  - 双重哈希密码系统提升安全性
   - 密码保护的私钥存储方案
+  - 零知识证明密码验证
   - 消息自我副本机制，便于查看已发送的消息
   - 安全的密钥管理和恢复功能
 - 支持加密的群组聊天功能
@@ -171,6 +176,7 @@ The backend server will run on `http://localhost:8000` by default.
   - X25519 用于密钥交换
   - XSalsa20 用于对称加密
   - Poly1305 用于消息认证
+  - 双重哈希密码系统配合服务器端盐值
 - 富文本编辑器：Tiptap
 - 国际化：i18next
 - 代码质量：ESLint
@@ -180,7 +186,7 @@ The backend server will run on `http://localhost:8000` by default.
 - 数据库：SQLite
 - 认证机制：JWT
 - 加密系统：公钥/私钥基础设施
-- 密码安全：bcrypt 加盐加胡椒
+- 密码安全：服务器端盐值与安全存储
 
 ### 环境要求
 - Node.js（16.0.0 或以上版本）

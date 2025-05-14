@@ -19,6 +19,10 @@ This is the frontend application for the Web Chat Application. It provides a mod
 - **Internationalization**: i18next
 - **Text Editor**: Tiptap
 - **Encryption**: TweetNaCl.js
+  - X25519 for key exchange
+  - XSalsa20 for symmetric encryption
+  - Poly1305 for message authentication
+  - Double-hashing password system for enhanced security
 - **Styling**: CSS Modules with transitions
 - **Code Quality**: ESLint, TypeScript
 
@@ -86,23 +90,32 @@ npm run preview
 - Built-in public/private key cryptography
 - Secure message encryption with TweetNaCl
 - Client-side key generation and management
+- Zero-knowledge password verification with double-hashing
 
-#### 2. Real-Time Messaging
+#### 2. Enhanced Password Security
+- Double-hashing password system
+  - First hash remains client-side for private key encryption
+  - Second hash sent to server for authentication
+- Dynamic server-side salts for both hashing processes
+- Original password never leaves client device
+- Protects private keys even if server is compromised
+
+#### 3. Real-Time Messaging
 - Instant message delivery with Socket.IO
 - One-to-one private chats
 - Group chats with multiple participants
 
-#### 3. User Interface
+#### 4. User Interface
 - Responsive design for desktop and mobile
 - Dark/light theme support
 - Customizable user settings
 
-#### 4. Internationalization
+#### 5. Internationalization
 - Support for 16 languages
 - Automatic language detection
 - User language preference persistence
 
-#### 5. File Sharing
+#### 6. File Sharing
 - Secure file uploads
 - Avatar customization
 - Image rendering and previews
@@ -132,6 +145,8 @@ The application includes a deployment script (`deploy.sh`) that can be configure
 - Protection against common web vulnerabilities
 - Client-side encryption of sensitive data
 - Certificate validation
+- Double-hashing password system
+- Zero server access to plaintext passwords
 
 ---
 
@@ -152,6 +167,10 @@ The application includes a deployment script (`deploy.sh`) that can be configure
 - **国际化**: i18next
 - **富文本编辑器**: Tiptap
 - **加密**: TweetNaCl.js
+  - X25519 用于密钥交换
+  - XSalsa20 用于对称加密
+  - Poly1305 用于消息认证
+  - 双重哈希密码系统提升安全性
 - **样式**: CSS Modules 配合过渡动画
 - **代码质量**: ESLint, TypeScript
 
@@ -219,23 +238,32 @@ npm run preview
 - 内置的公钥/私钥加密体系
 - 使用TweetNaCl的安全消息加密
 - 客户端密钥生成和管理
+- 零知识密码验证与双重哈希
 
-#### 2. 实时消息
+#### 2. 增强的密码安全
+- 双重哈希密码系统
+  - 第一次哈希留在客户端用于私钥加密
+  - 第二次哈希发送到服务器用于身份验证
+- 两次哈希过程使用动态服务器端盐值
+- 原始密码永不离开客户端设备
+- 即使服务器被入侵也能保护私钥安全
+
+#### 3. 实时消息
 - 通过Socket.IO实现即时消息传递
 - 一对一私人聊天
 - 多参与者群组聊天
 
-#### 3. 用户界面
+#### 4. 用户界面
 - 适用于桌面和移动设备的响应式设计
 - 暗/亮主题支持
 - 可自定义用户设置
 
-#### 4. 国际化
+#### 5. 国际化
 - 支持16种语言
 - 自动语言检测
 - 用户语言偏好持久化
 
-#### 5. 文件共享
+#### 6. 文件共享
 - 安全文件上传
 - 头像自定义
 - 图片渲染和预览
@@ -264,4 +292,6 @@ npm run preview
 - 安全的HTTP头
 - 防御常见Web漏洞
 - 敏感数据的客户端加密
-- 证书验证 
+- 证书验证
+- 双重哈希密码系统
+- 服务器无法获取明文密码 

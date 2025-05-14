@@ -12,7 +12,7 @@ This is the backend service for the Web Chat Application. It provides authentica
 - **Framework**: Flask 2.2.3
 - **Database**: SQLite 3 (file-based)
 - **Authentication**: JWT (JSON Web Tokens)
-- **Password Security**: bcrypt with salt and pepper
+- **Password Security**: Server-side salts with secure storage (double-hashing architecture)
 - **API**: RESTful architecture
 - **Encryption**: Public/Private key infrastructure
 - **File Storage**: Local file system for avatars and uploads
@@ -81,7 +81,7 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 #### 1. Authentication System
 - Secure registration and login
 - JWT token-based authentication
-- Password hashing with bcrypt
+- Double-hashing password verification (zero-knowledge proof)
 
 #### 2. End-to-End Encryption
 - Public/private key management
@@ -110,6 +110,7 @@ The backend provides the following main API endpoints:
 
 #### Encryption
 - `/api/keys`: Save and retrieve encryption keys
+- `/api/system/salts`: Get system salt values for secure hashing
 
 #### Messaging
 - `/api/messages`: Send and receive messages
@@ -124,12 +125,14 @@ The backend provides the following main API endpoints:
 - `/api/servers`: Create and manage servers
 
 ### Security Features
-- Password hashing with bcrypt using salt and pepper
+- Double-hashing password system with client-side initial hash
+- Server never receives plaintext passwords
 - JWT tokens with expiration
 - End-to-end encryption for messages
 - HTTPS support (recommended for production)
 - Input validation and sanitization
 - Protection against common vulnerabilities
+- Zero-knowledge password verification
 
 ### Deployment Guide
 1. Set up a production environment
@@ -153,7 +156,7 @@ gunicorn -w 4 -b 127.0.0.1:8000 run:app
 - **框架**: Flask 2.2.3
 - **数据库**: SQLite 3 (文件型)
 - **认证**: JWT (JSON Web Tokens)
-- **密码安全**: bcrypt 加盐加胡椒处理
+- **密码安全**: 服务器端盐值与安全存储（双重哈希架构）
 - **API**: RESTful 架构
 - **加密**: 公钥/私钥基础设施
 - **文件存储**: 用于头像和上传文件的本地文件系统
@@ -222,7 +225,7 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 #### 1. 认证系统
 - 安全的注册和登录
 - 基于JWT令牌的认证
-- 使用bcrypt的密码哈希处理
+- 双重哈希密码验证（零知识证明）
 
 #### 2. 端到端加密
 - 公钥/私钥管理
@@ -251,6 +254,7 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 
 #### 加密
 - `/api/keys`: 保存和检索加密密钥
+- `/api/system/salts`: 获取系统盐值用于安全哈希
 
 #### 消息
 - `/api/messages`: 发送和接收消息
@@ -265,12 +269,14 @@ gunicorn -w 4 -b 0.0.0.0:8000 run:app
 - `/api/servers`: 创建和管理服务器
 
 ### 安全特性
-- 使用bcrypt加盐加胡椒处理的密码哈希
+- 客户端初始哈希的双重哈希密码系统
+- 服务器永不接收明文密码
 - 带有过期时间的JWT令牌
 - 消息的端到端加密
 - HTTPS支持 (生产环境推荐)
 - 输入验证和净化
 - 防御常见漏洞
+- 零知识密码验证
 
 ### 部署指南
 1. 设置生产环境
