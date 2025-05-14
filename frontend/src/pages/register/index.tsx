@@ -37,7 +37,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div className="register-container">
-      <Card bordered={false} className="register-card">
+      <Card variant="borderless" className="register-card">
         <div className="register-header">
           <Title level={2} style={{ margin: '0 0 8px 0' }}>{t('register.title')}</Title>
           <Text type="secondary">{t('register.subtitle')}</Text>

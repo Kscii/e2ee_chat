@@ -37,7 +37,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="login-container">
-      <Card bordered={false} className="login-card">
+      <Card variant="borderless" className="login-card">
         <div className="login-header">
           <Title level={2} style={{ margin: '0 0 8px 0' }}>{t('login.title')}</Title>
           <Text type="secondary">{t('login.subtitle')}</Text>

@@ -106,7 +106,12 @@ function App() {
                       <TTSProvider>
                         <AIProvider>
                           <Live2DProvider>
-                            <Router>
+                            <Router
+                              future={{
+                                v7_startTransition: true,
+                                v7_relativeSplatPath: true
+                              }}
+                            >
                               <AppContent />
                             </Router>
                           </Live2DProvider>
