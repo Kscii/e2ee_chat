@@ -12,6 +12,9 @@ If you want to experience this project, you can visit:
 ### Key Features
 - AI Chat Assistant (powered by OpenAI)
 - End-to-End Encryption (E2EE) for secure communication
+  - Password-protected private key storage
+  - Message self-copying mechanism for viewing sent messages
+  - Secure key management and recovery
 - Group chat with encryption support
 - User authentication (register/login)
 - Multi-service Text-to-Speech support
@@ -38,6 +41,9 @@ If you want to experience this project, you can visit:
 - State Management: React Context
 - Router: React Router 6
 - Encryption: TweetNaCl.js
+  - X25519 for key exchange
+  - XSalsa20 for symmetric encryption
+  - Poly1305 for message authentication
 - Rich Text Editor: Tiptap
 - Internationalization: i18next
 - Code Quality: ESLint
@@ -133,6 +139,9 @@ The backend server will run on `http://localhost:8000` by default.
 ### 主要功能
 - AI 聊天助手（由 OpenAI 驱动）
 - 端到端加密通信（E2EE），确保消息安全
+  - 密码保护的私钥存储方案
+  - 消息自我副本机制，便于查看已发送的消息
+  - 安全的密钥管理和恢复功能
 - 支持加密的群组聊天功能
 - 用户认证（注册/登录）
 - 多服务语音合成支持
@@ -159,6 +168,9 @@ The backend server will run on `http://localhost:8000` by default.
 - 状态管理：React Context
 - 路由管理：React Router 6
 - 加密实现：TweetNaCl.js
+  - X25519 用于密钥交换
+  - XSalsa20 用于对称加密
+  - Poly1305 用于消息认证
 - 富文本编辑器：Tiptap
 - 国际化：i18next
 - 代码质量：ESLint

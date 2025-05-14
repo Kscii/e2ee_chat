@@ -48,9 +48,22 @@
 ### 密钥管理流程
 
 1. **密钥生成**：每个用户在首次登录时生成唯一的公钥/私钥对
-2. **私钥存储**：私钥安全存储在用户本地设备
-3. **公钥上传**：公钥上传至服务器以便其他用户获取
-4. **公钥获取**：发送消息前，获取接收者的公钥
+2. **私钥存储**：
+   - 私钥使用用户密码加密后存储在服务器
+   - 加密的私钥副本也保存在本地设备
+   - 解密需要用户密码，确保额外安全层
+3. **私钥恢复**：通过从服务器获取加密私钥并使用用户密码解密
+4. **公钥上传**：公钥上传至服务器以便其他用户获取
+5. **公钥获取**：发送消息前，获取接收者的公钥
+
+### 会话持久化
+
+为了改善用户体验并避免每次页面刷新都需要重新输入密码，我们实现了安全的会话持久化机制：
+
+1. **密码临时存储**：使用sessionStorage临时存储密码
+2. **会话限制**：密码仅在当前浏览器会话期间保持，关闭浏览器后自动清除
+3. **自动恢复**：刷新页面时，可以使用存储的密码自动解密私钥
+4. **主动清理**：用户登出时，立即清除所有密钥和密码数据
 
 ### 加密过程
 
@@ -61,6 +74,28 @@
 5. 加密消息传输到服务器并存储
 6. 客户端B获取加密消息
 7. 客户端B使用A的公钥(PK_A)和自己的私钥(SK_B)解密消息
+
+### 消息自备份实现
+
+为解决E2EE系统中的常见用户体验问题——用户无法阅读自己发送的加密消息，我们实现了消息自备份机制：
+
+1. **双重加密**：
+   - 消息使用接收者公钥加密一次
+   - 同一消息使用发送者自己的公钥再次加密
+   
+2. **双重发送**：
+   - 向接收者发送使用其公钥加密的消息
+   - 向自己发送使用自己公钥加密的相同消息副本
+   
+3. **智能渲染**：
+   - 聊天界面智能合并两类消息
+   - 过滤重复内容，保持UI整洁
+   - 始终展示可解密的消息版本
+
+4. **安全保证**：
+   - 保持完全端到端加密，没有任何未加密的消息传输
+   - 服务器无法解密任何一个版本的消息
+   - 每个版本的消息只能由预期接收者解密
 
 ### 群组加密实现
 
@@ -125,6 +160,321 @@ export class CryptoService {
     return storedKeyPair ? JSON.parse(storedKeyPair) : null;
   }
 }
+```
+
+### 私钥加密与服务器存储
+
+```typescript
+// 使用密码加密私钥
+static encryptPrivateKey(secretKey: string, password: string): string {
+  // 创建从密码派生的密钥
+  const passwordKey = this.createPasswordKey(password);
+  
+  // 创建一次性随机数
+  const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
+  
+  // 将私钥转换为二进制
+  const secretKeyUint8 = naclUtil.decodeBase64(secretKey);
+  
+  // 使用密码密钥加密私钥
+  const encryptedSecretKey = nacl.secretbox(
+    secretKeyUint8,
+    nonce,
+    passwordKey
+  );
+  
+  // 将nonce和加密后的私钥合并
+  const fullEncrypted = new Uint8Array(nonce.length + encryptedSecretKey.length);
+  fullEncrypted.set(nonce);
+  fullEncrypted.set(encryptedSecretKey, nonce.length);
+  
+  // 转换为Base64字符串
+  return naclUtil.encodeBase64(fullEncrypted);
+}
+
+// 解密私钥
+static decryptPrivateKey(encryptedSecretKeyBase64: string, password: string): string | null {
+  try {
+    // 创建从密码派生的密钥
+    const passwordKey = this.createPasswordKey(password);
+    
+    // 将Base64字符串转换回二进制
+    const encryptedWithNonce = naclUtil.decodeBase64(encryptedSecretKeyBase64);
+    
+    // 提取nonce
+    const nonce = encryptedWithNonce.slice(0, nacl.secretbox.nonceLength);
+    
+    // 提取加密私钥
+    const encryptedSecretKey = encryptedWithNonce.slice(nacl.secretbox.nonceLength);
+    
+    // 使用密码密钥解密私钥
+    const decryptedSecretKey = nacl.secretbox.open(
+      encryptedSecretKey,
+      nonce,
+      passwordKey
+    );
+    
+    // 如果解密失败，返回null
+    if (!decryptedSecretKey) return null;
+    
+    // 将二进制转换回Base64字符串
+    return naclUtil.encodeBase64(decryptedSecretKey);
+  } catch (error) {
+    console.error('解密私钥失败:', error);
+    return null;
+  }
+}
+
+// 从密码创建密钥
+private static createPasswordKey(password: string): Uint8Array {
+  // 使用SHA-256哈希密码以得到固定长度的密钥
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
+  
+  // 创建32字节（256位）密钥
+  const hashKey = nacl.hash(passwordData);
+  return hashKey.slice(0, 32); // 取前32字节作为密钥
+}
+```
+
+### 保存和检索加密的私钥
+
+```typescript
+// 保存加密的私钥到服务器
+export const savePrivateKey = async (encryptedPrivateKey: string): Promise<void> => {
+  try {
+    await apiClient.post('/keys/private', { encryptedPrivateKey });
+  } catch (error) {
+    console.error('保存加密私钥失败:', error);
+    throw new Error('保存加密私钥失败，请稍后重试');
+  }
+};
+
+// 从服务器获取加密的私钥
+export const getPrivateKey = async (): Promise<string | null> => {
+  try {
+    const response = await apiClient.get('/keys/private');
+    return response.data.encryptedPrivateKey;
+  } catch (error) {
+    console.error('获取加密私钥失败:', error);
+    // 如果是404错误，说明私钥不存在，返回null而不是抛出错误
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    throw new Error('获取加密私钥失败，请稍后重试');
+  }
+};
+```
+
+### 密钥初始化和恢复流程
+
+```typescript
+// 创建密钥对并保存到localStorage
+static async initializeKeyPair(password: string): Promise<StringKeyPair> {
+  try {
+    // 检查localStorage中是否已有密钥对
+    const storedKeyPair = localStorage.getItem('userKeyPair');
+    
+    if (storedKeyPair) {
+      return JSON.parse(storedKeyPair);
+    }
+    
+    // 尝试从服务器获取加密的私钥
+    try {
+      const encryptedSecretKey = await getPrivateKey();
+      
+      if (encryptedSecretKey) {
+        // 解密私钥
+        const decryptedSecretKey = this.decryptPrivateKey(encryptedSecretKey, password);
+        
+        if (decryptedSecretKey) {
+          // 从服务器获取用户的公钥
+          const publicKey = await this.getUserPublicKeyFromServer();
+          
+          if (publicKey) {
+            const keyPair = {
+              publicKey: publicKey,
+              secretKey: decryptedSecretKey
+            };
+            
+            // 保存到localStorage
+            localStorage.setItem('userKeyPair', JSON.stringify(keyPair));
+            
+            return keyPair;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('从服务器恢复密钥失败，将创建新密钥对:', error);
+    }
+    
+    // 生成新的密钥对
+    const keyPair = this.generateKeyPair();
+    const stringKeyPair = this.keyPairToString(keyPair);
+    
+    // 加密私钥
+    const encryptedPrivateKey = this.encryptPrivateKey(stringKeyPair.secretKey, password);
+    
+    // 保存加密的私钥到服务器
+    await savePrivateKey(encryptedPrivateKey);
+    
+    // 保存到localStorage
+    localStorage.setItem('userKeyPair', JSON.stringify(stringKeyPair));
+    
+    return stringKeyPair;
+  } catch (error) {
+    console.error('初始化密钥对失败:', error);
+    throw error;
+  }
+}
+```
+
+### 会话持久化实现
+
+```typescript
+// 在登录成功后保存密码到会话存储
+const handleLogin = async (username: string, password: string) => {
+  try {
+    // ... 登录逻辑 ...
+    
+    // 保存密码到会话存储，用于页面刷新后解密私钥
+    sessionStorage.setItem('userPassword', password);
+    
+    // 先设置密码，然后设置用户和认证状态
+    setPassword(password);
+    setUser(userData);
+    setIsAuth(true);
+    
+    // ... 其他逻辑 ...
+  } catch (error) {
+    console.error('登录失败:', error);
+    throw error;
+  }
+};
+
+// 在应用初始化时检查会话存储并恢复密码
+useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      if (isAuthenticated()) {
+        const userData = await getUserInfo();
+        setUser(userData);
+        setIsAuth(true);
+        
+        // 尝试从会话存储恢复密码
+        const savedPassword = sessionStorage.getItem('userPassword');
+        if (savedPassword) {
+          setPassword(savedPassword);
+        }
+      }
+    } catch (error) {
+      console.error('验证用户失败:', error);
+      handleLogout();
+    }
+  };
+
+  checkAuth();
+}, []);
+
+// 登出时清除所有存储的数据
+const handleLogout = () => {
+  logout(); // API 函数，清除服务器会话
+  setUser(null);
+  setIsAuth(false);
+  setPassword(null);
+  
+  // 清除本地存储
+  localStorage.removeItem('userKeyPair');
+  
+  // 清除会话存储
+  sessionStorage.removeItem('userPassword');
+};
+```
+
+### 消息自备份和智能合并
+
+```typescript
+// 发送消息时创建和发送自备份副本
+const handleSend = async () => {
+  try {
+    // 获取接收者的公钥
+    const receiverPublicKey = await getOrFetchPublicKey(recipientUsername);
+    
+    // 获取自己的公钥
+    const myPublicKey = getMyPublicKey();
+    
+    // 使用接收者公钥加密消息
+    const encryptedContent = encryptMessage(messageText, receiverPublicKey);
+    
+    // 使用自己的公钥加密相同消息（自备份）
+    const selfEncryptedContent = encryptMessage(messageText, myPublicKey);
+    
+    // 发送加密消息给接收者
+    await sendEncryptedMessage(recipientUsername, encryptedContent);
+    
+    // 发送加密消息副本给自己
+    await sendEncryptedMessage(currentUsername, selfEncryptedContent);
+    
+    // 更新UI
+    setMessages(prev => [...prev, { 
+      id: Date.now().toString(),
+      content: messageText,
+      sender: 'user',
+      timestamp: new Date()
+    }]);
+  } catch (error) {
+    console.error('发送消息失败:', error);
+  }
+};
+
+// 获取和合并消息
+const fetchMessages = async (otherUsername) => {
+  // 获取与对方的聊天记录
+  const messagesData = await getMessages(otherUsername);
+  
+  // 同时获取自己发给自己的消息副本
+  let selfMessages = [];
+  try {
+    if (currentUsername !== otherUsername) {
+      selfMessages = await getMessages(currentUsername);
+    }
+  } catch (error) {
+    console.warn('获取自发消息失败:', error);
+  }
+  
+  // 合并和过滤消息
+  const allMessagesData = [...messagesData, ...selfMessages]
+    .filter(msg => {
+      // 保留相关的自备份消息，过滤无关消息
+      if (msg.receiver_username === currentUsername && msg.sender_username === currentUsername) {
+        return messagesData.some(origMsg => 
+          origMsg.sender_username === currentUsername && 
+          origMsg.receiver_username === otherUsername && 
+          Math.abs(new Date(origMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000
+        );
+      }
+      
+      // 如果有自备份版本，则过滤掉发给对方的原始加密消息
+      if (msg.sender_username === currentUsername && msg.receiver_username === otherUsername) {
+        const hasSelfCopy = selfMessages.some(selfMsg => 
+          selfMsg.sender_username === currentUsername && 
+          selfMsg.receiver_username === currentUsername &&
+          Math.abs(new Date(selfMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000
+        );
+        return !hasSelfCopy;
+      }
+      
+      return true;
+    })
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  
+  // 处理和解密消息
+  const uiMessages = await Promise.all(allMessagesData.map(async msg => {
+    // 解密逻辑
+  }));
+  
+  setMessages(uiMessages);
+};
 ```
 
 ### 公钥交换
