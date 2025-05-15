@@ -1,8 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import { CryptoService } from '../utils/crypto';
 import { validateServerDomain, verifyCertificate } from '../utils/certificateValidator';
-import { clearSaltCache } from '../api/salt';
-import { savePublicKey, savePrivateKey } from '../api/keys';
+import { clearSaltCache, getUserEncryptionSalt } from '../api/salt';
+import { savePublicKey, savePrivateKey, getPrivateKey } from '../api/keys';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -102,14 +102,20 @@ export const register = async (username: string, password: string, email: string
     const keyPair = CryptoService.generateKeyPair();
     const stringKeyPair = CryptoService.keyPairToString(keyPair);
     
-    // 加密私钥
-    console.log('加密私钥...');
+    // 派生加密密钥并保存到localStorage
+    console.log('从密码派生加密密钥...');
     const encryptionKey = await CryptoService.generateEncryptionKey(password);
-    const encryptedPrivateKey = await CryptoService.encryptPrivateKey(stringKeyPair.secretKey, password);
+    localStorage.setItem('encryptionKey', CryptoService.keyToString(encryptionKey));
+    
+    // 使用派生的密钥加密私钥
+    console.log('使用派生密钥加密私钥...');
+    const encryptedPrivateKey = await CryptoService.encryptPrivateKeyWithKey(
+      stringKeyPair.secretKey, 
+      encryptionKey
+    );
     
     // 保存密钥对到localStorage，以供后续使用
     localStorage.setItem('userKeyPair', JSON.stringify(stringKeyPair));
-    localStorage.setItem('encryptionKey', CryptoService.keyToString(encryptionKey));
     
     // 服务器验证在拦截器中完成
     const response = await apiClient.post('/register', {
@@ -171,15 +177,22 @@ export const register = async (username: string, password: string, email: string
 // 用户登录
 export const login = async (username: string, password: string) => {
   try {
+    console.log('[Auth] 登录流程开始:', username);
+    
     // 首先获取存储的密码哈希
+    console.log('[Auth] 正在获取密码哈希...');
     const storedHash = await getUserPasswordHash(username);
     
     // 使用bcrypt在前端验证密码
+    console.log('[Auth] 正在验证密码...');
     const isPasswordValid = await CryptoService.compareBcryptHash(password, storedHash);
     
     if (!isPasswordValid) {
+      console.error('[Auth] 密码验证失败');
       throw new Error('密码不正确');
     }
+    
+    console.log('[Auth] 密码验证成功，正在发送登录请求...');
     
     // 在发送敏感信息前验证服务器证书
     const data = await verifyServerBeforeLogin(username, password);
@@ -192,13 +205,35 @@ export const login = async (username: string, password: string) => {
       // 清除盐值缓存，确保从服务器获取最新的用户专属盐值
       clearSaltCache();
       
+      console.log('[Auth] 登录成功，正在初始化加密服务...');
+      console.log('[Auth] 用户名:', username);
+      
+      // 检查派生密钥是否存在
+      const hasEncryptionKey = !!localStorage.getItem('encryptionKey');
+      console.log('[Auth] 派生密钥状态:', hasEncryptionKey ? '已存在' : '不存在');
+      
+      // 检查本地密钥对是否存在
+      const hasKeyPair = !!localStorage.getItem('userKeyPair');
+      console.log('[Auth] 本地密钥对状态:', hasKeyPair ? '已存在' : '不存在');
+      
       // 加载密钥对（不再是初始化，因为密钥对应当在注册时已创建）
       // 这一步会从localStorage检查现有密钥对，如果不存在会尝试从服务器恢复
-      // 但不会创建新的密钥对，除非用户在完成注册后未能成功保存密钥对
       try {
+        console.log('[Auth] 尝试初始化加密密钥...');
+        
+        // 始终派生一次加密密钥，确保即使清除了localStorage也能恢复
+        if (password) {
+          // 尝试直接使用密码恢复加密密钥
+          console.log('[Auth] 从密码生成派生密钥...');
+          // 预先尝试多种盐值
+          await tryAllSaltVariations(username, password);
+        }
+        
+        // 初始化密钥对（会尝试从服务器恢复）
         await CryptoService.initializeKeyPair(password);
+        console.log('[Auth] 密钥对初始化完成');
       } catch (error) {
-        console.error('加载密钥对失败，可能需要重置密钥:', error);
+        console.error('[Auth] 加载密钥对失败:', error);
         // 不阻止登录流程，但记录错误以便调试
       }
     }
@@ -214,6 +249,89 @@ export const login = async (username: string, password: string) => {
     throw new Error(error instanceof Error ? error.message : '网络错误，请稍后重试');
   }
 };
+
+// 尝试使用多种盐值派生密钥，找到能成功解密的那个
+async function tryAllSaltVariations(username: string, password: string) {
+  console.log('[Auth] 尝试使用多种盐值派生密钥...');
+  
+  // 尝试从服务器获取加密的私钥
+  try {
+    const encryptedPrivateKey = await getPrivateKey();
+    if (!encryptedPrivateKey) {
+      console.log('[Auth] 服务器上没有加密私钥，跳过盐值测试');
+      return;
+    }
+    
+    // 首先获取服务器上的真实盐值
+    let serverSalt;
+    try {
+      serverSalt = await getUserEncryptionSalt(username);
+      console.log('[Auth] 成功从服务器获取用户加密盐值');
+    } catch (error) {
+      console.error('[Auth] 从服务器获取加密盐值失败:', error);
+      serverSalt = null;
+    }
+    
+    // 构建盐值列表，优先使用服务器的盐值
+    const saltVariations = [];
+    
+    // 服务器盐值始终是最优先的选择
+    if (serverSalt) {
+      saltVariations.push(serverSalt);
+    }
+    
+    // 备用盐值选项，仅当服务器盐值不可用或无法解密时使用
+    saltVariations.push(
+      'user_' + username + '_salt',   // 基于用户名的盐值
+      'fallback_encryption_salt',     // 默认盐值
+      username,                       // 直接使用用户名
+      'INFO2222_default_salt'         // 应用默认盐值
+    );
+    
+    let successSalt = null;
+    
+    for (let i = 0; i < saltVariations.length; i++) {
+      try {
+        const salt = saltVariations[i];
+        console.log(`[Auth] 尝试盐值变体 ${i+1}/${saltVariations.length}: ${salt.substring(0, 10)}...`);
+        
+        // 临时置换CryptoService的盐值缓存
+        CryptoService['encryptionSalt'] = salt;
+        
+        // 从密码生成加密密钥
+        const encryptionKey = await CryptoService.generateEncryptionKey(password);
+        
+        // 尝试解密
+        const decryptedKey = await CryptoService.decryptPrivateKeyWithKey(encryptedPrivateKey, encryptionKey);
+        
+        if (decryptedKey) {
+          console.log(`[Auth] 成功找到匹配的盐值: ${salt.substring(0, 10)}...`);
+          successSalt = salt;
+          
+          // 保存派生的密钥到本地存储，但不保存盐值
+          localStorage.setItem('encryptionKey', CryptoService.keyToString(encryptionKey));
+          
+          // 如果成功的盐值不是服务器盐值，记录警告
+          if (serverSalt && salt !== serverSalt) {
+            console.warn('[Auth] 警告: 成功的盐值与服务器盐值不匹配，可能存在数据不一致');
+          }
+          
+          break;
+        }
+      } catch (error) {
+        console.warn(`[Auth] 盐值变体 ${i+1} 解密失败:`, error);
+      }
+    }
+    
+    if (successSalt) {
+      console.log('[Auth] 发现有效盐值，已保存派生密钥'); 
+    } else {
+      console.warn('[Auth] 所有盐值变体均无法解密私钥');
+    }
+  } catch (error) {
+    console.error('[Auth] 从服务器获取私钥失败:', error);
+  }
+}
 
 // 获取所有用户列表
 export const getAllUsers = async (): Promise<User[]> => {
