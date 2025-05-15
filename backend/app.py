@@ -6,8 +6,11 @@ from functools import wraps
 import os
 import uuid
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
+import sqlite3
+from sqlite3 import Error
 
-from models import DatabaseManager, UserModel, MessageModel, ServerModel, SaltModel
+from models import DatabaseManager, UserModel, MessageModel, ServerModel
 import config
 
 app = Flask(__name__)
@@ -28,9 +31,6 @@ db_manager.init_db()
 user_model = UserModel()
 message_model = MessageModel()
 server_model = ServerModel()  # 初始化服务器模型
-
-# 初始化 SaltModel
-salt_model = SaltModel()
 
 # 验证文件扩展名
 def allowed_file(filename):
@@ -144,6 +144,41 @@ def get_user_info():
         return jsonify({"error": "用户不存在"}), 404
     
     return jsonify(user), 200
+
+# 获取用户密码哈希接口(仅用于客户端bcrypt验证)
+@app.route('/api/user/passwordhash/<username>', methods=['GET'])
+def get_user_password_hash(username):
+    # 获取用户密码哈希
+    conn = DatabaseManager().get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("SELECT password_hash FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({"error": "用户不存在"}), 404
+            
+        return jsonify({"password_hash": user['password_hash']}), 200
+    except Error as e:
+        return jsonify({"error": f"获取密码哈希失败: {str(e)}"}), 500
+    finally:
+        conn.close()
+
+# 获取用户私钥加密盐接口
+@app.route('/api/user/encryption-salt/<username>', methods=['GET'])
+def get_user_encryption_salt(username):
+    """获取用户的私钥加密盐值"""
+    try:
+        salt = user_model.get_user_encryption_salt(username)
+        
+        if not salt:
+            return jsonify({"error": "未找到用户或用户没有加密盐"}), 404
+            
+        return jsonify({"encryption_salt": salt}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"获取用户加密盐失败: {str(e)}"}), 500
 
 # 新增: 获取所有用户列表接口
 @app.route('/api/users', methods=['GET'])
@@ -917,22 +952,6 @@ def get_user_private_key():
         
     finally:
         conn.close()
-
-# 获取系统盐值接口 - 不需要认证，供初始化使用
-@app.route('/api/system/salts', methods=['GET'])
-def get_system_salts():
-    """获取系统盐值"""
-    try:
-        # 获取所有系统盐值
-        salts = salt_model.get_all_salts()
-        
-        if not salts:
-            return jsonify({"error": "无法获取系统盐值"}), 500
-            
-        return jsonify({"salts": salts}), 200
-        
-    except Exception as e:
-        return jsonify({"error": f"获取系统盐值失败: {str(e)}"}), 500
 
 # 运行应用
 if __name__ == '__main__':

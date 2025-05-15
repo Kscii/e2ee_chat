@@ -58,83 +58,51 @@ export const CryptoProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Initialize key pair
     useEffect(() => {
         const initializeKeys = async () => {
-            if (isAuth && user && !keyInitAttempted) {
-                console.log(`[CryptoContext] Initializing key pair - attempt ${retryCount + 1}/${MAX_RETRIES + 1}`);
-                console.log(`[CryptoContext] User: ${user?.username}, Authentication status: ${isAuth}, Password: ${password ? 'Set' : 'Not set'}`);
-
-                // If password is empty but retry count hasn't reached max, wait and retry
-                if (!password && retryCount < MAX_RETRIES) {
-                    console.log(`[CryptoContext] Password is empty, will retry in ${RETRY_DELAY}ms (${retryCount + 1}/${MAX_RETRIES})`);
-                    const timer = setTimeout(() => {
-                        setRetryCount(prev => prev + 1);
-                    }, RETRY_DELAY);
-                    return () => clearTimeout(timer);
-                }
-
-                // Reached max retry count or password is available, start initialization
-                setKeyInitAttempted(true);
-
-                // Final check, if password is still empty, log error and exit
-                if (!password) {
-                    console.error('[CryptoContext] Error: Cannot initialize key pair, password is empty (max retries reached)');
-                    return;
-                }
-
-                console.log('[CryptoContext] Starting key pair initialization...');
-                console.log('[CryptoContext] User authenticated:', isAuth);
-                console.log('[CryptoContext] User info:', user?.username);
-                console.log('[CryptoContext] Password status:', password ? 'Set' : 'Not set');
+            if (isAuth && user && !keyInitAttempted && password) {
+                console.log(`[CryptoContext] 用户已认证，开始初始化密钥对`);
+                setKeyInitAttempted(true); // 立即标记为已尝试，防止重复执行
 
                 try {
-                    // First check if key pair already exists in localStorage
+                    // 首先检查localStorage是否已有密钥对，如果有就直接使用
                     const storedKeyPair = CryptoService.getUserKeyPair();
-
                     if (storedKeyPair) {
-                        console.log('[CryptoContext] Loading existing key pair from localStorage');
+                        console.log('[CryptoContext] 从localStorage加载已有密钥对');
                         setKeyPair(storedKeyPair);
                         setIsInitialized(true);
 
-                        // Ensure public key is uploaded to server
+                        // 确保公钥已上传到服务器
                         try {
-                            console.log('[CryptoContext] Ensuring public key is uploaded to server');
                             await savePublicKey(storedKeyPair.publicKey);
-                            console.log('[CryptoContext] Public key uploaded to server');
+                            console.log('[CryptoContext] 确保公钥已上传到服务器');
                         } catch (err) {
-                            console.error('[CryptoContext] Failed to upload public key:', err);
+                            console.error('[CryptoContext] 上传公钥失败，但不影响使用:', err);
                         }
-
                         return;
                     }
 
-                    // Check if user has a public key on the server
-                    try {
-                        console.log(`[CryptoContext] Checking if user ${user.username} has a public key on server`);
-                        const hasPublicKey = await checkPublicKeyExists(user.username);
-                        console.log(`[CryptoContext] User ${user.username} ${hasPublicKey ? 'has' : 'does not have'} a public key on server`);
-                    } catch (error) {
-                        console.error('[CryptoContext] Failed to check public key existence:', error);
-                    }
-
-                    // Initialize key pair - will decide whether to create new keys or recover existing ones based on server
-                    console.log('[CryptoContext] Initializing key pair with password...');
+                    // 尝试加载或初始化密钥对
+                    console.log('[CryptoContext] 尝试初始化新密钥对...');
                     const newKeyPair = await CryptoService.initializeKeyPair(password);
-                    console.log('[CryptoContext] Key pair initialization complete:', !!newKeyPair);
+                    console.log('[CryptoContext] 密钥对初始化完成');
 
                     setKeyPair(newKeyPair);
                     setIsInitialized(true);
-
-                    // Upload public key to server (may be redundant if recovered from server, but harmless)
-                    try {
-                        console.log('[CryptoContext] Ensuring public key is uploaded to server');
-                        await savePublicKey(newKeyPair.publicKey);
-                        console.log('[CryptoContext] Public key uploaded to server');
-                    } catch (err) {
-                        console.error('[CryptoContext] Failed to upload public key:', err);
-                    }
                 } catch (error) {
-                    console.error('[CryptoContext] Failed to initialize key pair:', error);
+                    console.error('[CryptoContext] 初始化密钥对失败:', error);
                     setIsInitialized(false);
                 }
+            } else if (isAuth && user && !keyInitAttempted && !password) {
+                console.log('[CryptoContext] 用户已认证但密码为空，等待密码...');
+                const timer = setTimeout(() => {
+                    if (retryCount < MAX_RETRIES) {
+                        setRetryCount(prev => prev + 1);
+                        console.log(`[CryptoContext] 重试 ${retryCount + 1}/${MAX_RETRIES}`);
+                    } else {
+                        console.error('[CryptoContext] 达到最大重试次数，密码仍为空');
+                        setKeyInitAttempted(true); // 放弃尝试
+                    }
+                }, RETRY_DELAY);
+                return () => clearTimeout(timer);
             }
         };
 

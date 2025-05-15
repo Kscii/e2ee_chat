@@ -4,6 +4,7 @@ import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-de
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { register } from '../../api/auth';
+import { useAuth } from '../../contexts/AuthContext';
 import './index.css';
 
 const { Title, Text } = Typography;
@@ -19,6 +20,7 @@ interface RegisterFormValues {
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values: RegisterFormValues) => {
@@ -26,7 +28,14 @@ const RegisterPage: React.FC = () => {
       setLoading(true);
       await register(values.username, values.password, values.email, values.phone);
       message.success(t('register.success') || '注册成功');
-      navigate('/login');
+
+      try {
+        await login(values.username, values.password);
+        navigate('/');
+      } catch (loginError) {
+        console.error('自动登录失败，请手动登录:', loginError);
+        navigate('/login');
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('register.error') || '注册失败';
       message.error(errorMessage);

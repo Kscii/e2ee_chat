@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import { CryptoService } from '../utils/crypto';
 import { validateServerDomain, verifyCertificate } from '../utils/certificateValidator';
+import { clearSaltCache } from '../api/salt';
+import { savePublicKey, savePrivateKey } from '../api/keys';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -78,16 +80,82 @@ const verifyServerBeforeLogin = async (username: string, password: string): Prom
   return response.data;
 };
 
+// 获取用户的密码哈希（仅用于验证）
+const getUserPasswordHash = async (username: string): Promise<string> => {
+  try {
+    const response = await apiClient.get(`/user/passwordhash/${username}`);
+    return response.data.password_hash;
+  } catch (error) {
+    console.error('获取密码哈希失败:', error);
+    throw new Error('验证失败，无法获取用户信息');
+  }
+};
+
 // 用户注册
 export const register = async (username: string, password: string, email: string, phone: string) => {
   try {
+    // 使用bcrypt生成密码哈希
+    const bcryptHash = await CryptoService.generateBcryptHash(password);
+    
+    // 先生成密钥对，避免在注册成功后处理可能出现的错误
+    console.log('注册前，预先生成密钥对...');
+    const keyPair = CryptoService.generateKeyPair();
+    const stringKeyPair = CryptoService.keyPairToString(keyPair);
+    
+    // 加密私钥
+    console.log('加密私钥...');
+    const encryptionKey = await CryptoService.generateEncryptionKey(password);
+    const encryptedPrivateKey = await CryptoService.encryptPrivateKey(stringKeyPair.secretKey, password);
+    
+    // 保存密钥对到localStorage，以供后续使用
+    localStorage.setItem('userKeyPair', JSON.stringify(stringKeyPair));
+    localStorage.setItem('encryptionKey', CryptoService.keyToString(encryptionKey));
+    
     // 服务器验证在拦截器中完成
     const response = await apiClient.post('/register', {
       username,
-      password,
+      password: bcryptHash,
       email,
-      phone
+      phone,
+      is_hashed: true  // 告知服务器密码已哈希
     });
+    
+    // 注册成功后，保存用户名和加密的私钥到服务器
+    if (response.status === 201) {
+      // 保存用户名以便后续操作
+      localStorage.setItem('username', username);
+      
+      // 清除盐值缓存，确保从服务器获取新的用户专属盐值
+      clearSaltCache();
+      
+      // 尝试保存公钥和加密私钥到服务器
+      try {
+        console.log('保存公钥和加密私钥到服务器...');
+        
+        // 如果注册响应包含token，保存到localStorage用于API认证
+        const token = response.data.token;
+        if (token) {
+          localStorage.setItem('token', token);
+        } else {
+          // 如果没有token，尝试登录获取token
+          const loginData = await verifyServerBeforeLogin(username, password);
+          if (loginData && loginData.token) {
+            localStorage.setItem('token', loginData.token);
+          }
+        }
+        
+        // 保存公钥和加密私钥到服务器
+        if (stringKeyPair && stringKeyPair.publicKey) {
+          await savePublicKey(stringKeyPair.publicKey);
+          await savePrivateKey(encryptedPrivateKey);
+          console.log('密钥对成功保存到服务器');
+        }
+      } catch (error) {
+        console.error('保存密钥到服务器失败，但注册流程已完成:', error);
+        // 不因为保存密钥失败而中断注册流程
+      }
+    }
+    
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -103,6 +171,16 @@ export const register = async (username: string, password: string, email: string
 // 用户登录
 export const login = async (username: string, password: string) => {
   try {
+    // 首先获取存储的密码哈希
+    const storedHash = await getUserPasswordHash(username);
+    
+    // 使用bcrypt在前端验证密码
+    const isPasswordValid = await CryptoService.compareBcryptHash(password, storedHash);
+    
+    if (!isPasswordValid) {
+      throw new Error('密码不正确');
+    }
+    
     // 在发送敏感信息前验证服务器证书
     const data = await verifyServerBeforeLogin(username, password);
     
@@ -110,6 +188,19 @@ export const login = async (username: string, password: string) => {
     if (data.token) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.username);
+      
+      // 清除盐值缓存，确保从服务器获取最新的用户专属盐值
+      clearSaltCache();
+      
+      // 加载密钥对（不再是初始化，因为密钥对应当在注册时已创建）
+      // 这一步会从localStorage检查现有密钥对，如果不存在会尝试从服务器恢复
+      // 但不会创建新的密钥对，除非用户在完成注册后未能成功保存密钥对
+      try {
+        await CryptoService.initializeKeyPair(password);
+      } catch (error) {
+        console.error('加载密钥对失败，可能需要重置密钥:', error);
+        // 不阻止登录流程，但记录错误以便调试
+      }
     }
     
     return data;

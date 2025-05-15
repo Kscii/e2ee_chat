@@ -1,7 +1,8 @@
 import nacl from 'tweetnacl';
 import naclUtil from 'tweetnacl-util';
+import bcrypt from 'bcryptjs';
 import { savePrivateKey, getPrivateKey, getUserPublicKey } from '../api/keys';
-import { getSystemSalts, SystemSalts } from '../api/salt';
+import { getUserEncryptionSalt } from '../api/salt';
 
 // 密钥对接口
 export interface KeyPair {
@@ -18,26 +19,35 @@ export interface StringKeyPair {
 // 加密工具类
 export class CryptoService {
   // 缓存的盐值
-  private static systemSalts: SystemSalts | null = null;
-  
-  // 初始化盐值
-  private static async initSalts(): Promise<void> {
-    if (!this.systemSalts) {
-      this.systemSalts = await getSystemSalts();
-      console.log('[CryptoService] 系统盐值初始化完成');
-    }
-  }
+  private static encryptionSalt: string | null = null;
   
   // 获取加密盐值
   private static async getEncryptionSalt(): Promise<string> {
-    await this.initSalts();
-    return this.systemSalts?.encryption_salt || 'fallback_encryption_salt';
+    if (this.encryptionSalt) {
+      return this.encryptionSalt;
+    }
+    
+    // 从localStorage获取用户名
+    const username = localStorage.getItem('username');
+    if (!username) {
+      // 如果没有用户名（尚未登录），使用默认盐值
+      return 'fallback_encryption_salt';
+    }
+    
+    // 获取用户专属的私钥加密盐值
+    try {
+      this.encryptionSalt = await getUserEncryptionSalt(username);
+      return this.encryptionSalt;
+    } catch (error) {
+      console.error('[CryptoService] 获取用户加密盐值失败:', error);
+      return 'fallback_encryption_salt';
+    }
   }
   
-  // 获取认证盐值
+  // 由于我们不再使用auth_salt，这个方法可以保留但被弃用
   private static async getAuthSalt(): Promise<string> {
-    await this.initSalts();
-    return this.systemSalts?.auth_salt || 'fallback_auth_salt';
+    console.warn('[CryptoService] getAuthSalt方法已被弃用');
+    return 'fallback_auth_salt';
   }
   
   // 生成新的密钥对
@@ -141,6 +151,17 @@ export class CryptoService {
     return hashKey.slice(0, 32); // 用于加密私钥的密钥
   }
   
+  // 使用bcrypt生成更安全的哈希（发送到服务器进行验证）
+  static async generateBcryptHash(password: string): Promise<string> {
+    // 默认使用强度为10的bcrypt盐值（2^10次迭代）
+    return await bcrypt.hash(password, 10);
+  }
+  
+  // 使用bcrypt验证密码是否匹配存储的哈希
+  static async compareBcryptHash(password: string, storedHash: string): Promise<boolean> {
+    return await bcrypt.compare(password, storedHash);
+  }
+  
   // 第二次哈希 - 生成用于服务器验证的哈希（发送到服务器）
   // 现在使用第一次哈希结果作为输入，而不是原始密码
   static async generateAuthHash(password: string): Promise<string> {
@@ -189,6 +210,7 @@ export class CryptoService {
     // 输出调试信息（仅在开发环境）
     if (process.env.NODE_ENV === 'development') {
       console.log('加密私钥 - 原始私钥:', secretKey);
+      console.log('加密私钥 - 加密密钥(前32位哈希):', naclUtil.encodeBase64(encryptionKey));
       console.log('加密私钥 - 加密后:', naclUtil.encodeBase64(fullEncrypted));
     }
     
@@ -224,6 +246,7 @@ export class CryptoService {
       // 输出调试信息（仅在开发环境）
       if (process.env.NODE_ENV === 'development') {
         console.log('解密私钥 - 加密的私钥:', encryptedSecretKeyBase64);
+        console.log('解密私钥 - 解密密钥(前32位哈希):', naclUtil.encodeBase64(encryptionKey));
         console.log('解密私钥 - 解密后:', naclUtil.encodeBase64(decryptedSecretKey));
       }
       
@@ -263,12 +286,18 @@ export class CryptoService {
       }
       
       // 尝试从服务器获取加密的私钥
+      let needCreateNewKeyPair = true;
       try {
         console.log('[CryptoService] 尝试从服务器获取加密的私钥...');
         const encryptedSecretKey = await getPrivateKey();
         
         if (encryptedSecretKey) {
+          needCreateNewKeyPair = false;
           console.log('[CryptoService] 已从服务器检索到加密私钥，正在解密...');
+          
+          // 使用nacl.hash生成哈希值a，取前32位作为密钥用于解密私钥
+          const encryptionKey = await this.generateEncryptionKey(password);
+          
           // 解密私钥
           const decryptedSecretKey = await this.decryptPrivateKey(encryptedSecretKey, password);
           
@@ -286,53 +315,74 @@ export class CryptoService {
               
               // 保存到localStorage
               localStorage.setItem('userKeyPair', JSON.stringify(keyPair));
+              
+              // 保存加密密钥到localStorage，用于后续解密私钥
+              localStorage.setItem('encryptionKey', naclUtil.encodeBase64(encryptionKey));
+              
               console.log('[CryptoService] 密钥对已恢复并保存到localStorage');
               
               return keyPair;
             } else {
-              console.error('[CryptoService] 无法获取公钥，无法恢复密钥对');
-              throw new Error('无法获取公钥，无法恢复密钥对');
+              console.error('[CryptoService] 无法获取公钥，无法恢复密钥对，将创建新密钥对');
+              needCreateNewKeyPair = true;
             }
           } else {
-            console.error('[CryptoService] 私钥解密失败，可能密码不正确');
-            throw new Error('私钥解密失败，可能密码不正确');
+            console.error('[CryptoService] 私钥解密失败，可能密码不正确，将创建新密钥对');
+            needCreateNewKeyPair = true;
           }
         } else {
           console.log('[CryptoService] 服务器上没有找到加密的私钥，将创建新密钥对');
+          needCreateNewKeyPair = true;
         }
       } catch (error) {
         console.warn('[CryptoService] 从服务器恢复密钥失败，将创建新密钥对:', error);
+        needCreateNewKeyPair = true;
       }
       
-      // 生成新的密钥对
-      console.log('[CryptoService] 正在生成新的密钥对...');
-      const keyPair = this.generateKeyPair();
-      const stringKeyPair = this.keyPairToString(keyPair);
-      
-      // 输出调试信息（仅在开发环境）
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[CryptoService] 新创建的密钥对:', stringKeyPair);
+      // 如果需要创建新密钥对（服务器没有私钥或恢复失败）
+      if (needCreateNewKeyPair) {
+        // 生成新的密钥对
+        console.log('[CryptoService] 正在生成新的密钥对...');
+        const keyPair = this.generateKeyPair();
+        const stringKeyPair = this.keyPairToString(keyPair);
+        
+        // 输出调试信息（仅在开发环境）
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[CryptoService] 新创建的密钥对:', stringKeyPair);
+        }
+        
+        // 生成哈希值a（使用nacl.hash），用于加密私钥
+        const encryptionKey = await this.generateEncryptionKey(password);
+        
+        // 将加密密钥保存到本地存储
+        localStorage.setItem('encryptionKey', naclUtil.encodeBase64(encryptionKey));
+        
+        // 加密私钥
+        console.log('[CryptoService] 正在使用密码加密私钥...');
+        const encryptedPrivateKey = await this.encryptPrivateKey(stringKeyPair.secretKey, password);
+        
+        // 为密码生成bcrypt哈希值b（用于服务器认证）
+        const bcryptHash = await this.generateBcryptHash(password);
+        
+        // 保存加密的私钥到服务器
+        try {
+          console.log('[CryptoService] 正在保存加密的私钥到服务器...');
+          await savePrivateKey(encryptedPrivateKey);
+          console.log('[CryptoService] 加密私钥已成功保存到服务器');
+        } catch (error) {
+          console.error('[CryptoService] 保存加密私钥到服务器失败:', error);
+          // 不要因为保存失败而终止整个流程，但要记录错误
+        }
+        
+        // 保存到localStorage
+        localStorage.setItem('userKeyPair', JSON.stringify(stringKeyPair));
+        console.log('[CryptoService] 密钥对已保存到localStorage');
+        
+        return stringKeyPair;
       }
       
-      // 加密私钥
-      console.log('[CryptoService] 正在使用密码加密私钥...');
-      const encryptedPrivateKey = await this.encryptPrivateKey(stringKeyPair.secretKey, password);
-      
-      // 保存加密的私钥到服务器
-      try {
-        console.log('[CryptoService] 正在保存加密的私钥到服务器...');
-        await savePrivateKey(encryptedPrivateKey);
-        console.log('[CryptoService] 加密私钥已成功保存到服务器');
-      } catch (error) {
-        console.error('[CryptoService] 保存加密私钥到服务器失败:', error);
-        // 不要因为保存失败而终止整个流程，但要记录错误
-      }
-      
-      // 保存到localStorage
-      localStorage.setItem('userKeyPair', JSON.stringify(stringKeyPair));
-      console.log('[CryptoService] 密钥对已保存到localStorage');
-      
-      return stringKeyPair;
+      // 这种情况不应该发生，但为了类型安全
+      throw new Error('无法初始化密钥对，流程异常');
     } catch (error) {
       console.error('[CryptoService] 初始化密钥对失败:', error);
       throw error;
