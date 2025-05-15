@@ -1,69 +1,51 @@
-/*****************************************************************************************************
- く__,.ヘヽ.　　　　/　,ー､ 〉
-      ＼ ', !-─‐-i　/　/´
-       ／｀ｰ'　　　 L/／｀ヽ､                 Live2D Widget Setting
-      /　 ／,　 /|　 ,　 ,　　　 ',               Version 2.0.0
-    ｲ 　/ /-‐/　ｉ　L_ ﾊ ヽ!　 i                     Konata
-     ﾚ ﾍ 7ｲ｀ﾄ　 ﾚ'ｧ-ﾄ､!ハ|　 |
-      !,/7 '0'　　 ´0iソ| 　 |　　　
-      |.从"　　_　　 ,,,, / |./ 　 |      Add Live2D widget in your website.
-      ﾚ'| i＞.､,,__　_,.イ / 　.i 　|
-       ﾚ'| | / k_７_/ﾚ'ヽ,　ﾊ.　|       Thanks:
-        | |/i 〈|/　 i　,.ﾍ |　i　|    fghrsh / https://www.fghrsh.net/post/123.html
-       .|/ /　ｉ： 　 ﾍ!　　＼　|       journey-ad / https://github.com/journey-ad/live2d_src
-         kヽ>､ﾊ 　 _,.ﾍ､ 　 /､!         xiazeyu / https://github.com/xiazeyu/live2d-widget.js
-        !'〈//｀Ｔ´', ＼ ｀'7'ｰr'      Cubism Web Framework & All model authors.
-        ﾚ'ヽL__|___i,___,ンﾚ|ノ
-          ﾄ-,/　|___./
-          'ｰ'　　!_,.
- ****************************************************************************************************/
 const live2d_settings = {
     // 基本设置
-    'modelUrl': '/live2d/model',                 // 存放模型的文件夹路径，末尾不需要斜杠
-    'tipsMessage': '',    // 看板娘提示消息文件的路径，可以留空不加载
+    'modelUrl': './live2d/model',                        // 存放模型的文件夹路径，末尾不需要斜杠
+    'tipsMessage': './live2d/waifu-tips.json',           // 看板娘提示消息文件的路径，可以留空不加载
     // 模型设置
     'modelName': 'anon',                      // 默认加载的模型名称，仅在无本地记录的情况下有效
-    'modelStorage': true,                       // 记忆模型，下次打开页面会加载上次选择的模型
+    'modelStorage': false,                       // 记忆模型，下次打开页面会加载上次选择的模型
     'modelRandMode': false,                     // 随机切换模型
-    'preLoadMotion': false,                     // 是否预载动作数据，只对 model3 模型有效
-    'tryWebp': true,                           // 优先加载 WebP 格式的贴图
+    'preLoadMotion': true,                      // 是否预载动作数据，只对 model3 模型有效，不预载可以提高 model3 模型的加载速度，但可能导致首次触发动作时卡顿
+    'tryWebp': false,                            // 如果浏览器支持 WebP 格式，将优先加载 WebP 格式的贴图，例如默认贴图文件为 klee.8192/texture_00.png，
+    // 启用后将优先加载 klee.8192/texture_00.png.webp，文件不存在会自动 fallback
     // 工具栏设置
-    'showToolMenu': false,                       // 显示工具栏（已添加自定义图标样式）
-    'canCloseLive2d': false,                     // 显示关闭看板娘按钮
-    'canSwitchModel': false,                     // 显示模型切换按钮
-    'canSwitchHitokoto': false,                  // 显示一言切换按钮
-    'canTakeScreenshot': false,                  // 显示截图按钮
-    'canTurnToHomePage': false,                  // 显示返回首页按钮
-    'canTurnToAboutPage': false,                 // 显示跳转关于页按钮
-    'showVolumeBtn': false,                     // 显示音量控制按钮
+    'showToolMenu': false,                       // 显示 工具栏
+    'canCloseLive2d': false,                     // 显示 关闭看板娘 按钮
+    'canSwitchModel': false,                     // 显示 模型切换 按钮
+    'canSwitchHitokoto': false,                  // 显示 一言切换 按钮
+    'canTakeScreenshot': false,                  // 显示 看板娘截图 按钮
+    'canTurnToHomePage': false,                  // 显示 返回首页 按钮
+    'canTurnToAboutPage': false,                 // 显示 跳转关于页 按钮
+    'showVolumeBtn': false,                     // 显示 音量控制 按钮，仅作显示，相关逻辑需自己实现
     // 提示消息设置
-    'showHitokoto': true,                       // 空闲时显示一言
-    'hitokotoAPI': '',                          // 一言API，可选 'hitokoto.cn'(默认), 'lwl12.com', 'jinrishici.com'(古诗词), 'fghrsh.net'
-    'showWelcomeMessage': true,                 // 显示进入页面欢迎词
-    'showCopyMessage': true,                    // 显示复制内容提示
-    'showF12OpenMsg': true,                     // 显示控制台打开提示
+    'showHitokoto': false,                       // 空闲时显示一言
+    'hitokotoAPI': '',                          // 一言 API，可选 'hitokoto.cn'(默认), 'lwl12.com', 'jinrishici.com'(古诗词), 'fghrsh.net'
+    'showWelcomeMessage': false,                 // 显示进入页面欢迎词
+    'showCopyMessage': false,                    // 显示复制内容提示，默认只对 '#articleContent' 元素内的复制进行监视，如果你的文章内容不在这个标签下，可以在下方搜索并修改
+    'showF12OpenMsg': false,                     // 显示控制台打开提示
     //看板娘样式设置
-    'live2dHeight': 400,                        // 看板娘高度
-    'live2dWidth': 300,                         // 看板娘宽度
-    'waifuMinWidth': '768px',                   // 页面小于指定宽度时隐藏看板娘 
-    'waifuEdgeSide': 'right:0',                // 看板娘贴边方向
+    'live2dHeight': 500,                        // 看板娘高度，不需要单位
+    'live2dWidth': 400,                         // 看板娘宽度，不需要单位
+    'waifuMinWidth': 'disable',                 // 页面小于宽度小于指定数值时隐藏看板娘，例如 'disable'(禁用)，推荐 '1040px'
+    'waifuEdgeSide': 'right:0',                 // 看板娘贴边方向，例如 'left:0'(靠左 0px)，'right:30'(靠右 30px)，可以被下面的模型设置覆盖
     // 其他杂项设置
-    'debug': true,                              // 全局DEBUG设置
-    'debugMousemove': false,                    // 在控制台打印指针移动坐标
+    'debug': false,                              // 全局 DEBUG 设置
+    'debugMousemove': false,                    // 在控制台打印指针移动坐标，仅在 debug 为 true 时可用
     'logMessageToConsole': true,                // 在控制台打印看板娘提示消息
     'l2dVersion': '2.0.0',                      // 当前版本
-    'homePageUrl': 'auto',                      // 主页地址，可选 'auto'(自动)
-    'aboutPageUrl': 'https://github.com/Konata09/Live2dOnWeb/', // 关于页地址
-    'screenshotCaptureName': 'live2d.png',      // 看板娘截图文件名
+    'homePageUrl': 'https://rivens.bronya.moe/',  // 主页地址，可选 'auto'(自动), '{URL 网址}'
+    'aboutPageUrl': 'https://github.com/Konata09/Live2dOnWeb/', // 关于页地址, '{URL 网址}'
+    'screenshotCaptureName': 'bronyaMoe.png',   // 看板娘截图文件名，例如 'live2d.png'
 }
 // 模型列表
 const live2d_models = [
     {
         name: 'anon',
-        message: 'Live2D匿名角色模型',
+        message: 'SDK2 匿名模型',
         version: 2
     }
-];
+]
 /****************************************************************************************************/
 // SessionStorage LocalStorage 操作
 const setSS = (k, v) => {
@@ -158,6 +140,10 @@ function testWebP() {
 }
 
 function showMessage(text, timeout, flag) {
+    // 不显示消息
+    return;
+
+    // 以下是原始代码，现在被跳过
     if (flag || getSS('waifu-text') === '' || getSS('waifu-text') === null) {
         if (timeoutID) window.clearTimeout(timeoutID);
         if (Array.isArray(text)) text = text[Math.floor(Math.random() * text.length + 1) - 1];
@@ -195,503 +181,6 @@ function changePosition(position) {
         waifu.style.left = '';
         waifu.style.right = '';
     }
-}
-
-// 表情和动作对应关系 - 扩展为更丰富的组合
-const expressionMotionPairs = [
-    // 基础表情和动作
-    { expression: 'f01', motion: 'idle', weight: 10 },        // 默认表情 - 空闲动作
-    { expression: 'f02', motion: 'tap_body', weight: 8 },     // 微笑表情 - 点击身体动作
-    { expression: 'f03', motion: 'surprised', weight: 5 },    // 惊讶表情 - 惊讶动作
-    { expression: 'f04', motion: 'angry', weight: 5 },        // 生气表情 - 生气动作
-    { expression: 'f05', motion: 'sad', weight: 5 },          // 悲伤表情 - 悲伤动作
-    { expression: 'f06', motion: 'thinking', weight: 7 },     // 思考表情 - 思考动作
-    { expression: 'f07', motion: 'wink', weight: 6 },         // 眨眼表情 - 眨眼动作
-    { expression: 'f08', motion: 'sad', weight: 4 },          // 哭泣表情 - 悲伤动作
-    { expression: 'f09', motion: 'tap_body', weight: 7 },     // 微笑2表情 - 点击身体动作
-    { expression: 'f10', motion: 'angry', weight: 5 },        // 生气2表情 - 生气动作
-    { expression: 'f11', motion: 'flick_head', weight: 7 },   // 严肃表情 - 摇头动作
-    { expression: 'f12', motion: 'thinking', weight: 6 },     // 害羞表情 - 思考动作
-
-    // 新增组合
-    { expression: 'default', motion: 'idle', weight: 5 },
-    { expression: 'smile01', motion: 'smile01', weight: 8 },
-    { expression: 'smile02', motion: 'smile02', weight: 7 },
-    { expression: 'smile03', motion: 'smile03', weight: 7 },
-    { expression: 'smile04', motion: 'smile04', weight: 6 },
-    { expression: 'sad01', motion: 'sad01', weight: 5 },
-    { expression: 'sad02', motion: 'sad02', weight: 4 },
-    { expression: 'angry01', motion: 'angry01', weight: 4 },
-    { expression: 'angry02', motion: 'angry02', weight: 4 },
-    { expression: 'angry03', motion: 'angry03', weight: 3 },
-    { expression: 'angry04', motion: 'angry04', weight: 3 },
-    { expression: 'serious01', motion: 'serious01', weight: 6 },
-    { expression: 'serious02', motion: 'serious02', weight: 5 },
-    { expression: 'shame01', motion: 'shame01', weight: 5 },
-    { expression: 'shame02', motion: 'shame02', weight: 4 },
-    { expression: 'thinking01', motion: 'thinking01', weight: 6 },
-    { expression: 'thinking02', motion: 'thinking02', weight: 5 },
-    { expression: 'thinking03', motion: 'thinking03', weight: 5 },
-    { expression: 'wink01', motion: 'wink01', weight: 7 },
-    { expression: 'surprised01', motion: 'surprised01', weight: 6 },
-    { expression: 'cry01', motion: 'cry01', weight: 3 },
-    { expression: 'cry02', motion: 'cry02', weight: 3 },
-
-    // 创意组合 - 不同类型的表情和动作组合在一起
-    { expression: 'smile01', motion: 'wink01', weight: 6 },
-    { expression: 'wink01', motion: 'smile01', weight: 6 },
-    { expression: 'thinking01', motion: 'flick_head', weight: 5 },
-    { expression: 'smile02', motion: 'thinking01', weight: 4 },
-    { expression: 'serious01', motion: 'nf_left01', weight: 4 },
-    { expression: 'serious02', motion: 'nf_right01', weight: 4 },
-    { expression: 'surprised01', motion: 'kandou01', weight: 5 },
-    { expression: 'smile04', motion: 'kandou02', weight: 5 },
-    { expression: 'shame01', motion: 'serious01', weight: 4 },
-    { expression: 'wink01', motion: 'nf01', weight: 5 },
-    { expression: 'angry01', motion: 'thinking01', weight: 3 }, // 生气表情但做思考动作
-    { expression: 'sad01', motion: 'smile01', weight: 2 },     // 悲伤表情但做微笑动作
-];
-
-// 微小动作列表 - 用于在静止状态下随机触发的小动作
-const microMotions = [
-    { expression: 'f01', motion: 'idle', weight: 20 },        // 基础待机
-    { expression: 'wink01', motion: 'wink01', weight: 20 },   // 眨眼
-    { expression: 'f07', motion: 'wink', weight: 15 },        // 另一种眨眼
-    { expression: 'smile01', motion: 'smile01', weight: 10 }, // 微笑
-    { expression: 'smile02', motion: 'smile02', weight: 10 }, // 微笑2
-    { expression: 'nf01', motion: 'nf01', weight: 8 },        // 轻微点头
-    { expression: 'nf_left01', motion: 'nf_left01', weight: 5 }, // 向左轻微摇头
-    { expression: 'nf_right01', motion: 'nf_right01', weight: 5 }, // 向右轻微摇头
-];
-
-// 动作序列 - 为特定情境预定义的动作序列
-const motionSequences = [
-    {
-        name: "思考序列",
-        sequence: [
-            { expression: 'thinking01', motion: 'thinking01', duration: 3000 },
-            { expression: 'thinking02', motion: 'thinking02', duration: 3000 },
-            { expression: 'thinking03', motion: 'thinking03', duration: 3000 },
-            { expression: 'smile01', motion: 'smile01', duration: 2500 }
-        ],
-        weight: 3
-    },
-    {
-        name: "打招呼序列",
-        sequence: [
-            { expression: 'smile01', motion: 'smile01', duration: 2000 },
-            { expression: 'wink01', motion: 'wink01', duration: 1500 },
-            { expression: 'smile02', motion: 'smile02', duration: 2000 }
-        ],
-        weight: 4
-    },
-    {
-        name: "惊讶序列",
-        sequence: [
-            { expression: 'surprised01', motion: 'surprised01', duration: 2000 },
-            { expression: 'kandou01', motion: 'kandou01', duration: 2500 },
-            { expression: 'smile01', motion: 'smile01', duration: 2000 }
-        ],
-        weight: 2
-    },
-    {
-        name: "害羞序列",
-        sequence: [
-            { expression: 'shame01', motion: 'shame01', duration: 2500 },
-            { expression: 'shame02', motion: 'shame02', duration: 2500 },
-            { expression: 'serious01', motion: 'serious01', duration: 2000 }
-        ],
-        weight: 2
-    }
-];
-
-// 最近使用的表情和动作，用于避免短时间内重复
-let recentExpressions = [];
-let recentMotions = [];
-const MAX_RECENT_ITEMS = 5; // 记录最近使用的项目数量
-
-// 当前正在执行的序列
-let currentSequence = null;
-let sequenceIndex = 0;
-let sequenceTimer = null;
-
-// 自动定时切换表情和动作的计时器ID
-let autoMotionTimerId = null;
-
-// 微小动作的计时器ID
-let microMotionTimerId = null;
-
-// 自动定时切换表情和动作
-function startAutoMotionChange() {
-    // 清除之前的计时器（如果存在）
-    if (autoMotionTimerId) {
-        clearInterval(autoMotionTimerId);
-    }
-
-    // 清除微小动作计时器（如果存在）
-    if (microMotionTimerId) {
-        clearInterval(microMotionTimerId);
-    }
-
-    // 设置新的计时器，每5秒切换一次（原来是10秒）
-    autoMotionTimerId = setInterval(() => {
-        // 有20%的几率播放动作序列，其余时间随机选择单个表情动作（原来是10%）
-        if (Math.random() < 0.2 && motionSequences.length > 0) {
-            playRandomMotionSequence();
-        } else {
-            // 如果当前没有在播放序列，则随机切换表情和动作
-            if (!currentSequence) {
-                randomExpressionMotion();
-            }
-        }
-
-        if (live2d_settings.debug) {
-            console.log('[Live2D] 自动切换动作已执行，下一次将在5秒后');
-        }
-    }, 5000);
-
-    // 设置微小动作计时器，每1.5-3秒随机触发一次微小动作
-    startMicroMotions();
-
-    if (live2d_settings.debug) {
-        console.log('[Live2D] 自动动作切换已启动，间隔5秒');
-    }
-}
-
-// 启动微小动作系统
-function startMicroMotions() {
-    // 如果已经有计时器，先清除
-    if (microMotionTimerId) {
-        clearInterval(microMotionTimerId);
-    }
-
-    // 随机触发微小动作
-    function triggerMicroMotion() {
-        // 如果当前正在播放序列或者主要动作，不触发微小动作
-        if (currentSequence) return;
-
-        // 随机决定是否触发动作（60%的几率触发某种动作）
-        if (Math.random() < 0.6) {
-            // 决定触发大动作还是微小动作
-            // 有15%的几率触发大动作，85%的几率触发微小动作
-            const triggerMajorMotion = Math.random() < 0.15;
-
-            if (triggerMajorMotion) {
-                // 触发大动作 - 从表情动作对中选择
-                // 过滤出适合作为大动作的动作类型
-                const majorMotionTypes = [
-                    'tap_body', 'surprised', 'angry', 'thinking',
-                    'flick_head', 'kandou01', 'kandou02'
-                ];
-
-                // 从完整的表情动作对中选择一些权重较高的作为随机大动作
-                let availablePairs = expressionMotionPairs.filter(pair =>
-                    majorMotionTypes.includes(pair.motion) && (pair.weight || 0) > 4
-                );
-
-                if (availablePairs.length === 0) {
-                    availablePairs = expressionMotionPairs.filter(pair =>
-                        majorMotionTypes.includes(pair.motion)
-                    );
-                }
-
-                // 如果还是没有，就从所有表情动作对中选择
-                if (availablePairs.length === 0) {
-                    availablePairs = [...expressionMotionPairs];
-                }
-
-                // 根据权重随机选择
-                const totalWeight = availablePairs.reduce((sum, pair) => sum + (pair.weight || 1), 0);
-                let randomWeight = Math.random() * totalWeight;
-                let selectedPair = null;
-
-                for (const pair of availablePairs) {
-                    randomWeight -= (pair.weight || 1);
-                    if (randomWeight <= 0) {
-                        selectedPair = pair;
-                        break;
-                    }
-                }
-
-                // 如果选中了一个大动作，执行它
-                if (selectedPair && window.live2dCurrentVersion === 2 && window.live2dv2.model) {
-                    // 切换表情
-                    if (window.live2dv2.model.expressions) {
-                        window.live2dv2.model.setExpression(selectedPair.expression);
-                    }
-
-                    // 执行动作
-                    if (window.live2dv2.model.motions[selectedPair.motion]) {
-                        const motions = window.live2dv2.model.motions[selectedPair.motion];
-                        const randomMotionIndex = Math.floor(Math.random() * motions.length);
-                        window.live2dv2.model.startMotion(selectedPair.motion, randomMotionIndex, 2);
-
-                        if (live2d_settings.debug) {
-                            console.log(`[Live2D] 触发大动作: ${selectedPair.expression}, ${selectedPair.motion}`);
-                        }
-                    }
-                }
-            } else {
-                // 触发微小动作 - 从微小动作列表中选择
-                const totalWeight = microMotions.reduce((sum, motion) => sum + (motion.weight || 1), 0);
-                let randomWeight = Math.random() * totalWeight;
-                let selectedMotion = null;
-
-                for (const motion of microMotions) {
-                    randomWeight -= (motion.weight || 1);
-                    if (randomWeight <= 0) {
-                        selectedMotion = motion;
-                        break;
-                    }
-                }
-
-                // 如果选到了动作，执行它
-                if (selectedMotion && window.live2dCurrentVersion === 2 && window.live2dv2.model) {
-                    // 切换表情（如果必要）
-                    if (selectedMotion.expression && window.live2dv2.model.expressions) {
-                        window.live2dv2.model.setExpression(selectedMotion.expression);
-                    }
-
-                    // 执行动作
-                    if (selectedMotion.motion && window.live2dv2.model.motions[selectedMotion.motion]) {
-                        const motions = window.live2dv2.model.motions[selectedMotion.motion];
-                        const randomMotionIndex = Math.floor(Math.random() * motions.length);
-                        window.live2dv2.model.startMotion(selectedMotion.motion, randomMotionIndex, 1); // 优先级设为1，低于主要动作
-
-                        if (live2d_settings.debug) {
-                            console.log(`[Live2D] 触发微小动作: ${selectedMotion.expression}, ${selectedMotion.motion}`);
-                        }
-                    }
-                }
-            }
-        }
-
-        // 随机设定下一次触发时间
-        // 大动作后需要更长的恢复时间 (2-4秒)，微小动作后间隔短 (1-2秒)
-        const baseInterval = 1000 + Math.random() * 1000;  // 1-2秒的基础间隔
-        const nextInterval = baseInterval * (triggerMajorMotion ? 2 : 1); // 如果刚触发了大动作，延长间隔
-
-        microMotionTimerId = setTimeout(triggerMicroMotion, nextInterval);
-    }
-
-    // 启动第一次触发
-    triggerMicroMotion();
-}
-
-// 播放随机动作序列
-function playRandomMotionSequence() {
-    // 如果已经在播放序列，则先停止
-    if (currentSequence) {
-        clearTimeout(sequenceTimer);
-        currentSequence = null;
-    }
-
-    // 根据权重随机选择一个序列
-    const totalWeight = motionSequences.reduce((sum, seq) => sum + (seq.weight || 1), 0);
-    let randomWeight = Math.random() * totalWeight;
-    let selectedSequence = null;
-
-    for (const sequence of motionSequences) {
-        randomWeight -= (sequence.weight || 1);
-        if (randomWeight <= 0) {
-            selectedSequence = sequence;
-            break;
-        }
-    }
-
-    // 如果没有选到序列（可能是权重计算问题），则选第一个
-    if (!selectedSequence && motionSequences.length > 0) {
-        selectedSequence = motionSequences[0];
-    }
-
-    // 开始播放序列
-    if (selectedSequence) {
-        currentSequence = selectedSequence;
-        sequenceIndex = 0;
-        playCurrentSequenceStep();
-
-        if (live2d_settings.debug) {
-            console.log(`[Live2D] 开始播放动作序列: ${selectedSequence.name}`);
-        }
-    }
-}
-
-// 播放当前序列的当前步骤
-function playCurrentSequenceStep() {
-    if (!currentSequence || sequenceIndex >= currentSequence.sequence.length) {
-        currentSequence = null;
-        return;
-    }
-
-    const step = currentSequence.sequence[sequenceIndex];
-
-    // 设置表情和动作
-    if (window.live2dCurrentVersion === 2 && window.live2dv2.model) {
-        // 切换表情
-        if (window.live2dv2.model.expressions) {
-            window.live2dv2.model.setExpression(step.expression);
-        }
-
-        // 切换动作
-        if (window.live2dv2.model.motions[step.motion]) {
-            const motions = window.live2dv2.model.motions[step.motion];
-            const randomMotionIndex = Math.floor(Math.random() * motions.length);
-            window.live2dv2.model.startMotion(step.motion, randomMotionIndex, 2);
-        }
-
-        if (live2d_settings.debug) {
-            console.log(`[Live2D] 序列步骤 ${sequenceIndex + 1}/${currentSequence.sequence.length}: ${step.expression}, ${step.motion}`);
-        }
-    }
-
-    // 计划下一步
-    sequenceIndex++;
-    if (sequenceIndex < currentSequence.sequence.length) {
-        sequenceTimer = setTimeout(playCurrentSequenceStep, step.duration);
-    } else {
-        setTimeout(() => { currentSequence = null; }, step.duration);
-    }
-}
-
-// 随机切换表情和动作
-function randomExpressionMotion(event) {
-    // 如果当前正在播放序列，则不要打断
-    if (currentSequence) return;
-
-    // 获取并记录模型当前位置
-    const modelElement = waifu;
-    const modelRect = modelElement.getBoundingClientRect();
-    const canvasElement = window.live2dCurrentVersion === 2 ? $$(`#${live2dId2}`) : $$(`#${live2dId4}`);
-    const canvasRect = canvasElement.getBoundingClientRect();
-
-    // 计算点击坐标相对于模型的位置
-    const clickX = event ? event.clientX : 0;
-    const clickY = event ? event.clientY : 0;
-    const relativeX = clickX - canvasRect.left;
-    const relativeY = clickY - canvasRect.top;
-
-    // 根据点击位置选择不同的动作类型 (如果是点击事件)
-    let motionType = null;
-    if (event) {
-        // 计算点击区域 (头部、身体等)
-        const headXRange = [canvasRect.width * 0.3, canvasRect.width * 0.7];
-        const headYRange = [0, canvasRect.height * 0.3];
-        const bodyYRange = [canvasRect.height * 0.3, canvasRect.height * 0.7];
-
-        if (relativeX >= headXRange[0] && relativeX <= headXRange[1] &&
-            relativeY >= headYRange[0] && relativeY <= headYRange[1]) {
-            // 头部点击 - 使用flick_head类型的动作
-            motionType = 'flick_head';
-        } else if (relativeY >= bodyYRange[0] && relativeY <= bodyYRange[1]) {
-            // 身体点击 - 使用tap_body类型的动作
-            motionType = 'tap_body';
-        }
-    }
-
-
-    if (window.live2dCurrentVersion === 2) {
-        // 根据权重随机选择一个表情和动作对
-        // 过滤出有效的表情动作对 (如果指定了motionType，则只选择该类型的动作)
-        let availablePairs = [...expressionMotionPairs];
-
-        if (motionType) {
-            availablePairs = availablePairs.filter(pair => {
-                return window.live2dv2.model.motions[motionType] &&
-                    window.live2dv2.model.expressions &&
-                    window.live2dv2.model.expressions[pair.expression];
-            });
-        } else {
-            availablePairs = availablePairs.filter(pair => {
-                return window.live2dv2.model.motions[pair.motion] &&
-                    window.live2dv2.model.expressions &&
-                    window.live2dv2.model.expressions[pair.expression];
-            });
-        }
-
-        // 尽量避免选择最近使用过的表情和动作
-        const lessDuplicatedPairs = availablePairs.filter(pair => {
-            return !recentExpressions.includes(pair.expression) &&
-                !recentMotions.includes(pair.motion);
-        });
-
-        // 如果过滤后没有可用的组合，则使用所有有效组合
-        const pairsToUse = lessDuplicatedPairs.length > 0 ? lessDuplicatedPairs : availablePairs;
-
-        // 根据权重随机选择
-        const totalWeight = pairsToUse.reduce((sum, pair) => sum + (pair.weight || 1), 0);
-        let randomWeight = Math.random() * totalWeight;
-        let randomPair = null;
-
-        for (const pair of pairsToUse) {
-            randomWeight -= (pair.weight || 1);
-            if (randomWeight <= 0) {
-                randomPair = pair;
-                break;
-            }
-        }
-
-        // 如果没有选到，则选第一个 (理论上不应该发生)
-        if (!randomPair && pairsToUse.length > 0) {
-            randomPair = pairsToUse[0];
-        }
-
-        // 如果指定了motionType，则使用该type下的动作，但保留选择的表情
-        if (motionType && randomPair) {
-            randomPair = {
-                expression: randomPair.expression,
-                motion: motionType
-            };
-        }
-
-        if (randomPair) {
-            // 更新最近使用记录
-            recentExpressions.push(randomPair.expression);
-            recentMotions.push(randomPair.motion);
-
-            // 保持最近使用记录不超过限制
-            if (recentExpressions.length > MAX_RECENT_ITEMS) {
-                recentExpressions.shift();
-            }
-            if (recentMotions.length > MAX_RECENT_ITEMS) {
-                recentMotions.shift();
-            }
-
-            // 切换表情
-            if (window.live2dv2.model.expressions) {
-                window.live2dv2.model.setExpression(randomPair.expression);
-            }
-
-            // 切换动作
-            if (window.live2dv2.model.motions[randomPair.motion]) {
-                const motions = window.live2dv2.model.motions[randomPair.motion];
-                const randomMotionIndex = Math.floor(Math.random() * motions.length);
-                window.live2dv2.model.startMotion(randomPair.motion, randomMotionIndex, 2);
-            }
-
-            if (live2d_settings.debug) {
-                console.log(`[Live2D] 随机切换表情: ${randomPair.expression}, 动作: ${randomPair.motion}`);
-            }
-        }
-    }
-
-    // 保持模型位置固定，避免动作导致位置变化
-    // 300ms后恢复位置，给予足够时间让动作开始执行
-    setTimeout(() => {
-        // 如果位置发生变化，恢复到原来的位置
-        const currentRect = modelElement.getBoundingClientRect();
-        if (Math.abs(currentRect.left - modelRect.left) > 2 || Math.abs(currentRect.width - modelRect.width) > 2) {
-            // 记录当前样式中是用left还是right定位
-            const style = window.getComputedStyle(modelElement);
-            if (style.left !== 'auto' && style.left !== '0px') {
-                modelElement.style.left = modelRect.left + 'px';
-            } else if (style.right !== 'auto' && style.right !== '0px') {
-                modelElement.style.right = (window.innerWidth - modelRect.right) + 'px';
-            }
-            if (live2d_settings.debug) {
-                console.log('[Live2D] 位置已修复');
-            }
-        }
-    }, 300);
 }
 
 function initModel() {
@@ -773,54 +262,66 @@ function initModel() {
     } else {
         loadModel(modelName);
     }
-
-    // 为canvas添加点击事件
-    $$(`#${live2dId2}`).addEventListener('click', randomExpressionMotion);
-    $$(`#${live2dId4}`).addEventListener('click', randomExpressionMotion);
 }
 
 function loadModel(modelName) {
-    let modelVersion;
-    if (live2d_models.findIndex(m => m.name === modelName) === -1) modelName = live2d_settings.modelName;
-    const index = live2d_models.findIndex(m => m.name === modelName);
-    const modelInfo = live2d_models[index];
-    if (!modelInfo) {
-        console.error(`未找到模型: ${modelName}`);
-        return;
-    }
-    modelVersion = modelInfo.version !== undefined ? modelInfo.version : 2;
-    waifuTips.style.opacity = 0;
-    waifuTips.style.visibility = 'hidden';
-    // 隐藏看板娘，防止加载前显示太久
-    waifu.style.visibility = 'hidden';
-    waifu.style.bottom = '-500px';
-    window.setTimeout(function () {
-        waifu.style.visibility = '';
-        waifu.style.bottom = '0';
-    }, 0);
-
-    if (live2d_settings.debug) console.log('[Live2D]', `加载模型: ${modelName}`);
-    // 载入模型
-    if (modelVersion === 2) {
-        // v2.0
-        window.live2dCurrentVersion = 2;
-        $$(`#${live2dId2}`).style.display = '';
-        $$(`#${live2dId4}`).style.display = 'none';
-        window.live2dv2.loadModel(`${live2d_settings.modelUrl}/${modelName}/model.json`);
-    } else {
-        // v4.0
-        window.live2dCurrentVersion = 4;
-        window.live2d = window.l2d = window.live2dv4;
-        $$(`#${live2dId2}`).style.display = 'none';
-        $$(`#${live2dId4}`).style.display = '';
-        live2dv4.init(`${live2d_settings.modelUrl}/${modelName}`, null, { default_motion: 'idle' });
+    if (live2d_settings.modelStorage)
+        setLS('modelName', modelName);
+    else
+        setSS('modelName', modelName);
+    live2d_settings.debug && console.log(`[WaifuTips] 加载模型 ${modelName}`);
+    let modelVersion = 2;
+    // 在配置中找到要加载模型的版本
+    let modelFound = false;
+    for (let model of live2d_models) {
+        if (model.name === modelName) {
+            modelVersion = model.version;
+            changePosition(model.position);
+            modelFound = true;
+            console.log(`[WaifuTips] 找到模型配置: ${modelName}, 版本: ${modelVersion}`);
+            break;
+        }
     }
 
-    // 记录到模型到LocalStorage
-    if (live2d_settings.modelStorage) setLS('modelName', modelName);
+    if (!modelFound) {
+        console.error(`[WaifuTips] 找不到模型配置: ${modelName}`);
+        // 默认使用第一个模型
+        if (live2d_models.length > 0) {
+            modelName = live2d_models[0].name;
+            modelVersion = live2d_models[0].version;
+            console.log(`[WaifuTips] 使用默认模型: ${modelName}`);
+        }
+    }
 
-    // 启动自动切换动作
-    startAutoMotionChange();
+    // 如果要加载的模型版本不同，先释放之前的SDK并隐藏canvas
+    if (window.live2dCurrentVersion !== modelVersion) {
+        if (window.live2dCurrentVersion === 2) {
+            window.live2dv2.release();
+            $$(`#${live2dId2}`).style.display = 'none';
+        } else if (window.live2dCurrentVersion === 3) {
+            window.live2dv4.release();
+            $$(`#${live2dId4}`).style.display = 'none';
+        }
+    }
+
+    try {
+        // 根据模型版本选择不同的SDK加载
+        if (modelVersion === 2) {
+            $$(`#${live2dId2}`).style.display = 'block';
+            console.log(`[WaifuTips] 加载模型(v2): ${live2d_settings.modelUrl}/${modelName}/model.json`);
+            window.live2dv2.load(live2dId2, `${live2d_settings.modelUrl}/${modelName}/model.json`);
+        } else if (window.live2dCurrentVersion === modelVersion) {
+            console.log(`[WaifuTips] 切换模型(v3): ${live2d_settings.modelUrl}/${modelName}/${modelName}.model3.json`);
+            window.live2dv4.change(`${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+        } else {
+            $$(`#${live2dId4}`).style.display = 'block';
+            console.log(`[WaifuTips] 加载模型(v3): ${live2d_settings.modelUrl}/${modelName}/${modelName}.model3.json`);
+            window.live2dv4.load(live2dId4, `${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+        }
+        window.live2dCurrentVersion = modelVersion;
+    } catch (e) {
+        console.error(`[WaifuTips] 加载模型失败: ${e.message}`);
+    }
 }
 
 // 读取记忆的模型
@@ -1083,68 +584,81 @@ const blobDownload = (blob) => {
 }
 
 const waifuStyle = `
-        #waifu {
-        ${live2d_settings.waifuEdgeSide}px;
-        position:fixed;
-        bottom:0;
-        z-index:10000;
-        font-size:0
-        }
-        
-        #waifu-message {
-        font-size:1rem;
-        width:fit-content;
-        height:auto;
-        left:2rem;
-        top:20px;
-        opacity:0;
-        z-index:10001;
-        margin:auto;
-        padding:5px 10px;
-        border:1px solid rgba(104,216,255,0.62);
-        border-radius:12px;
-        background-color:rgba(76,191,255,0.8);
-        box-shadow:0 3px 15px 2px rgba(16,51,49,0.3);
-        text-overflow:ellipsis;
-        overflow:hidden;
-        position:relative;
-        transition:opacity .3s ease
-        }
-        
-        #waifu-message>a {
-        color:#7500b7;
-        }
-        
-        #live2d2,#live2d4 {
-        position:relative;
-        display:none;
-        z-index:9999
-        }
-        
-        .waifu-tool {
-        display:none;
-        top:130px;
-        ${live2d_settings.waifuEdgeSide.split(":")[0]}:10px;
-        position:absolute;
-        z-index:10002
-        }
-        
-        #waifu:hover > .waifu-tool {
-        display:block
-        }
-        
-        .waifu-tool > span {
-        display:block;
-        cursor:pointer;
-        line-height:30px;
-        text-align:center;
-        transition:.2s;
-        }
-        
-        #waifu.hide,.waifu-tool > span.hide{display:none}
-        
-        @keyframes shake{2%{transform:translate(0.5px,-1.5px) rotate(-0.5deg)}4%{transform:translate(0.5px,1.5px) rotate(1.5deg)}6%{transform:translate(1.5px,1.5px) rotate(1.5deg)}8%{transform:translate(2.5px,1.5px) rotate(0.5deg)}10%{transform:translate(0.5px,2.5px) rotate(0.5deg)}12%{transform:translate(1.5px,1.5px) rotate(0.5deg)}14%{transform:translate(0.5px,0.5px) rotate(0.5deg)}16%{transform:translate(-1.5px,-0.5px) rotate(1.5deg)}18%{transform:translate(0.5px,0.5px) rotate(1.5deg)}20%{transform:translate(2.5px,2.5px) rotate(1.5deg)}22%{transform:translate(0.5px,-1.5px) rotate(1.5deg)}24%{transform:translate(-1.5px,1.5px) rotate(-0.5deg)}26%{transform:translate(1.5px,0.5px) rotate(1.5deg)}28%{transform:translate(-0.5px,-0.5px) rotate(-0.5deg)}30%{transform:translate(1.5px,-0.5px) rotate(-0.5deg)}32%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}34%{transform:translate(2.5px,2.5px) rotate(-0.5deg)}36%{transform:translate(0.5px,-1.5px) rotate(0.5deg)}38%{transform:translate(2.5px,-0.5px) rotate(-0.5deg)}40%{transform:translate(-0.5px,2.5px) rotate(0.5deg)}42%{transform:translate(-1.5px,2.5px) rotate(0.5deg)}44%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}46%{transform:translate(1.5px,-0.5px) rotate(-0.5deg)}48%{transform:translate(2.5px,-0.5px) rotate(0.5deg)}50%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}52%{transform:translate(-0.5px,1.5px) rotate(0.5deg)}54%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}56%{transform:translate(0.5px,2.5px) rotate(1.5deg)}58%{transform:translate(2.5px,2.5px) rotate(0.5deg)}60%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}62%{transform:translate(-1.5px,0.5px) rotate(1.5deg)}64%{transform:translate(-1.5px,1.5px) rotate(1.5deg)}66%{transform:translate(0.5px,2.5px) rotate(1.5deg)}68%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}70%{transform:translate(2.5px,2.5px) rotate(0.5deg)}72%{transform:translate(-0.5px,-1.5px) rotate(1.5deg)}74%{transform:translate(-1.5px,2.5px) rotate(1.5deg)}76%{transform:translate(-1.5px,2.5px) rotate(1.5deg)}78%{transform:translate(-1.5px,2.5px) rotate(0.5deg)}80%{transform:translate(-1.5px,0.5px) rotate(-0.5deg)}82%{transform:translate(-1.5px,0.5px) rotate(-0.5deg)}84%{transform:translate(-0.5px,0.5px) rotate(1.5deg)}86%{transform:translate(2.5px,1.5px) rotate(0.5deg)}88%{transform:translate(-1.5px,0.5px) rotate(1.5deg)}90%{transform:translate(-1.5px,-0.5px) rotate(-0.5deg)}92%{transform:translate(-1.5px,-1.5px) rotate(1.5deg)}94%{transform:translate(0.5px,0.5px) rotate(-0.5deg)}96%{transform:translate(2.5px,-0.5px) rotate(-0.5deg)}98%{transform:translate(-1.5px,-1.5px) rotate(-0.5deg)}0%,100%{transform:translate(0,0) rotate(0)}}
-        `;
+#waifu {
+${live2d_settings.waifuEdgeSide}px;
+position:fixed;
+bottom:0;
+z-index:998;
+font-size:0
+}
+
+#waifu-message {
+font-size:1rem;
+width:-moz-fit-content;
+width:fit-content;
+height:auto;
+left:2rem;
+top:20px;
+opacity:0;
+z-index:998;
+margin:auto;
+padding:5px 10px;
+border:1px solid rgba(104,216,255,0.62);
+border-radius:12px;
+background-color:rgba(76,191,255,0.8);
+box-shadow:0 3px 15px 2px rgba(16,51,49,0.3);
+text-overflow:ellipsis;
+overflow:hidden;
+position:relative;
+animation-delay:5s;
+animation-duration:50s;
+animation-iteration-count:infinite;
+animation-name:shake;
+animation-timing-function:ease-in-out;
+transition:opacity .3s ease
+}
+
+#waifu-message>a {
+color:#7500b7;
+}
+
+#live2d2,#live2d4 {
+position:relative;
+display:none;
+z-index:997
+}
+
+.waifu-tool {
+display:none;
+color:#d73b66;
+top:130px;
+${live2d_settings.waifuEdgeSide.split(":")[0]}:10px;
+position:absolute;
+z-index:998
+}
+
+#waifu:hover > .waifu-tool {
+display:block
+}
+
+.waifu-tool > span {
+font-family:"waifuico"!important;
+display:block;
+cursor:pointer;
+color:#0396FF;
+transition:.2s;
+font-size:18px;
+font-style:normal;
+-webkit-font-smoothing:antialiased;
+-moz-osx-font-smoothing:grayscale
+}
+
+.waifu-tool > span:hover {
+color:#43CBFF
+}
+
+.waifu-tool > .icon-next:before{padding-left:1px;content:"\\e6ba"}.waifu-tool > .icon-message:before{content:"\\e632"}.waifu-tool > .icon-cross:before{content:"\\e606"}.waifu-tool > .icon-about:before{content:"\\e60c"}.waifu-tool > .icon-home:before{content:"\\e604"}.waifu-tool > .icon-camera:before{content:"\\e635"}.waifu-tool > .icon-volumedown:before{content:"\\e6c2"}.waifu-tool > .icon-volumeup:before{content:"\\e6c3"}#waifu.hide,.waifu-tool > span.hide{display:none}@font-face{font-family:"waifuico";src:url(data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAWcAAsAAAAAC0gAAAVNAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCEAgqIVIcCATYCJAMkCxQABCAFhG0HchuYCVGUT06K7OeB7R6lCBOgbWnZzIYDWz+EMHANCwis4uG/tdf7dmbx/wC6VAGqgCuhAwBFIEwVsNJVwEb21LKO3q1lyz+tCZvx3+UrWlPV795l73pusllKVXgcRqIMCNk9wkGaA/IP1K2mWg6WmlnR1Qqa7lwLoaYD/FpfOAE/f7i06QU2n2W5rPV/cy2K44ACGrcnLqDD0wI/YTkL68xspUBnvQo9T6CzQkdr1/bhCczKuDJQdj1LDMwmDHIFPTTqquDavDGelJricfGKl+7w8d98zFIoE/6iA9e2Ylj9lX1P9TmTXns0nA3bm0jYCGTiTaHjmRQkNprQnXOzC8C4sE0w1P4qQ/OWvPO97zOkb72kik5d+CcPlJKsUAm1hqhw1ZCot5MNv7LiUvKr4pL4NVSqQvPQKYCWoNQMvYNOAH2DTg30HQ0a0JprJoEpEPsB4i2ON7lEyOJpoGWF9Uoz6iBtQmEZSR0YgyVVYPFeOIPN3GSY5uUOTjKmlLks4xwO30ihSfCIyrtB4/PlZurwHsUBoelpYahQGMsORi9mnmOcZ53Fz4BQ8IuaCKZRdi7BW+cZ52Szpw+ehI6b5uVwWNcZJrl5XEaG4Bld+DyO/5TGe5LbP7LAWhojkRiji8z5YcW4eTbOYXEZBO3YphYFXCQmlfO4fOOcAZytB5LH1+1A0uQ5B/DIGQ0gj8ejLuvzhMI4gSALZBJK9MFFEGbOK1D72SB4ZF2DPLFhL3v8OkqZ3MwXCOi1BHU/icfLYxIMLouDs5sWjxhRQR6VjJ+FINpJiKW8dBgVnzyUAzNnYNNHlnYjV2upFMVP6IFi1tXVmW8ihqPPJMWLn3H3seGju3ci3kxPEJTA0jrAQ0fD8Bh6dl1hXf0jKHdKaRsxTzcO0JWMCoNpvbEutxBvrD4E64xscguymJWl87Zjuz13sbN3o1/REc9hj2HPEfRfUA14VOUN+7FLSlHD9gF0AN/dJbxQrsdqTB3bWeDw0/XbbtrtD/xvuymCYSI3VzoM07Joq6QFcq1EreSY1AupY67wGmL52IowWn008LOtnCa+PdJrVOzu58O13kDd54MrhoRV1HZxf/zUr1jBGrG7pF/6h14kOo20kntvDF6kSO5t+TgvfqwJSQ/VSg0rQ5KRsjB/bGg60jQ9Ai1DI9N26w1XrItJXd3kYnKRURRvBJG8CHy8T2KLtC/qq2WL2gJ6vtlO77JfPuylAcBR1HTZpJf91SwxeD4oigJToj4caJer06uTaZep061vZt/78dVJJWe2AnU4gB5PDpTgyF6yu7ScXvf3eIak4yE/dIofEGczzzlM3ABqvZvHHD39P3t+ZdNyM/gthH9c/L6TBMMoWrqXvkajeBuRb7kuP60g/JddpNzY5pNEGfo/hx8k0VMSdQi2thsxVqATC3y7PZM+hsUzjVX+THgmgkJtDpLGSmKmboTSwCJUGluhs8HOzQNTxITILdZ7ZBDGvUBh1GdIxr0RM/UdSrN+oTIeE9A5FlP3HFgd2fxOIaMUo73CLOLaSbPO+/IjSkJpJC51jDMSn4Vx2Buk0ztUkwxxgT9PRqoOnXCF2+xlVJaMjXBOkfZS1Wbc77uib+pFXMG8nQQxFIkh6wrKRFjNmeVqPrP/IyQRlAyp6HvmPUOEl62PhnoGDYg7qrpR36XUeucSI0oxB7ltKaugbbKRUiQYaoqPypGI6kk7xBpjfZrnmqp60+PqsV6BDv+YNopIkaOMKupooo1OvkmXOnODvDcJTV0W9tVTFy0Hnb6Xmpwrmr5sqjtz7PwxLkNFMV/Us6E/NAAAAAA=) format("woff2"),url(waifuico.woff?t=1597741284606) format("woff")}@keyframes shake{2%{transform:translate(0.5px,-1.5px) rotate(-0.5deg)}4%{transform:translate(0.5px,1.5px) rotate(1.5deg)}6%{transform:translate(1.5px,1.5px) rotate(1.5deg)}8%{transform:translate(2.5px,1.5px) rotate(0.5deg)}10%{transform:translate(0.5px,2.5px) rotate(0.5deg)}12%{transform:translate(1.5px,1.5px) rotate(0.5deg)}14%{transform:translate(0.5px,0.5px) rotate(0.5deg)}16%{transform:translate(-1.5px,-0.5px) rotate(1.5deg)}18%{transform:translate(0.5px,0.5px) rotate(1.5deg)}20%{transform:translate(2.5px,2.5px) rotate(1.5deg)}22%{transform:translate(0.5px,-1.5px) rotate(1.5deg)}24%{transform:translate(-1.5px,1.5px) rotate(-0.5deg)}26%{transform:translate(1.5px,0.5px) rotate(1.5deg)}28%{transform:translate(-0.5px,-0.5px) rotate(-0.5deg)}30%{transform:translate(1.5px,-0.5px) rotate(-0.5deg)}32%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}34%{transform:translate(2.5px,2.5px) rotate(-0.5deg)}36%{transform:translate(0.5px,-1.5px) rotate(0.5deg)}38%{transform:translate(2.5px,-0.5px) rotate(-0.5deg)}40%{transform:translate(-0.5px,2.5px) rotate(0.5deg)}42%{transform:translate(-1.5px,2.5px) rotate(0.5deg)}44%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}46%{transform:translate(1.5px,-0.5px) rotate(-0.5deg)}48%{transform:translate(2.5px,-0.5px) rotate(0.5deg)}50%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}52%{transform:translate(-0.5px,1.5px) rotate(0.5deg)}54%{transform:translate(-1.5px,1.5px) rotate(0.5deg)}56%{transform:translate(0.5px,2.5px) rotate(1.5deg)}58%{transform:translate(2.5px,2.5px) rotate(0.5deg)}60%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}62%{transform:translate(-1.5px,0.5px) rotate(1.5deg)}64%{transform:translate(-1.5px,1.5px) rotate(1.5deg)}66%{transform:translate(0.5px,2.5px) rotate(1.5deg)}68%{transform:translate(2.5px,-1.5px) rotate(1.5deg)}70%{transform:translate(2.5px,2.5px) rotate(0.5deg)}72%{transform:translate(-0.5px,-1.5px) rotate(1.5deg)}74%{transform:translate(-1.5px,2.5px) rotate(1.5deg)}76%{transform:translate(-1.5px,2.5px) rotate(1.5deg)}78%{transform:translate(-1.5px,2.5px) rotate(0.5deg)}80%{transform:translate(-1.5px,0.5px) rotate(-0.5deg)}82%{transform:translate(-1.5px,0.5px) rotate(-0.5deg)}84%{transform:translate(-0.5px,0.5px) rotate(1.5deg)}86%{transform:translate(2.5px,1.5px) rotate(0.5deg)}88%{transform:translate(-1.5px,0.5px) rotate(1.5deg)}90%{transform:translate(-1.5px,-0.5px) rotate(-0.5deg)}92%{transform:translate(-1.5px,-1.5px) rotate(1.5deg)}94%{transform:translate(0.5px,0.5px) rotate(-0.5deg)}96%{transform:translate(2.5px,-0.5px) rotate(-0.5deg)}98%{transform:translate(-1.5px,-1.5px) rotate(-0.5deg)}0%,100%{transform:translate(0,0) rotate(0)}}
+`;
 initModel();
 window.downloadCap = blobDownload;
 window.initModel = initModel;

@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// 获取环境变量中的基础路径设置，默认为根路径/
+const base = process.env.VITE_BASE_PATH || '/'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: base, // 设置项目基础路径
   server: {
     host: '0.0.0.0', // 允许外部访问
     port: 5173, // 你可以换成你的端口

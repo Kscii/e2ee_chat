@@ -6,7 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Vite + React + TS</title>
-  <link rel="stylesheet" href="/live2d/live2d-icons.css">
+  <link rel="stylesheet" href="./live2d/live2d-icons.css">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
 
   <!-- Live2D -->
   <div id="waifu">
-    <div id="waifu-message"></div>
+    <div id="waifu-message" style="display: none;"></div>
     <div class="waifu-tool">
       <span class="icon-next"></span>
       <span class="icon-home"></span>
@@ -30,8 +30,25 @@
     <canvas id="live2d2"></canvas>
     <canvas id="live2d4"></canvas>
   </div>
-  <script src="/live2d/dist/live2d_bundle.js"></script>
-  <script async type="module" src="/live2d/waifu-tips.js"></script>
+  <!-- 延迟加载Live2D脚本，等待React应用加载完成 -->
+  <script>
+    // 等待DOM内容加载完成
+    document.addEventListener('DOMContentLoaded', () => {
+      // 等待几秒钟再加载Live2D脚本
+      setTimeout(() => {
+        const script1 = document.createElement('script');
+        script1.src = './live2d/dist/live2d_bundle.js';
+        document.body.appendChild(script1);
+
+        script1.onload = () => {
+          const script2 = document.createElement('script');
+          script2.type = 'module';
+          script2.src = './live2d/waifu-tips.js';
+          document.body.appendChild(script2);
+        };
+      }, 1000);
+    });
+  </script>
 </body>
 
 </html>
