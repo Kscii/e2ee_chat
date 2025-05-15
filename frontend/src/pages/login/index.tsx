@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, Card, Typography, message } from 'antd';
+import { Form, Input, Button, Checkbox, Card, Typography, App, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,17 +19,18 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const onFinish = async (values: LoginFormValues) => {
     try {
       setLoading(true);
       await login(values.username, values.password);
       // 登录成功后自行处理导航
-      message.success(t('login.success') || '登录成功');
+      messageApi.success(t('login.success') || '登录成功');
       navigate('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('login.error') || '登录失败';
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -37,6 +38,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="login-container">
+      {contextHolder}
       <Card variant="borderless" className="login-card">
         <div className="login-header">
           <Title level={2} style={{ margin: '0 0 8px 0' }}>{t('login.title')}</Title>

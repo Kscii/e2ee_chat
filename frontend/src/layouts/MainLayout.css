@@ -330,3 +330,23 @@
 [data-theme='dark'] .ant-menu-submenu-selected>.ant-menu-submenu-title>.ant-menu-submenu-arrow {
   color: #177ddc !important;
 }
+
+/* Logo样式 */
+.app-logo {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.app-logo img {
+  max-width: 100%;
+  height: auto;
+  transition: all 0.3s;
+}
+
+/* 折叠菜单时的Logo大小 */
+.menu-collapsed .app-logo img {
+  max-width: 50px;
+}

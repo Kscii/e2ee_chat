@@ -256,44 +256,55 @@ const MainLayout: React.FC = () => {
           defaultSize={siderWidth}
           size={siderWidth}
         >
-          <Flex vertical className={`app-sider ${(showMobileMenu && isMobile) ? 'show' : ''}`}>
-            <div className="user-profile">
-              <Dropdown menu={{ items: userMenuItems }} placement="topRight">
-                <div className="user-info">
-                  {avatar ? (
-                    <Avatar src={avatar} />
-                  ) : (
-                    <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />} />
-                  )}
-                  {!collapsed && <span className="username">{user?.username || t('settings.profile.name')}</span>}
-                </div>
-              </Dropdown>
+          <Layout.Sider
+            style={{ height: '100vh', overflow: 'auto' }}
+            theme={isDarkMode ? 'dark' : 'light'}
+            width={siderWidth}
+            collapsed={collapsed}
+            className={isMobile ? 'sider-mobile' : 'sider-desktop'}
+          >
+            <div className={`app-logo ${collapsed ? 'menu-collapsed' : ''}`}>
+              <img src="/anon.png" alt="网站Logo" />
             </div>
-            {!isMobile && (
-              <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => handleCollapse(!collapsed)}
-                className="menu-collapse-button"
+            <Flex vertical className={`app-sider ${(showMobileMenu && isMobile) ? 'show' : ''}`}>
+              <div className="user-profile">
+                <Dropdown menu={{ items: userMenuItems }} placement="topRight">
+                  <div className="user-info">
+                    {avatar ? (
+                      <Avatar src={avatar} />
+                    ) : (
+                      <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />} />
+                    )}
+                    {!collapsed && <span className="username">{user?.username || t('settings.profile.name')}</span>}
+                  </div>
+                </Dropdown>
+              </div>
+              {!isMobile && (
+                <Button
+                  type="text"
+                  icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                  onClick={() => handleCollapse(!collapsed)}
+                  className="menu-collapse-button"
+                />
+              )}
+              <Menu
+                theme={isDarkMode ? 'dark' : 'light'}
+                defaultSelectedKeys={['direct-messages']}
+                selectedKeys={getSelectedKey()}
+                mode="inline"
+                items={getMenuItems()}
+                onClick={handleMenuClick}
+                openKeys={openKeys}
+                onOpenChange={handleOpenChange}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  flex: 1,
+                }}
+                inlineCollapsed={collapsed}
               />
-            )}
-            <Menu
-              theme={isDarkMode ? 'dark' : 'light'}
-              defaultSelectedKeys={['direct-messages']}
-              selectedKeys={getSelectedKey()}
-              mode="inline"
-              items={getMenuItems()}
-              onClick={handleMenuClick}
-              openKeys={openKeys}
-              onOpenChange={handleOpenChange}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                flex: 1,
-              }}
-              inlineCollapsed={collapsed}
-            />
-          </Flex>
+            </Flex>
+          </Layout.Sider>
         </Splitter.Panel>
         <Splitter.Panel>
           <Flex vertical className="main-layout">
