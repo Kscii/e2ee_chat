@@ -1,0 +1,101 @@
+/* Live2D 工具栏样式 */
+.waifu-tool {
+    display: none;
+    position: absolute;
+    right: -10px;
+    top: 70px;
+    opacity: 0.95;
+    transition: transform 0.3s;
+}
+
+.waifu-tool span {
+    display: block;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    margin-bottom: 15px;
+    border-radius: 30px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.waifu-tool span:hover {
+    transform: scale(1.15);
+    background-color: rgba(255, 255, 255, 0.96);
+}
+
+/* 图标样式 */
+.icon-home::before {
+    content: "🏠";
+}
+
+.icon-message::before {
+    content: "💬";
+}
+
+.icon-camera::before {
+    content: "📷";
+}
+
+.icon-volumeup::before {
+    content: "🔊";
+}
+
+.icon-volumedown::before {
+    content: "🔈";
+}
+
+.icon-next::before {
+    content: "➡️";
+}
+
+.icon-about::before {
+    content: "ℹ️";
+}
+
+.icon-cross::before {
+    content: "❌";
+}
+
+/* Live2D模型基本样式 */
+#waifu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    font-size: 0;
+    transition: transform 0.3s ease-in-out;
+}
+
+#waifu canvas {
+    position: relative;
+    z-index: 3;
+}
+
+#waifu.hide {
+    transform: translateX(-100%);
+}
+
+#waifu-message {
+    position: absolute;
+    top: -60px;
+    left: 20px;
+    width: 200px;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    line-height: 24px;
+    text-align: center;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.2s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+}

@@ -6,7 +6,7 @@
   <link rel="icon" type="image/png" href="/anon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Vite + React + TS</title>
-  <link rel="stylesheet" href="./live2d/live2d-icons.css">
+  <link rel="stylesheet" href="/live2d/live2d-icons.css">
 </head>
 
 <body>
@@ -34,16 +34,19 @@
   <script>
     // 等待DOM内容加载完成
     document.addEventListener('DOMContentLoaded', () => {
+      // 设置全局变量waifuPath
+      window.waifuPath = '/live2d';
+
       // 等待几秒钟再加载Live2D脚本
       setTimeout(() => {
         const script1 = document.createElement('script');
-        script1.src = './live2d/dist/live2d_bundle.js';
+        script1.src = '/live2d/dist/live2d_bundle.js';
         document.body.appendChild(script1);
 
         script1.onload = () => {
           const script2 = document.createElement('script');
           script2.type = 'module';
-          script2.src = './live2d/waifu-tips.js';
+          script2.src = '/live2d/waifu-tips.js';
           document.body.appendChild(script2);
         };
       }, 1000);

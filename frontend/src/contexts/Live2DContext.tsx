@@ -45,8 +45,8 @@ export const Live2DProvider: React.FC<Live2DProviderProps> = ({ children }) => {
     const checkLive2DScriptsLoaded = (): boolean => {
         return (
             typeof window.live2dv2 !== 'undefined' &&
-            typeof window.live2dv4 !== 'undefined' &&
-            typeof window.initModel !== 'undefined'
+            typeof window.live2dv4 !== 'undefined'
+            // 不再检查initModel，因为它可能在window.live2dv2/live2dv4之后定义
         );
     };
 
@@ -69,80 +69,100 @@ export const Live2DProvider: React.FC<Live2DProviderProps> = ({ children }) => {
             localStorage.removeItem('modelName');
             console.log('[Live2D] 已清除之前的模型设置');
 
+            // 尝试直接查找initModel函数
+            if (typeof window.initModel === 'function') {
+                console.log('[Live2D] 找到initModel函数，正在初始化...');
+                try {
+                    window.initModel();
+                    console.log('[Live2D] 模型初始化调用完成');
+                } catch (error) {
+                    console.error('[Live2D] 模型初始化直接调用出错:', error);
+                    loadLive2DScripts(); // 如果直接调用失败，尝试重新加载脚本
+                }
+                return;
+            }
+
+            // 如果initModel不存在，检查Live2D脚本是否已加载
             if (checkLive2DScriptsLoaded()) {
-                // 如果initModel函数存在，调用它
-                if (typeof window.initModel === 'function') {
-                    console.log('[Live2D] 正在初始化Live2D模型...');
+                console.log('[Live2D] Live2D脚本已加载，但initModel未定义，等待脚本完全初始化...');
 
-                    // 添加错误监听器捕获JSON解析错误
-                    window.addEventListener('error', (event) => {
-                        if (event.message.includes('JSON')) {
-                            console.error('[Live2D] JSON解析错误:', event);
-                        }
-                    });
-
-                    // 延迟初始化，确保DOM和资源加载完成
-                    setTimeout(() => {
+                // 等待一段时间后再次检查
+                setTimeout(() => {
+                    if (typeof window.initModel === 'function') {
+                        console.log('[Live2D] 延迟后找到initModel函数，正在初始化...');
                         try {
-                            if (typeof window.initModel === 'function') {
-                                window.initModel();
-                                console.log('[Live2D] 模型初始化调用完成');
-                            } else {
-                                console.error('[Live2D] 初始化时找不到initModel函数');
-                            }
-                        } catch (initError) {
-                            console.error('[Live2D] 模型初始化过程出错:', initError);
+                            window.initModel();
+                        } catch (error) {
+                            console.error('[Live2D] 延迟初始化出错:', error);
                         }
-                    }, 1500);
-                } else {
-                    console.error('[Live2D] 找不到Live2D initModel函数');
-                }
+                    } else {
+                        console.error('[Live2D] 延迟后仍未找到initModel函数，尝试重新加载脚本');
+                        loadLive2DScripts();
+                    }
+                }, 2000);
             } else {
-                console.log('[Live2D] 脚本尚未加载，尝试手动加载...');
-
-                // 尝试重新加载脚本
-                if (!document.getElementById('live2d-bundle-script')) {
-                    console.log('[Live2D] 开始加载Live2D脚本...');
-                    const script1 = document.createElement('script');
-                    script1.id = 'live2d-bundle-script';
-                    script1.src = '/live2d/dist/live2d_bundle.js';
-                    script1.onerror = (err) => {
-                        console.error('[Live2D] live2d_bundle.js 加载失败:', err);
-                    };
-                    script1.onload = () => {
-                        console.log('[Live2D] live2d_bundle.js 加载成功');
-
-                        const script2 = document.createElement('script');
-                        script2.id = 'waifu-tips-script';
-                        script2.type = 'module';
-                        script2.src = '/live2d/waifu-tips.js';
-                        script2.onerror = (err) => {
-                            console.error('[Live2D] waifu-tips.js 加载失败:', err);
-                        };
-                        script2.onload = () => {
-                            console.log('[Live2D] waifu-tips.js 加载成功');
-                            // 延迟初始化以确保脚本完全执行
-                            setTimeout(() => {
-                                if (typeof window.initModel === 'function') {
-                                    console.log('[Live2D] 开始初始化模型...');
-                                    try {
-                                        window.initModel();
-                                        console.log('[Live2D] 模型初始化完成');
-                                    } catch (error) {
-                                        console.error('[Live2D] 模型初始化失败:', error);
-                                    }
-                                } else {
-                                    console.error('[Live2D] 加载脚本后仍找不到initModel函数');
-                                }
-                            }, 1000);
-                        };
-                        document.body.appendChild(script2);
-                    };
-                    document.body.appendChild(script1);
-                }
+                console.log('[Live2D] Live2D脚本未加载，开始加载脚本...');
+                loadLive2DScripts();
             }
         } catch (error) {
             console.error('[Live2D] 初始化过程中出错:', error);
+        }
+    };
+
+    // 加载Live2D相关脚本
+    const loadLive2DScripts = () => {
+        try {
+            if (!document.getElementById('live2d-bundle-script')) {
+                console.log('[Live2D] 开始加载Live2D脚本...');
+
+                // 移除可能已存在的脚本元素
+                const oldScript1 = document.getElementById('live2d-bundle-script');
+                const oldScript2 = document.getElementById('waifu-tips-script');
+                if (oldScript1) oldScript1.remove();
+                if (oldScript2) oldScript2.remove();
+
+                // 加载bundle脚本
+                const script1 = document.createElement('script');
+                script1.id = 'live2d-bundle-script';
+                script1.src = '/live2d/dist/live2d_bundle.js';
+                script1.onerror = (err) => {
+                    console.error('[Live2D] live2d_bundle.js 加载失败:', err);
+                };
+                script1.onload = () => {
+                    console.log('[Live2D] live2d_bundle.js 加载成功');
+
+                    // 加载tips脚本
+                    const script2 = document.createElement('script');
+                    script2.id = 'waifu-tips-script';
+                    script2.type = 'module';
+                    script2.src = '/live2d/waifu-tips.js';
+                    script2.onerror = (err) => {
+                        console.error('[Live2D] waifu-tips.js 加载失败:', err);
+                    };
+                    script2.onload = () => {
+                        console.log('[Live2D] waifu-tips.js 加载成功');
+
+                        // 延迟初始化以确保脚本完全执行
+                        setTimeout(() => {
+                            if (typeof window.initModel === 'function') {
+                                console.log('[Live2D] 脚本加载后找到initModel函数，开始初始化...');
+                                try {
+                                    window.initModel();
+                                    console.log('[Live2D] 模型初始化完成');
+                                } catch (error) {
+                                    console.error('[Live2D] 模型初始化失败:', error);
+                                }
+                            } else {
+                                console.error('[Live2D] 加载脚本后仍找不到initModel函数');
+                            }
+                        }, 1000);
+                    };
+                    document.body.appendChild(script2);
+                };
+                document.body.appendChild(script1);
+            }
+        } catch (error) {
+            console.error('[Live2D] 加载脚本过程中出错:', error);
         }
     };
 

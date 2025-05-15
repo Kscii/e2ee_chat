@@ -1,7 +1,7 @@
 const live2d_settings = {
     // 基本设置
-    'modelUrl': './live2d/model',                        // 存放模型的文件夹路径，末尾不需要斜杠
-    'tipsMessage': './live2d/waifu-tips.json',           // 看板娘提示消息文件的路径，可以留空不加载
+    'modelUrl': '/live2d/model',                        // 存放模型的文件夹路径，绝对路径
+    'tipsMessage': '/live2d/waifu-tips.json',           // 看板娘提示消息文件的路径，可以留空不加载
     // 模型设置
     'modelName': 'anon',                      // 默认加载的模型名称，仅在无本地记录的情况下有效
     'modelStorage': false,                       // 记忆模型，下次打开页面会加载上次选择的模型
@@ -195,6 +195,14 @@ function initModel() {
     } else {
         waifu.classList.remove('hide');
     }
+
+    // 确保初始化过程在live2d_bundle.js完全加载后进行
+    if (!window.live2dv2) {
+        console.log('[WaifuTips] live2dv2未初始化，等待加载...');
+        setTimeout(initModel, 500);
+        return;
+    }
+
     /* console welcome message */
     console.log("\u304f__,.\u30d8\u30fd.\u3000\u3000\u3000\u3000/\u3000,\u30fc\uff64 \u3009\n\u3000\u3000\u3000\u3000\u3000\uff3c ', !-\u2500\u2010-i\u3000/\u3000/\u00b4\n\u3000\u3000\u3000 \u3000 \uff0f\uff40\uff70'\u3000\u3000\u3000 L/\uff0f\uff40\u30fd\uff64\n\u3000\u3000 \u3000 /\u3000 \uff0f,\u3000 /|\u3000 ,\u3000 ,\u3000\u3000\u3000 ',\n\u3000\u3000\u3000\uff72 \u3000/ /-\u2010/\u3000\uff49\u3000L_ \uff8a \u30fd!\u3000 i\n\u3000\u3000\u3000 \uff9a \uff8d 7\uff72\uff40\uff84\u3000 \uff9a'\uff67-\uff84\uff64!\u30cf|\u3000 |\n\u3000\u3000\u3000\u3000 !,/7 '0'\u3000\u3000 \u00b40i\u30bd| \u3000 |\u3000\u3000\u3000\n\u3000\u3000\u3000\u3000 |.\u4ece\"\u3000\u3000_\u3000\u3000 ,,,, / |./ \u3000 |\n\u3000\u3000\u3000\u3000 \uff9a'| i\uff1e.\uff64,,__\u3000_,.\u30a4 / \u3000.i \u3000|\n\u3000\u3000\u3000\u3000\u3000 \uff9a'| | / k_\uff17_/\uff9a'\u30fd,\u3000\uff8a.\u3000|\n\u3000\u3000\u3000\u3000\u3000\u3000 | |/i \u3008|/\u3000 i\u3000,.\uff8d |\u3000i\u3000|\n\u3000\u3000\u3000\u3000\u3000\u3000.|/ /\u3000\uff49\uff1a \u3000 \uff8d!\u3000\u3000\uff3c\u3000|\n\u3000\u3000\u3000 \u3000 \u3000 k\u30fd>\uff64\uff8a \u3000 _,.\uff8d\uff64 \u3000 /\uff64!\n\u3000\u3000\u3000\u3000\u3000\u3000 !'\u3008//\uff40\uff34\u00b4', \uff3c \uff40'7'\uff70r'\n\u3000\u3000\u3000\u3000\u3000\u3000 \uff9a'\u30fdL__|___i,___,\u30f3\uff9a|\u30ce\n\u3000\u3000\u3000\u3000\u3000 \u3000\u3000\u3000\uff84-,/\u3000|___./\n\u3000\u3000\u3000\u3000\u3000 \u3000\u3000\u3000'\uff70'\u3000\u3000!_,.:\nLive2D \u770b\u677f\u5a18 v" + live2d_settings.l2dVersion + " / Konata");
 
@@ -246,11 +254,19 @@ function initModel() {
     if (!live2d_settings.modelStorage || modelName == null)
         modelName = live2d_settings.modelName;
 
-    window.live2dv4.setPreLoadMotion(live2d_settings.preLoadMotion);
-    window.live2dv2.debug = live2d_settings.debug;
-    window.live2dv4.debug = live2d_settings.debug;
-    window.live2dv2.debugMousemove = live2d_settings.debug && live2d_settings.debugMousemove;
-    window.live2dv4.debugMousemove = live2d_settings.debug && live2d_settings.debugMousemove;
+    // 修复setPreLoadMotion调用问题 - 只有在live2dv4存在时才调用
+    if (window.live2dv4 && typeof window.live2dv4.setPreLoadMotion === 'function') {
+        window.live2dv4.setPreLoadMotion(live2d_settings.preLoadMotion);
+    } else {
+        console.warn("[WaifuTips] 无法设置预加载动作，live2dv4未初始化或不支持该功能");
+    }
+
+    // 设置其他调试选项
+    if (window.live2dv2) window.live2dv2.debug = live2d_settings.debug;
+    if (window.live2dv4) window.live2dv4.debug = live2d_settings.debug;
+    if (window.live2dv2) window.live2dv2.debugMousemove = live2d_settings.debug && live2d_settings.debugMousemove;
+    if (window.live2dv4) window.live2dv4.debugMousemove = live2d_settings.debug && live2d_settings.debugMousemove;
+
     if (live2d_settings.tryWebp) {
         testWebP().then(r => window.webpReady = r).then(() => {
             if (window.webpReady === true)
@@ -295,28 +311,49 @@ function loadModel(modelName) {
 
     // 如果要加载的模型版本不同，先释放之前的SDK并隐藏canvas
     if (window.live2dCurrentVersion !== modelVersion) {
-        if (window.live2dCurrentVersion === 2) {
+        if (window.live2dCurrentVersion === 2 && window.live2dv2 && typeof window.live2dv2.release === 'function') {
             window.live2dv2.release();
             $$(`#${live2dId2}`).style.display = 'none';
-        } else if (window.live2dCurrentVersion === 3) {
+        } else if (window.live2dCurrentVersion === 3 && window.live2dv4 && typeof window.live2dv4.release === 'function') {
             window.live2dv4.release();
             $$(`#${live2dId4}`).style.display = 'none';
         }
     }
 
     try {
+        // 获取正确的模型路径 - 使用绝对路径
+        const modelBasePath = window.waifuPath || '/live2d';
+        const modelPath = `${modelBasePath}/model/${modelName}/model.json`;
+        const modelPath3 = `${modelBasePath}/model/${modelName}/${modelName}.model3.json`;
+
         // 根据模型版本选择不同的SDK加载
         if (modelVersion === 2) {
             $$(`#${live2dId2}`).style.display = 'block';
-            console.log(`[WaifuTips] 加载模型(v2): ${live2d_settings.modelUrl}/${modelName}/model.json`);
-            window.live2dv2.load(live2dId2, `${live2d_settings.modelUrl}/${modelName}/model.json`);
+            console.log(`[WaifuTips] 加载模型(v2): ${modelPath}`);
+
+            // 检查live2dv2是否已经加载
+            if (window.live2dv2 && typeof window.live2dv2.load === 'function') {
+                window.live2dv2.load(live2dId2, modelPath);
+            } else {
+                console.error('[WaifuTips] live2dv2未加载或不支持load方法，请确保live2d_bundle.js已正确加载');
+            }
         } else if (window.live2dCurrentVersion === modelVersion) {
-            console.log(`[WaifuTips] 切换模型(v3): ${live2d_settings.modelUrl}/${modelName}/${modelName}.model3.json`);
-            window.live2dv4.change(`${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+            console.log(`[WaifuTips] 切换模型(v3): ${modelPath3}`);
+
+            if (window.live2dv4 && typeof window.live2dv4.change === 'function') {
+                window.live2dv4.change(`${modelBasePath}/model/${modelName}`, `${modelName}.model3.json`);
+            } else {
+                console.error('[WaifuTips] live2dv4未加载或不支持change方法，请确保live2d_bundle.js已正确加载');
+            }
         } else {
             $$(`#${live2dId4}`).style.display = 'block';
-            console.log(`[WaifuTips] 加载模型(v3): ${live2d_settings.modelUrl}/${modelName}/${modelName}.model3.json`);
-            window.live2dv4.load(live2dId4, `${live2d_settings.modelUrl}/${modelName}`, `${modelName}.model3.json`);
+            console.log(`[WaifuTips] 加载模型(v3): ${modelPath3}`);
+
+            if (window.live2dv4 && typeof window.live2dv4.load === 'function') {
+                window.live2dv4.load(live2dId4, `${modelBasePath}/model/${modelName}`, `${modelName}.model3.json`);
+            } else {
+                console.error('[WaifuTips] live2dv4未加载或不支持load方法，请确保live2d_bundle.js已正确加载');
+            }
         }
         window.live2dCurrentVersion = modelVersion;
     } catch (e) {
