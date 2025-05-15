@@ -93,4 +93,25 @@ export const getSystemSalts = async (): Promise<SystemSalts> => {
  */
 export const clearSaltCache = () => {
   cachedSalt = null;
+};
+
+/**
+ * 设置用户加密盐值
+ * @param username 用户名
+ * @param salt 盐值
+ * @returns 保存的盐值
+ */
+export const setUserEncryptionSalt = async (username: string, salt: string): Promise<string> => {
+  try {
+    const response = await apiClient.post(`/user/encryption-salt/${username}`, {
+      salt: salt
+    });
+    
+    // 更新缓存
+    cachedSalt = salt;
+    return salt;
+  } catch (error) {
+    console.error('设置用户加密盐值失败:', error);
+    throw error;
+  }
 }; 

@@ -54,8 +54,8 @@ export default defineConfig({
     // terser压缩选项
     terserOptions: {
       compress: {
-        drop_console: true,  // 移除console
-        drop_debugger: true  // 移除debugger
+        drop_console: false,  // 移除console
+        drop_debugger: false  // 移除debugger
       }
     }
   }

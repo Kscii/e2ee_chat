@@ -97,6 +97,10 @@ export const register = async (username: string, password: string, email: string
     // 使用bcrypt生成密码哈希
     const bcryptHash = await CryptoService.generateBcryptHash(password);
     
+    // 确保先设置username到localStorage，这样CryptoService可以使用正确的盐值
+    console.log('注册时首先保存用户名到localStorage...');
+    localStorage.setItem('username', username);
+    
     // 先生成密钥对，避免在注册成功后处理可能出现的错误
     console.log('注册前，预先生成密钥对...');
     const keyPair = CryptoService.generateKeyPair();
@@ -111,7 +115,8 @@ export const register = async (username: string, password: string, email: string
     console.log('使用派生密钥加密私钥...');
     const encryptedPrivateKey = await CryptoService.encryptPrivateKeyWithKey(
       stringKeyPair.secretKey, 
-      encryptionKey
+      encryptionKey,
+      await CryptoService['getEncryptionSalt']() // 获取当前盐值
     );
     
     // 保存密钥对到localStorage，以供后续使用
@@ -128,9 +133,6 @@ export const register = async (username: string, password: string, email: string
     
     // 注册成功后，保存用户名和加密的私钥到服务器
     if (response.status === 201) {
-      // 保存用户名以便后续操作
-      localStorage.setItem('username', username);
-      
       // 清除盐值缓存，确保从服务器获取新的用户专属盐值
       clearSaltCache();
       
@@ -177,25 +179,21 @@ export const register = async (username: string, password: string, email: string
 // 用户登录
 export const login = async (username: string, password: string) => {
   try {
-    console.log('[Auth] 登录流程开始:', username);
+    // 临时保存密码用于解密
+    localStorage.setItem('temp_password', password);
     
-    // 首先获取存储的密码哈希
-    console.log('[Auth] 正在获取密码哈希...');
-    const storedHash = await getUserPasswordHash(username);
+    // 服务器认证在拦截器中完成
+    const response = await apiClient.post('/login', {
+      username,
+      password
+    });
     
-    // 使用bcrypt在前端验证密码
-    console.log('[Auth] 正在验证密码...');
-    const isPasswordValid = await CryptoService.compareBcryptHash(password, storedHash);
+    const data = response.data;
     
-    if (!isPasswordValid) {
-      console.error('[Auth] 密码验证失败');
-      throw new Error('密码不正确');
-    }
-    
-    console.log('[Auth] 密码验证成功，正在发送登录请求...');
-    
-    // 在发送敏感信息前验证服务器证书
-    const data = await verifyServerBeforeLogin(username, password);
+    // 删除临时密码
+    setTimeout(() => {
+      localStorage.removeItem('temp_password');
+    }, 60000); // 1分钟后删除
     
     // 保存认证信息
     if (data.token) {
@@ -229,7 +227,7 @@ export const login = async (username: string, password: string) => {
           await tryAllSaltVariations(username, password);
         }
         
-        // 初始化密钥对（会尝试从服务器恢复）
+        // 初始化密钥对（会尝试从服务器恢复，使用Blob中的盐值）
         await CryptoService.initializeKeyPair(password);
         console.log('[Auth] 密钥对初始化完成');
       } catch (error) {
@@ -246,7 +244,7 @@ export const login = async (username: string, password: string) => {
         throw new Error(axiosError.response.data.error || '登录失败');
       }
     }
-    throw new Error(error instanceof Error ? error.message : '网络错误，请稍后重试');
+    throw new Error('网络错误，请稍后重试');
   }
 };
 
