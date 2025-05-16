@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 import sqlite3
 from sqlite3 import Error
+import secrets
 
 from models import DatabaseManager, UserModel, MessageModel, ServerModel
 import config
@@ -94,6 +95,14 @@ def register():
     # 创建用户
     result, status_code = user_model.create_user(username, password, email, phone, is_hashed)
     
+    # 如果注册成功，生成并返回token
+    if status_code == 201:
+        # 生成JWT Token
+        token = generate_token(username)
+        
+        # 在响应中添加token
+        result["token"] = token
+    
     return jsonify(result), status_code
 
 # 登录接口
@@ -103,6 +112,8 @@ def login():
     username = data.get('username')
     password = data.get('password')
     is_hashed = data.get('is_hashed', False)  # 新增：检查密码是否已哈希
+    
+    print(f"收到登录请求 - 用户名: {username}, 密码长度: {len(password)}, is_hashed: {is_hashed}")
     
     # 验证输入
     if not username or not password:
@@ -121,6 +132,7 @@ def login():
             "token": token
         }), 200
     else:
+        print(f"登录验证失败 - 用户名: {username}, 错误消息: {error_message}")
         return jsonify({"error": error_message}), 401
 
 # 获取用户信息接口(需要验证Token)
@@ -168,17 +180,108 @@ def get_user_password_hash(username):
 # 获取用户私钥加密盐接口
 @app.route('/api/user/encryption-salt/<username>', methods=['GET'])
 def get_user_encryption_salt(username):
-    """获取用户的私钥加密盐值"""
+    """获取用户的私钥加密盐值，如果用户存在但没有盐值则自动创建新盐值"""
     try:
+        # 从用户模型中获取盐值
         salt = user_model.get_user_encryption_salt(username)
         
+        # 检查用户是否存在
+        user = user_model.get_user_by_username(username)
+        if not user:
+            return jsonify({"error": "用户不存在"}), 404
+        
+        # 如果用户存在但没有盐值，则创建新的盐值
         if not salt:
-            return jsonify({"error": "未找到用户或用户没有加密盐"}), 404
+            print(f"用户 {username} 存在但没有盐值，自动创建新盐值")
             
+            # 生成新盐值
+            new_salt = secrets.token_hex(16)  # 生成32字符的随机盐
+            
+            # 连接数据库更新用户盐值
+            conn = DatabaseManager().get_connection()
+            cursor = conn.cursor()
+            
+            try:
+                cursor.execute(
+                    "UPDATE users SET encryption_salt = ? WHERE username = ?",
+                    (new_salt, username)
+                )
+                conn.commit()
+                salt = new_salt
+                print(f"为用户 {username} 创建并保存了新盐值")
+            except Exception as e:
+                conn.rollback()
+                print(f"为用户 {username} 创建盐值失败: {str(e)}")
+                return jsonify({"error": f"创建盐值失败: {str(e)}"}), 500
+            finally:
+                conn.close()
+            
+        # 返回盐值
         return jsonify({"encryption_salt": salt}), 200
         
     except Exception as e:
         return jsonify({"error": f"获取用户加密盐失败: {str(e)}"}), 500
+
+# 设置用户私钥加密盐接口
+@app.route('/api/user/encryption-salt/<username>', methods=['POST'])
+def set_user_encryption_salt(username):
+    """设置用户的私钥加密盐值"""
+    try:
+        # 验证权限 - 需要用户登录且只能设置自己的盐值
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "无效的访问令牌"}), 401
+        
+        token = auth_header.split(' ')[1]
+        payload = verify_token(token)
+        
+        if not payload:
+            return jsonify({"error": "令牌已过期或无效"}), 401
+        
+        # 检查权限 - 只能设置自己的盐值
+        token_username = payload.get('username')
+        if token_username != username:
+            return jsonify({"error": "无权设置其他用户的盐值"}), 403
+        
+        # 获取请求中的盐值数据
+        data = request.get_json()
+        new_salt = data.get('salt')
+        
+        if not new_salt:
+            return jsonify({"error": "盐值不能为空"}), 400
+        
+        # 连接数据库更新用户盐值
+        conn = DatabaseManager().get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # 检查用户是否存在
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return jsonify({"error": "用户不存在"}), 404
+            
+            # 更新用户盐值
+            cursor.execute(
+                "UPDATE users SET encryption_salt = ? WHERE username = ?",
+                (new_salt, username)
+            )
+            conn.commit()
+            print(f"用户 {username} 的盐值已更新")
+            
+            return jsonify({"message": "盐值设置成功", "encryption_salt": new_salt}), 200
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"设置盐值失败: {str(e)}")
+            return jsonify({"error": f"设置盐值失败: {str(e)}"}), 500
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": f"设置用户加密盐失败: {str(e)}"}), 500
 
 # 新增: 获取所有用户列表接口
 @app.route('/api/users', methods=['GET'])

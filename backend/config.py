@@ -10,8 +10,8 @@ HOST = os.environ.get('HOST', '0.0.0.0')
 PORT = int(os.environ.get('PORT', 8000))
 
 # 安全设置
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-PEPPER = os.environ.get('SECRET_PEPPER', 'your-pepper-value-here')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'info2222-security-key-example')
+PEPPER = os.environ.get('SECRET_PEPPER', 'random-pepper-value-for-password-hashing')
 TOKEN_EXPIRE_MINUTES = int(os.environ.get('TOKEN_EXPIRE_MINUTES', 60))
 
 # 数据库设置

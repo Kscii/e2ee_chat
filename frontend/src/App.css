@@ -12,6 +12,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f0f2f5;
+  position: relative;
 }
 
 a {
@@ -24,13 +25,30 @@ a:hover {
 }
 
 #root {
-  max-width: 100%;
+  max-width: 100vw;
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
   text-align: left;
   overflow: hidden;
+  position: relative;
+  z-index: 100;
+  box-sizing: border-box;
+  /* 增加z-index，确保应用在上层 */
+}
+
+/* 确保应用的路由内容在最上层 */
+.app-layout {
+  position: relative;
+  z-index: 101;
+}
+
+/* 确保登录页面在上层 */
+.login-container,
+.register-container {
+  position: relative;
+  z-index: 200;
 }
 
 .logo {
@@ -92,4 +110,37 @@ a:hover {
   opacity: 0;
   transform: translateY(-20px);
   transition: opacity 300ms, transform 300ms;
+}
+
+/* 确保所有交互元素在Live2D之上 */
+button,
+input,
+select,
+textarea,
+.ant-modal,
+.ant-drawer,
+.ant-dropdown,
+.ant-select-dropdown,
+.ant-calendar,
+.ant-tooltip,
+.ant-message,
+.ant-notification {
+  position: relative;
+  z-index: 1000 !important;
+}
+
+/* 限制Ant Design组件的宽度 */
+.ant-modal-content,
+.ant-drawer-content,
+.ant-form {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.ant-input,
+.ant-input-group,
+.ant-select,
+.ant-input-number,
+.ant-picker {
+  max-width: 100% !important;
 }

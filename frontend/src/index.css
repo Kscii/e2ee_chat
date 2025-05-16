@@ -17,17 +17,6 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
 
 body {
   background-color: #f0f2f5;
@@ -69,3 +58,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* 注释掉导致宽度问题的样式
+.ant-layout-sider {
+  max-width: 400px !important;
+}
+*/

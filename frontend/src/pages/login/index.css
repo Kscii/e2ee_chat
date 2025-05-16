@@ -15,6 +15,8 @@
   background-color: #f5f5f5;
   background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   overflow: auto;
+  z-index: 1000;
+  /* 确保在最上层 */
 }
 
 .login-card {
@@ -24,6 +26,9 @@
   /* 浅色模式卡片背景 */
   background-color: #ffffff;
   margin: auto;
+  position: relative;
+  z-index: 1001;
+  /* 确保比容器更高 */
 }
 
 .login-header {
@@ -62,6 +67,22 @@
   color: rgba(0, 0, 0, 0.25);
 }
 
+/* 登录表单元素样式 */
+.login-container .ant-form-item {
+  position: relative;
+  z-index: 1002;
+  /* 确保表单控件在最上层 */
+}
+
+.login-container .ant-input,
+.login-container .ant-input-password,
+.login-container .ant-btn,
+.login-container .ant-checkbox-wrapper {
+  position: relative;
+  z-index: 1003;
+  /* 确保表单控件在最上层 */
+}
+
 /* 深色模式样式 */
 html[data-theme='dark'] .login-container {
   background-color: #121212;
@@ -75,4 +96,12 @@ html[data-theme='dark'] .login-card {
 
 html[data-theme='dark'] .site-form-item-icon {
   color: rgba(255, 255, 255, 0.5);
-} 
+}
+
+/* 响应式样式 */
+@media (max-width: 480px) {
+  .login-card {
+    width: 90%;
+    max-width: 360px;
+  }
+}

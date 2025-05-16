@@ -1,6 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 import bcrypt
+import hashlib  # 添加hashlib库用于SHA-256哈希
 from datetime import datetime
 from config import DATABASE_PATH, PEPPER
 import os
@@ -202,14 +203,20 @@ class UserModel:
     def __init__(self):
         self.db_manager = DatabaseManager()
     
+    def _preprocess_password(self, password_with_pepper):
+        """对hash1+pepper进行预处理，确保不超过bcrypt的72字节限制"""
+        # 使用SHA-256确保输入长度固定且不超过bcrypt限制
+        hash_obj = hashlib.sha256(password_with_pepper.encode('utf-8'))
+        return hash_obj.hexdigest()
+    
     def create_user(self, username, password, email=None, phone=None, is_hashed=False):
         """创建新用户
         参数:
             username: 用户名
-            password: 密码（明文或已哈希）
+            password: 密码（哈希值1，前端使用盐值+密码+SHA256生成）
             email: 邮箱
             phone: 电话
-            is_hashed: 密码是否已经哈希处理
+            is_hashed: 指示传入的密码是否已经是哈希值1
         """
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -233,12 +240,34 @@ class UserModel:
             
             # 处理密码
             if is_hashed:
-                # 如果密码已经哈希过，直接存储客户端发送的哈希值
-                password_hash = password
+                # 接收前端传来的哈希值1
+                hash1 = password
+                print(f"接收到前端哈希值1，长度: {len(hash1)}")
+                # 使用bcrypt+胡椒将哈希值1再次加密为哈希值2
+                password_with_pepper = hash1 + PEPPER
+                print(f"加入胡椒后，长度: {len(password_with_pepper)}")
+                
+                # 预处理hash1+pepper，确保不超过bcrypt的字节限制
+                preprocessed_pwd = self._preprocess_password(password_with_pepper)
+                print(f"预处理后的密码(SHA-256): {preprocessed_pwd[:20]}... (长度: {len(preprocessed_pwd)})")
+                
+                # 使用bcrypt生成最终哈希值
+                bcrypt_salt = bcrypt.gensalt()
+                print(f"使用的bcrypt盐值: {bcrypt_salt}")
+                
+                # 确保输入是bytes类型
+                password_hash = bcrypt.hashpw(preprocessed_pwd.encode('utf-8'), bcrypt_salt).decode('utf-8')
+                print(f"生成的bcrypt哈希值(最终存储): {password_hash}")
+                
+                # 验证一下生成的哈希值是否可以被验证通过
+                verify_result = bcrypt.checkpw(preprocessed_pwd.encode('utf-8'), password_hash.encode('utf-8'))
+                print(f"注册时验证bcrypt哈希结果: {verify_result}, 使用函数: bcrypt.checkpw()")
             else:
-                # 对明文密码加盐和哈希（传统方式）
+                # 旧方式，直接哈希明文密码（兼容旧客户端）
                 password_with_pepper = password + PEPPER
-                password_hash = bcrypt.hashpw(password_with_pepper.encode(), bcrypt.gensalt()).decode()
+                # 预处理密码+胡椒，确保不超过bcrypt的字节限制
+                preprocessed_pwd = self._preprocess_password(password_with_pepper)
+                password_hash = bcrypt.hashpw(preprocessed_pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             # 存储用户信息
             cursor.execute(
@@ -260,8 +289,8 @@ class UserModel:
         """验证用户凭据
         参数:
             username: 用户名
-            password: 密码（明文或已哈希）
-            is_hashed: 密码是否已经哈希处理
+            password: 密码（哈希值1，前端使用盐值+密码+SHA256生成）
+            is_hashed: 指示传入的密码是否已经是哈希值1
         """
         conn = self.db_manager.get_connection()
         cursor = conn.cursor()
@@ -276,34 +305,89 @@ class UserModel:
                 return None, "用户不存在"
             
             print(f"认证信息: 用户 {username}, 密码长度 {len(password)}, is_hashed={is_hashed}")
+            print(f"数据库存储的哈希(bcrypt格式): {user['password_hash']}")
             
             authenticated = False
             
             if is_hashed:
-                # 对于哈希密码验证，直接比较字符串
-                # 这种情况通常发生在前端已经验证过密码，只是通知后端登录
-                # 因此我们可以简单地返回验证成功
-                print("使用前端验证的哈希密码模式")
-                authenticated = True
-            else:
-                # 首先尝试直接使用bcrypt验证（前端直接传过来的明文密码）
-                print("尝试直接bcrypt验证...")
+                # 接收前端传来的哈希值1
+                hash1 = password
+                # 将哈希值1加上胡椒
+                password_with_pepper = hash1 + PEPPER
+                
+                print(f"前端哈希值1: {hash1}")
+                # 安全地显示胡椒值的添加，不暴露完整胡椒值
+                pepper_masked = PEPPER[:3] + "..." + PEPPER[-3:] if len(PEPPER) > 6 else "***"
+                print(f"加入胡椒后: {hash1} + {pepper_masked}")
+                
                 try:
-                    stored_hash = user['password_hash']
-                    print(f"数据库存储的哈希: {stored_hash}")
-                    authenticated = bcrypt.checkpw(password.encode(), stored_hash.encode())
-                    print(f"直接bcrypt验证结果: {authenticated}")
+                    # 预处理hash1+pepper，确保不超过bcrypt的字节限制
+                    preprocessed_pwd = self._preprocess_password(password_with_pepper)
+                    print(f"预处理后的密码(SHA-256): {preprocessed_pwd[:20]}... (长度: {len(preprocessed_pwd)})")
+                    
+                    # bcrypt.checkpw()函数工作原理说明：
+                    # 1. 从存储的哈希中提取盐值(格式: $2b$12$盐值...)
+                    # 2. 使用这个盐值对输入进行bcrypt哈希处理
+                    # 3. 比较新生成的哈希与存储的哈希是否匹配
+                    
+                    input_bytes = preprocessed_pwd.encode('utf-8')
+                    stored_hash_bytes = user['password_hash'].encode('utf-8')
+                    
+                    # 提取bcrypt盐值(前29个字符)并打印
+                    bcrypt_salt = stored_hash_bytes[:29]
+                    print(f"从存储哈希中提取的bcrypt盐值: {bcrypt_salt}")
+                    
+                    # 模拟checkpw内部操作，手动计算新的哈希值
+                    newly_hashed = bcrypt.hashpw(input_bytes, bcrypt_salt)
+                    print(f"内部重新计算的哈希值: {newly_hashed}")
+                    print(f"存储的哈希值: {stored_hash_bytes}")
+                    
+                    print(f"比较函数: bcrypt.checkpw()")
+                    print(f"输入参数1(预处理后): {input_bytes[:20]}... (长度: {len(input_bytes)})")
+                    print(f"输入参数2(存储的bcrypt哈希): {stored_hash_bytes[:20]}... (长度: {len(stored_hash_bytes)})")
+                    
+                    authenticated = bcrypt.checkpw(input_bytes, stored_hash_bytes)
+                    print(f"哈希值验证结果: {authenticated}")
+                    
+                    # 如果验证失败，打印更多调试信息
+                    if not authenticated:
+                        print(f"哈希值验证失败详情:")
+                        print(f"- 前端传入哈希值1: {hash1}")
+                        print(f"- 加入胡椒后长度: {len(password_with_pepper)}")
+                        print(f"- 预处理后长度: {len(preprocessed_pwd)}")
+                        print(f"- 存储的密码哈希: {user['password_hash']}")
+                        print(f"- 用户专属盐值: {user['encryption_salt']}")
+                        print(f"- 手动哈希和存储哈希是否相等: {newly_hashed == stored_hash_bytes}")
+                        
+                        # 尝试使用原始方式进行验证（兼容旧用户）
+                        original_authenticated = bcrypt.checkpw(password_with_pepper.encode('utf-8'), stored_hash_bytes)
+                        print(f"使用原始方式验证结果: {original_authenticated}")
+                        if original_authenticated:
+                            authenticated = True
+                            print("原始验证方式成功，用户可能是在修改前注册的")
                 except Exception as e:
-                    print(f"直接bcrypt验证失败: {str(e)}")
-                    # 如果bcrypt直接验证失败，尝试传统的pepper方式
+                    print(f"哈希值验证失败: {str(e)}")
+                    return None, "密码验证失败，格式可能不兼容"
+            else:
+                # 旧方式验证，兼容旧客户端
+                try:
+                    # 直接验证明文密码
                     password_with_pepper = password + PEPPER
-                    print(f"尝试pepper+bcrypt验证, pepper={PEPPER}")
-                    try:
-                        authenticated = bcrypt.checkpw(password_with_pepper.encode(), user['password_hash'].encode())
-                        print(f"pepper+bcrypt验证结果: {authenticated}")
-                    except Exception as e2:
-                        print(f"pepper+bcrypt验证失败: {str(e2)}")
-                        return None, "密码验证失败，格式可能不兼容"
+                    # 预处理密码+胡椒
+                    preprocessed_pwd = self._preprocess_password(password_with_pepper)
+                    authenticated = bcrypt.checkpw(preprocessed_pwd.encode('utf-8'), user['password_hash'].encode('utf-8'))
+                    print(f"明文密码验证结果: {authenticated}")
+                    
+                    # 尝试使用原始方式进行验证（兼容旧用户）
+                    if not authenticated:
+                        original_authenticated = bcrypt.checkpw(password_with_pepper.encode('utf-8'), user['password_hash'].encode('utf-8'))
+                        print(f"使用原始方式验证结果: {original_authenticated}")
+                        if original_authenticated:
+                            authenticated = True
+                            print("原始验证方式成功，用户可能是在修改前注册的")
+                except Exception as e:
+                    print(f"明文密码验证失败: {str(e)}")
+                    return None, "密码验证失败，格式可能不兼容"
             
             if authenticated:
                 print(f"用户 {username} 验证成功")

@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setIsLoading(true);
             console.log('[AuthContext] 开始登录流程...');
 
-            // 先调用登录API
+            // 调用修改后的登录API
             const response = await login(username, password);
             console.log('[AuthContext] 登录API调用成功');
 
@@ -90,34 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(basicUser);
             setIsAuth(true);
             console.log('[AuthContext] 用户认证状态已更新');
-
-            // 派生密钥并立即保存（不保存原始密码）
-            try {
-                console.log('[AuthContext] 从密码派生加密密钥...');
-                const encryptionKey = await CryptoService.generateEncryptionKey(password);
-                localStorage.setItem('encryptionKey', CryptoService.keyToString(encryptionKey));
-                console.log('[AuthContext] 加密密钥已保存到本地存储');
-
-                // 初始化密钥对，直接使用派生的加密密钥
-                try {
-                    await CryptoService.initializeKeyPairWithEncryptionKey(encryptionKey);
-                    console.log('[AuthContext] 使用派生密钥初始化密钥对成功');
-                } catch (keyPairError) {
-                    console.error('[AuthContext] 使用派生密钥初始化密钥对失败:', keyPairError);
-
-                    // 如果使用派生密钥失败，短暂设置密码以便CryptoContext可以尝试
-                    console.log('[AuthContext] 临时设置密码作为备用方案');
-                    setPassword(password);
-
-                    // 只保留密码非常短的时间，确保立即删除
-                    setTimeout(() => {
-                        console.log('[AuthContext] 备用方案尝试完成，删除密码');
-                        setPassword(null);
-                    }, 2000); // 2秒后删除密码
-                }
-            } catch (error) {
-                console.error('[AuthContext] 生成加密密钥失败:', error);
-            }
 
             // 获取完整用户信息
             try {

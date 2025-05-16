@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { getCache, setCache, removeCache } from '../utils/cacheManager';
 
 // 从环境变量获取API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -6,11 +7,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 // 定义盐值接口
 export interface SystemSalts {
   encryption_salt: string;
-  auth_salt?: string;  // 已废弃，保留兼容性
 }
 
-// 缓存的盐值
-let cachedSalt: string | null = null;
+// 盐值缓存键
+const SALT_CACHE_KEY = 'user_encryption_salt';
 
 // 创建axios实例
 const apiClient = axios.create({
@@ -23,7 +23,7 @@ const apiClient = axios.create({
 // 请求拦截器添加token
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem('token');
+    const token = getCache<string>('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -36,63 +36,55 @@ apiClient.interceptors.request.use(
 
 // 获取用户私钥加密盐值
 export const getUserEncryptionSalt = async (username: string): Promise<string> => {
-  // 如果已经有缓存的盐值，直接返回
+  // 检查是否有缓存的盐值
+  const cachedSalt = getCache<string>(`${SALT_CACHE_KEY}_${username}`);
   if (cachedSalt) {
+    console.log(`[SaltAPI] 使用缓存的盐值: ${cachedSalt.substring(0, 8)}...`);
     return cachedSalt;
   }
 
   try {
+    console.log(`[SaltAPI] 从服务器获取用户 ${username} 的盐值`);
     const response = await apiClient.get(`/user/encryption-salt/${username}`);
     const salt = response.data.encryption_salt;
+    
     if (salt) {
-      cachedSalt = salt;
+      console.log(`[SaltAPI] 获取到盐值: ${salt.substring(0, 8)}...`);
+      // 缓存盐值，使用用户名作为键的一部分以支持多用户
+      setCache(`${SALT_CACHE_KEY}_${username}`, salt);
       return salt;
     }
+    
     throw new Error('服务器返回了空的盐值');
   } catch (error) {
-    console.error('获取用户加密盐值失败:', error);
+    console.error('[SaltAPI] 获取用户加密盐值失败:', error);
     
     // 如果请求失败，返回默认盐值（仅作为临时后备方案）
     const fallbackSalt = 'fallback_encryption_salt_value';
+    console.warn('[SaltAPI] 使用备用盐值:', fallbackSalt.substring(0, 8) + '...');
     return fallbackSalt;
-  }
-};
-
-// 以下方法已弃用，仅保留API兼容性
-export const getSystemSalts = async (): Promise<SystemSalts> => {
-  // 从localStorage获取用户名
-  const username = localStorage.getItem('username');
-  
-  if (!username) {
-    // 如果没有用户名，返回默认盐值
-    return {
-      encryption_salt: 'fallback_encryption_salt_value'
-    };
-  }
-  
-  try {
-    // 使用新API获取用户私钥加密盐
-    const salt = await getUserEncryptionSalt(username);
-    
-    // 保持API兼容性，返回旧格式
-    return {
-      encryption_salt: salt
-    };
-  } catch (error) {
-    console.error('获取系统盐值失败:', error);
-    
-    // 如果请求失败，返回默认盐值
-    return {
-      encryption_salt: 'fallback_encryption_salt_value'
-    };
   }
 };
 
 /**
  * 清除盐值缓存，强制下次调用重新获取
+ * @param username 特定用户名，如果提供，只清除该用户的盐值缓存
  */
-export const clearSaltCache = () => {
-  cachedSalt = null;
+export const clearSaltCache = (username?: string): void => {
+  if (username) {
+    // 清除特定用户的盐值缓存
+    removeCache(`${SALT_CACHE_KEY}_${username}`);
+    console.log(`[SaltAPI] 已清除用户 ${username} 的盐值缓存`);
+  } else {
+    // 清除所有盐值缓存（查找所有以SALT_CACHE_KEY开头的键）
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(SALT_CACHE_KEY)) {
+        removeCache(key);
+      }
+    }
+    console.log('[SaltAPI] 已清除所有盐值缓存');
+  }
 };
 
 /**
@@ -103,15 +95,17 @@ export const clearSaltCache = () => {
  */
 export const setUserEncryptionSalt = async (username: string, salt: string): Promise<string> => {
   try {
+    console.log(`[SaltAPI] 设置用户 ${username} 的盐值: ${salt.substring(0, 8)}...`);
     const response = await apiClient.post(`/user/encryption-salt/${username}`, {
       salt: salt
     });
     
     // 更新缓存
-    cachedSalt = salt;
+    setCache(`${SALT_CACHE_KEY}_${username}`, salt);
+    
     return salt;
   } catch (error) {
-    console.error('设置用户加密盐值失败:', error);
+    console.error('[SaltAPI] 设置用户加密盐值失败:', error);
     throw error;
   }
 }; 

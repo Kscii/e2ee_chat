@@ -93,20 +93,8 @@ export const CryptoProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         console.log('[CryptoContext] 尝试使用已存储的加密密钥初始化...');
                         setKeyInitAttempted(true);
 
-                        // 将字符串转换回加密密钥
-                        const encryptionKey = CryptoService.stringToKey(encryptionKeyString);
-
-                        // 使用加密密钥初始化
-                        const newKeyPair = await CryptoService.initializeKeyPairWithEncryptionKey(encryptionKey);
-
-                        if (newKeyPair) {
-                            console.log('[CryptoContext] 使用加密密钥初始化成功');
-                            setKeyPair(newKeyPair);
-                            setIsInitialized(true);
-                            return;
-                        } else {
-                            console.error('[CryptoContext] 使用加密密钥初始化失败');
-                        }
+                        // 由于没有initializeKeyPairWithEncryptionKey方法，这部分暂时跳过
+                        console.warn('[CryptoContext] 加密密钥存在但无法直接使用，尝试其他方法');
                     } catch (error) {
                         console.error('[CryptoContext] 使用已存储加密密钥初始化失败:', error);
                     }
@@ -254,27 +242,10 @@ export const CryptoProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             console.log('[CryptoContext] 正在解密消息 - 发送者公钥:',
                 senderPublicKeyBase64.substring(0, 8) + '...');
 
-            // 导出调试信息
-            try {
-                if (typeof CryptoService.exportDebugInfo === 'function') {
-                    console.info('[CryptoContext] 导出解密前的密钥调试信息');
-                    CryptoService.exportDebugInfo();
-                }
-            } catch (e) {
-                console.warn('[CryptoContext] 无法导出调试信息:', e);
-            }
-
-            // 记录详细的密钥信息用于跨浏览器对比
-            if (typeof CryptoService.hashString === 'function') {
-                console.info('[CryptoContext-DEBUG] 解密密钥详情:', {
-                    本地公钥哈希: CryptoService.hashString(keyPair.publicKey),
-                    本地私钥哈希: CryptoService.hashString(keyPair.secretKey),
-                    发送者公钥哈希: CryptoService.hashString(senderPublicKeyBase64),
-                    加密消息哈希: CryptoService.hashString(encryptedMessage),
-                    浏览器: navigator.userAgent,
-                    时间戳: new Date().toISOString()
-                });
-            }
+            // 记录基本的密钥信息
+            console.info('[CryptoContext] 准备解密消息',
+                '本地公钥长度:', keyPair.publicKey.length,
+                '发送者公钥长度:', senderPublicKeyBase64.length);
 
             const mySecretKey = CryptoService.stringToKey(keyPair.secretKey);
             const senderPublicKey = CryptoService.stringToKey(senderPublicKeyBase64);
@@ -292,21 +263,6 @@ export const CryptoProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                     '本地密钥对是否完整:', !!(keyPair && keyPair.publicKey && keyPair.secretKey),
                     '本地公钥:', keyPair.publicKey.substring(0, 8) + '...',
                     '发送者公钥:', senderPublicKeyBase64.substring(0, 8) + '...');
-
-                // 记录完整的密钥哈希值，便于对比
-                if (typeof CryptoService.hashString === 'function') {
-                    console.error('[CryptoContext-DEBUG] 解密失败详细信息:', {
-                        本地公钥完整哈希: CryptoService.hashString(keyPair.publicKey),
-                        本地私钥完整哈希: CryptoService.hashString(keyPair.secretKey),
-                        发送者公钥完整哈希: CryptoService.hashString(senderPublicKeyBase64),
-                        本地公钥长度: keyPair.publicKey.length,
-                        本地私钥长度: keyPair.secretKey.length,
-                        发送者公钥长度: senderPublicKeyBase64.length,
-                        加密消息长度: encryptedMessage.length,
-                        加密消息前20位: encryptedMessage.substring(0, 20) + '...',
-                        浏览器详情: navigator.userAgent
-                    });
-                }
 
                 // 建议重新初始化密钥对
                 console.warn('[CryptoContext] 建议: 可能需要重新刷新页面或重新登录，确保密钥对从服务器正确恢复');

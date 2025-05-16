@@ -119,11 +119,12 @@
 }
 
 .setting-control {
-  margin-left: 24px;
-  min-width: 80px;
+  flex: 1;
   display: flex;
   justify-content: flex-end;
-  padding-top: 2px;
+  align-items: center;
+  padding-top: 8px;
+  max-width: 70%;
 }
 
 @media (max-width: 768px) {
@@ -158,4 +159,4 @@
 
 [data-theme='dark'] .settings-item .ant-slider-mark-text {
   color: rgba(255, 255, 255, 0.45);
-} 
+}

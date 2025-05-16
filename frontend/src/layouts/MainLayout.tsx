@@ -252,7 +252,7 @@ const MainLayout: React.FC = () => {
       >
         <Splitter.Panel
           min={collapsed ? 80 : 200}
-          max="50%"
+          max={300}
           defaultSize={siderWidth}
           size={siderWidth}
         >
@@ -263,9 +263,7 @@ const MainLayout: React.FC = () => {
             collapsed={collapsed}
             className={isMobile ? 'sider-mobile' : 'sider-desktop'}
           >
-            <div className={`app-logo ${collapsed ? 'menu-collapsed' : ''}`}>
-              <img src="/anon.png" alt="网站Logo" />
-            </div>
+
             <Flex vertical className={`app-sider ${(showMobileMenu && isMobile) ? 'show' : ''}`}>
               <div className="user-profile">
                 <Dropdown menu={{ items: userMenuItems }} placement="topRight">
