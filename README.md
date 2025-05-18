@@ -2,16 +2,6 @@
 
 > A secure, modern and customizable web chat platform built with React, TypeScript, and Flask.
 
-![License](https://img.shields.io/github/license/cran0556/INFO2222-group)
-![Last Commit](https://img.shields.io/github/last-commit/cran0556/INFO2222-group)
-![Repo Size](https://img.shields.io/github/repo-size/cran0556/INFO2222-group)
-![Uptime](https://img.shields.io/uptimerobot/status/mg0jcmvKCH8)
-
-### 📦 Project Status
-
-![Issues](https://img.shields.io/github/issues/cran0556/INFO2222-group)
-![PRs](https://img.shields.io/github/issues-pr/cran0556/INFO2222-group)
-![Stars](https://img.shields.io/github/stars/cran0556/INFO2222-group)
 
 ### 🧠 Tech Stack
 
