@@ -31,7 +31,7 @@ It integrates AI assistance, end-to-end encryption, multi-service text-to-speech
 This README serves as the homepage of the GitHub repository and provides new contributors and users with a comprehensive understanding of the codebase.
 
 Check out the **[kang-mi.com](https://kang-mi.com)**  
-![Uptime](https://img.shields.io/uptimerobot/status/mg0jcmvKCH8)
+![Uptime](https://img.shields.io/uptimerobot/status/T2VLHo9zT9)
 
 
 ## Key Features
