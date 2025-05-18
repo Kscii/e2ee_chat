@@ -53,8 +53,8 @@ export default defineConfig({
     // terser压缩选项
     terserOptions: {
       compress: {
-        drop_console: false,  // 移除console
-        drop_debugger: false  // 移除debugger
+        drop_console: process.env.NODE_ENV === 'production',  // 在生产环境中移除console
+        drop_debugger: process.env.NODE_ENV === 'production'  // 在生产环境中移除debugger
       }
     }
   }

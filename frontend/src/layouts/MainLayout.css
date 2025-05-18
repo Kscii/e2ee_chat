@@ -350,3 +350,10 @@
 .menu-collapsed .app-logo img {
   max-width: 50px;
 }
+
+/* 下拉菜单样式 */
+.ant-dropdown-menu {
+  max-width: 230px;
+  white-space: normal;
+  word-break: break-word;
+}

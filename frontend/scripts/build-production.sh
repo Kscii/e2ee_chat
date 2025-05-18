@@ -16,6 +16,7 @@ echo "VITE_CERT_FINGERPRINT=$CERT_FINGERPRINT" >> .env.production.local
 echo "VITE_PUBLIC_KEY_HASH=$PUBLIC_KEY_HASH" >> .env.production.local
 echo "VITE_TRUSTED_DOMAIN=$TRUSTED_DOMAIN" >> .env.production.local
 echo "VITE_BASE_PATH=$BASE_PATH" >> .env.production.local
+echo "NODE_ENV=production" >> .env.production.local
 
 # 输出配置信息
 echo "构建生产环境版本，配置如下:"
@@ -27,7 +28,7 @@ echo "基础路径: $BASE_PATH"
 echo "环境模式: production"
 
 # 执行构建
-npm run build
+NODE_ENV=production npm run build
 
 # 清理
 rm .env.production.local

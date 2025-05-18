@@ -1,440 +1,245 @@
-# 安全功能演示
+# Server Certificate Verification Implementation (INFO2222-group Project)
 
-## 前端证书验证测试
+---
 
-本文档演示如何测试前端应用是否正确实现了服务器证书验证机制，确保客户端只与可信的服务器通信。
+## 1. Backend (Flask + Nginx)
 
-### 背景
+### 1.1 Certificate Configuration  
+`/etc/nginx/sites-available/chat` (Nginx config)  
+* **Certificate Path**: Managed by Let’s Encrypt at `/etc/letsencrypt/live/kang-mi.com/`, including:
+  * `fullchain.pem` – server + intermediate cert chain
+  * `privkey.pem` – private key  
+* **TLS Configuration**: TLS 1.2 and 1.3 enabled, older versions disabled. Secure cipher suites configured (ECDHE-ECDSA and ECDHE-RSA), session caching and timeout configured, session tickets disabled, HSTS header enabled (`max-age=63072000` seconds).
 
-在Web应用中，特别是涉及用户认证的应用，确保客户端只向可信的服务器发送敏感信息（如密码）至关重要。虽然HTTPS能提供加密传输，但对于高安全性需求的应用，还应该验证服务器的身份，防止恶意服务器使用有效但非预期的证书（如钓鱼网站获取的合法证书）。
+### 1.2 Auto-Renewal Mechanism  
+`/etc/cron.d/certbot` (cron job)  
+* **Auto Renewal**: Let’s Encrypt certs are valid for 90 days. A cron job checks and attempts renewal every 12 hours, with random delay to prevent mass access.
+* **Post-Renew Hook**: Uses `--post-hook` to reload Nginx after renewal, ensuring new certs are used without downtime.
 
-### 测试方法一：替换服务器证书
+### 1.3 Security Controls
 
-这个测试通过替换服务器的SSL证书来验证前端是否拒绝与使用"不信任证书"的服务器通信，即使该证书在技术上是有效的（如自签名证书）。
+#### a. OCSP Stapling  
+Enabled in `nginx` to let the server pre-fetch OCSP responses and serve them to clients. Also validates stapled response and sets trusted certificate chain.
 
-#### 步骤1：创建假证书
+#### b. Private Key Protection  
+* **File Permissions**: Private keys are readable only by `root`, with `chmod 600`.
+* **Key Types**: RSA-2048 or ECDSA P-256 depending on configuration.
 
-```bash
-# 创建存放假证书的目录
-mkdir ~/fake-cert
-cd ~/fake-cert
+#### c. HTTPS Enforcement  
+All HTTP requests are permanently redirected (301) to HTTPS via a separate server block listening on port 80.
 
-# 生成自签名证书，使用与真实站点相同的域名
-openssl req -x509 -newkey rsa:2048 -keyout fake.key -out fake.crt -days 365 -nodes \
-  -subj "/CN=kang-mi.com"
+---
 
-# 准备Nginx可用的证书格式
-cat fake.crt > fake_fullchain.pem
-cp fake.key fake_privkey.pem
+## 2. Frontend (React + TypeScript)
+
+### 2.1 Utility Layer  
+File: `frontend/src/utils/certificateValidator.ts`
+
+| Feature              | Function                           | Input                              | Output             |
+|----------------------|------------------------------------|------------------------------------|--------------------|
+| Certificate Verify   | `verifyCertificate()`              | Optional fingerprint & key hash    | Boolean            |
+| Domain Match         | `validateServerDomain()`           | –                                  | Boolean            |
+| Trusted Domain Fetch | `getTrustedDomain()`               | –                                  | Trusted domain     |
+| Fingerprint Compare  | `compareCertificateFingerprint()`  | cert, expected fingerprint          | Boolean            |
+
+### 2.2 API-Level Certificate Check  
+File: `frontend/src/api/apiClient.ts`
+
+#### a. Request Interceptor  
+All requests go through `apiClient.interceptors.request`.  
+It checks:
+* If running in production and secure mode
+* If certificate has not yet been verified:
+  * Calls `verifyCertificate()`
+  * On failure: throws error and aborts
+  * On success: caches the result
+
+Also attaches auth token and request headers.
+
+#### b. Pre-login Check  
+File: `frontend/src/api/auth.ts > login()`  
+Before sending credentials, `verifyCertificate()` is called.  
+If it fails → error thrown.  
+If passed → `CryptoService.generateHash1()` is called and `/login` is requested with `username`, `hash1`, and `is_hashed: true`.
+
+### 2.3 Verification Implementation  
+File: `frontend/src/utils/certificateValidator.ts`
+
+#### a. Core Validation  
+`verifyCertificate()` takes optional expected fingerprint/public key hash.  
+In development or over HTTP, it returns `true`.  
+In production, it:
+* Calls `validateServerDomain()`  
+* Attempts a `fetch` to trusted domain (HEAD, no-cors, timeout = 5s)  
+Due to browser limitations, cannot access cert details — relies on environment variable comparisons.  
+Returns `true` if request succeeds; logs and returns `false` otherwise.
+
+#### b. Domain Validation  
+`validateServerDomain()` compares the current hostname to trusted domain from `getTrustedDomain()` (from `env` or defaults to `'kang-mi.com'`).
+
+#### c. Certificate Pinning During Build  
+File: `frontend/scripts/build-production.sh`  
+Sets:
+- `VITE_SECURE_MODE`
+- `VITE_CERT_FINGERPRINT`
+- `VITE_PUBLIC_KEY_HASH`
+- `VITE_TRUSTED_DOMAIN`  
+Writes them into `.env.production.local`, then runs `npm run build`.
+
+---
+
+## 3. Server Certificate Issuance
+
+### 3.1 Let’s Encrypt Issuance Flow
+
+#### a. Issuance Steps  
+Install Certbot and its Nginx plugin.  
+Run `certbot` to issue for your domain.  
+Use `certbot certificates` to check status.
+
+#### b. ACME Protocol Flow  
+1. **Request**: Certbot creates ACME account, requests cert  
+2. **Challenge**: Let’s Encrypt returns token → Certbot places under `.well-known/acme-challenge/`  
+3. **Verification**: Let’s Encrypt validates ownership  
+4. **Issuance**: Cert issued and returned to Certbot  
+5. **Deployment**: Certbot installs it and updates Nginx
+
+### 3.2 Certificate Structure
+
+#### a. Certificate Chain  
+Root CA (ISRG Root X1/X2) → Intermediate (R3/X3) → Leaf Cert (kang-mi.com)
+
+#### b. File Paths  
+Located at `/etc/letsencrypt/live/kang-mi.com/`:
+
+- `cert.pem` – leaf cert  
+- `chain.pem` – intermediate  
+- `fullchain.pem` – cert + chain  
+- `privkey.pem` – private key
+
+### 3.3 Renewal Process
+
+* **Validity**: 90 days  
+* **Renewal**: Checked 2x/day via cron  
+* **Test**: `certbot renew --dry-run`  
+* **Zero Downtime**: Nginx reload via `--post-hook`
+
+---
+
+## 4. Q&A Section
+
+### 4.1 How does the frontend verify the certificate? (10 marks)
+
+* **How**:
+  * Every API request intercepted by `apiClient.interceptors.request`
+  * `verifyCertificate()` is called before credential-related APIs
+  * Certificate pinning applied using hardcoded fingerprint + public key hash
+
+* **Validation methods**:
+  * Match hostname vs trusted domain
+  * Enforce HTTPS
+  * Match expected fingerprint and key hash from build-time
+
+* **Security properties**:
+  * Mandatory verification for sensitive requests
+  * Cached result avoids repeat validation
+  * Hardcoded values prevent MITM and DNS spoofing
+  * Forces HTTPS, prevents downgrade (SSL stripping)
+
+* **Error Handling**:
+  * Clear failure messages
+  * Aborts unsafe connections
+  * Logs full error context for debugging
+
+### 4.2 Security of hardcoded CA keys and certificate issuance (10 marks)
+
+* **Pros**:
+  1. MITM resistance: forged but valid certs fail fingerprint check
+  2. Resilience to CA compromise
+  3. Strict trust boundary
+  4. Endpoint validation without relying on browser trust chain
+
+* **Cons**:
+  1. Manual rotation: front-end must update on cert renewal
+  2. Deployment complexity: build-time injection required
+  3. Emergency revocation is hard to propagate
+  4. First-trust issue: initial app load requires a secure channel
+  5. Cert-app update coordination required
+
+* **Issuance Workflow**:
+  1. Select CA: Let’s Encrypt
+  2. Generate key pair for domain
+  3. Create CSR
+  4. Validate ownership via ACME:
+     - HTTP-01: token in `.well-known`
+     - DNS-01: TXT record in DNS
+  5. Cert issued
+  6. Install to Nginx
+  7. Auto-renew via cron
+
+* **Let’s Encrypt Hierarchy**:
+  - Root: ISRG Root X1/X2 (30 years)
+  - Intermediate: R3/X3 (5 years)
+  - Leaf: kang-mi.com (90 days)
+
+* **Rotation Strategies**:
+  1. Use **public key hash** (stays constant even if cert rotates)
+  2. Automate with CI/CD cert pin rotation
+  3. Enable runtime update of pinned fingerprints
+
+---
+
+## 5. Certificate Verification Sequence Diagrams
+
+### 1. Production Request Flow
+```
+Browser:
+  Initiates API request
+  ↓
+API Interceptor:
+  If not verified yet → run verifyCertificate:
+    Check domain match
+    Ensure HTTPS
+    Perform fetch to trigger browser TLS verification
+    Compare hardcoded fingerprint & pubkey hash
+  If failed → throw error and block request
+  If passed → cache result and continue
+  ↓
+Server:
+  Processes request and returns response
 ```
 
-#### 步骤2：修改Web服务器配置
-
-```bash
-# 备份当前Nginx配置
-cd /etc/nginx/sites-available/
-sudo cp chat chat.backup
-
-# 编辑站点配置，指向假证书
-sudo nano chat
-
-# 将以下行修改为指向假证书
-# ssl_certificate /home/ubuntu/fake-cert/fake_fullchain.pem;
-# ssl_certificate_key /home/ubuntu/fake-cert/fake_privkey.pem;
-
-# 验证配置并重新加载
-sudo nginx -t && sudo systemctl reload nginx
+### 2. Login Flow with Certificate Verification
+```
+Browser:
+  User enters credentials
+  ↓
+login():
+  Calls verifyCertificate()
+  If failed → throw error
+  If passed → generate hash1(password+salt)
+  POST username + hash1 via HTTPS
+  ↓
+Server:
+  Validates credentials and returns JWT
 ```
 
-#### 步骤3：测试前端行为
-
-1. 打开浏览器，访问应用（https://kang-mi.com）
-2. 尝试登录
-3. 观察前端行为：
-   - 如果前端**未实现**证书验证：请求会正常发送，没有警告
-   - 如果前端**正确实现**证书验证：请求会被拦截，显示证书验证失败警告
-
-### 测试结果分析
-
-通过检查浏览器开发者工具中的网络请求，可以确认前端应用的行为：
-
-1. **请求被拦截**：表示前端成功验证了证书，发现服务器使用了不在信任列表中的证书
-   - 应该看到错误消息如"服务器验证失败"
-   - 登录请求不会被发送到服务器
-
-2. **请求正常发送**：表示前端没有正确验证证书
-   - 在网络面板可以看到完整的请求信息
-   - 敏感信息可能被发送到不受信任的服务器
-
-在我们的测试中，观察到以下请求信息：
-
+### 3. Certificate Renewal Flow
 ```
-请求 URL: https://kang-mi.com/api/login
-引用站点策略: strict-origin-when-cross-origin
-authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-content-type: application/json
+Cron Job:
+  Certbot runs every 12h
+  If <30 days left → auto renew
+  ↓
+Let's Encrypt:
+  Verifies domain control
+  Issues new cert
+  ↓
+Certbot:
+  Saves cert in correct path
+  Reloads Nginx via --post-hook
+  ↓
+Frontend App:
+  On next build → inject new fingerprint & pubkey hash
 ```
 
-### 测试方法二：获取真实证书信息用于验证
-
-为了正确实现证书验证，需要获取真实证书的指纹和公钥哈希值。以下是获取这些信息的方法：
-
-#### 获取证书指纹
-
-```bash
-# 从远程服务器获取证书并计算SHA-256指纹
-openssl s_client -connect kang-mi.com:443 </dev/null 2>/dev/null | \
-  openssl x509 -outform DER | \
-  openssl dgst -sha256 | \
-  awk '{print $2}'
-```
-
-示例输出：`8fc2abc2e4aec03dfc9924ae1fada3e83efa483d3299fc88616dd08eedad1d12`
-
-#### 获取公钥哈希
-
-```bash
-# 从远程服务器获取证书、提取公钥并计算SHA-256哈希
-openssl s_client -connect kang-mi.com:443 </dev/null 2>/dev/null | \
-  openssl x509 -pubkey -noout | \
-  openssl pkey -pubin -outform DER | \
-  openssl dgst -sha256 | \
-  awk '{print $2}'
-```
-
-示例输出：`fbfd19dab4c0165c9b964bc0e543d83f18477d79377335798c2d02f6617fabe9`
-
-### 在构建时集成证书验证
-
-前端项目包含一个专门的构建脚本(`scripts/build-production.sh`)，可以在构建时指定证书信息：
-
-```bash
-#!/bin/bash
-# 生产环境构建脚本，包含证书验证配置
-
-# 从参数或环境变量获取配置
-CERT_FINGERPRINT=${1:-"8fc2abc2e4aec03dfc9924ae1fada3e83efa483d3299fc88616dd08eedad1d12"}
-PUBLIC_KEY_HASH=${2:-"fbfd19dab4c0165c9b964bc0e543d83f18477d79377335798c2d02f6617fabe9"}
-TRUSTED_DOMAIN=${TRUSTED_DOMAIN:-"kang-mi.com"}
-API_URL=${API_URL:-"https://$TRUSTED_DOMAIN/api"}
-
-# 创建临时环境变量文件
-echo "VITE_API_URL=$API_URL" > .env.production.local
-echo "VITE_SECURE_MODE=true" >> .env.production.local
-echo "VITE_CERT_FINGERPRINT=$CERT_FINGERPRINT" >> .env.production.local
-echo "VITE_PUBLIC_KEY_HASH=$PUBLIC_KEY_HASH" >> .env.production.local
-echo "VITE_TRUSTED_DOMAIN=$TRUSTED_DOMAIN" >> .env.production.local
-
-# 执行构建
-npm run build
-```
-
-使用方法：
-
-```bash
-# 使用默认证书信息
-./scripts/build-production.sh
-
-# 指定新的证书指纹和公钥哈希
-./scripts/build-production.sh "新证书指纹" "新公钥哈希"
-
-# 指定不同域名和API地址
-TRUSTED_DOMAIN="example.com" API_URL="https://api.example.com" ./scripts/build-production.sh
-```
-
-### 恢复正常配置
-
-测试完成后，恢复原始配置：
-
-```bash
-sudo cp /etc/nginx/sites-available/chat.backup /etc/nginx/sites-available/chat
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 安全建议
-
-1. 前端应实现证书指纹或公钥验证
-2. 验证应在发送任何敏感数据前完成
-3. 用明确的错误消息提示用户证书验证失败
-4. 在安全通道建立前禁止用户提交敏感信息
-5. 定期更新证书指纹和公钥哈希，尤其是在证书更新后
-
-## 其他安全测试
-
-除了证书验证测试，还可以进行以下测试：
-
-1. **中间人攻击测试**：使用代理工具如Charles或mitmproxy拦截修改请求
-2. **请求篡改测试**：修改请求内容测试前端和后端验证机制
-3. **权限绕过测试**：尝试访问未授权的资源
-4. **会话管理测试**：验证token过期和撤销机制
-
-## 结论
-
-通过替换服务器证书的方法，我们可以有效地验证前端是否正确实现了证书验证机制。这是防御钓鱼和中间人攻击的重要一层，尤其是在处理敏感信息时。结合正确的证书指纹和公钥哈希，可以确保前端应用只与可信的服务器通信。
-
-## 硬编码CA公钥的安全影响
-
-在我们的实现中，通过硬编码证书指纹和公钥哈希来验证服务器身份。这种方法有以下安全影响：
-
-### 优势
-
-1. **防止中间人攻击**：即使攻击者获得有效的CA签名证书，如果指纹不匹配，前端仍会拒绝连接
-2. **简单可靠**：不依赖于操作系统或浏览器的证书存储，避免了CA系统的潜在漏洞
-3. **完全控制**：应用开发者可以精确控制哪些证书被信任，无需依赖第三方CA
-4. **避免CA妥协风险**：如果CA被攻击者控制，传统HTTPS系统会受到威胁，而我们的方案提供额外保护层
-
-### 劣势与风险
-
-1. **证书更新挑战**：每次证书更新（通常每3个月）需要更新前端应用中的指纹值
-2. **部署复杂性**：需要将指纹/哈希值注入到前端构建过程中
-3. **分发安全**：初始下载应用时如何保证安全是个挑战，可能需要配合其他安全机制
-4. **失效响应**：如果证书因安全原因需要紧急替换，客户端更新周期可能较长
-5. **开发与测试环境**：需要为不同环境维护不同的证书验证信息
-
-### 安全最佳实践
-
-为降低硬编码方式的风险，我们采取以下措施：
-
-1. **多重验证**：同时验证证书指纹和公钥哈希，提高安全性
-2. **证书轮换计划**：制定证书更新的流程，确保前端及时更新验证值
-3. **紧急更新机制**：建立证书紧急更新的备用通道
-4. **证书透明度监控**：监控Certificate Transparency日志，确保没有未授权的证书签发
-5. **构建自动化**：自动从安全位置获取最新证书信息进行构建
-
-## 证书验证实现细节
-
-我们的具体实现包含以下关键组件：
-
-### 1. 核心验证函数
-
-我们在`certificateValidator.ts`中实现了`verifyCertificate`函数：
-
-```typescript
-export const verifyCertificate = async (expectedFingerprint = TRUSTED_CERTIFICATE_FINGERPRINT, 
-                                      expectedPublicKeyHash = TRUSTED_PUBLIC_KEY_HASH): Promise<boolean> => {
-  // 只在生产环境和HTTPS下执行证书验证
-  if (import.meta.env.MODE !== 'production' || window.location.protocol !== 'https:') {
-    return true;
-  }
-
-  const domain = getTrustedDomain();
-  const testUrl = `https://${domain}/api/ping`;
-  
-  try {
-    // 创建连接以获取证书信息
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), 5000); // 5秒超时
-    
-    await fetch(testUrl, {
-      method: 'HEAD', 
-      mode: 'no-cors',
-      signal: controller.signal
-    });
-    
-    // 在实际浏览器环境中，需依赖浏览器的内置验证，
-    // 因为JavaScript无法直接访问SSL证书详情
-    return validateServerDomain();
-  } catch (error) {
-    console.error('证书验证失败:', error);
-    return false;
-  }
-};
-```
-
-### 2. 请求拦截层验证
-
-所有API请求都会通过拦截器验证服务器证书：
-
-```typescript
-apiClient.interceptors.request.use(
-  async (config) => {
-    // 在生产环境下验证服务器证书
-    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_SECURE_MODE === 'true') {
-      // 首次发送请求前验证证书，之后使用缓存结果
-      if (!certificateVerified) {
-        const isVerified = await verifyCertificate();
-        if (!isVerified) {
-          throw new Error('服务器证书验证失败，为保护您的账户安全，已阻止请求');
-        }
-        // 记录验证状态，避免每次请求都验证
-        certificateVerified = true;
-      }
-      
-      // 域名和协议验证（作为额外的安全层）
-      if (!validateServerDomain()) {
-        throw new Error('服务器域名验证失败，为保护您的账户安全，已阻止请求');
-      }
-    }
-    
-    // 添加认证token
-    // ...
-  }
-);
-```
-
-### 3. 敏感操作前的验证
-
-敏感操作（如登录）前专门验证证书：
-
-```typescript
-const verifyServerBeforeLogin = async (username: string, password: string): Promise<LoginResponse> => {
-  if (import.meta.env.MODE === 'production' && import.meta.env.VITE_SECURE_MODE === 'true') {
-    const isVerified = await verifyCertificate();
-    if (!isVerified) {
-      throw new Error('服务器证书验证失败，为保护您的账户安全，已阻止登录请求');
-    }
-  }
-  
-  // 证书验证通过后，发送登录请求
-  const response = await apiClient.post<LoginResponse>('/login', {
-    username,
-    password
-  });
-  
-  return response.data;
-};
-```
-
-### 4. 浏览器安全限制及应对措施
-
-在实现过程中我们面临的一个主要限制是：由于浏览器安全模型，JavaScript无法直接访问SSL证书详情。我们通过以下方式应对这一限制：
-
-1. **域名与协议验证**：验证是否使用HTTPS协议和预期的域名
-2. **构建时注入证书信息**：在构建过程中注入证书指纹和公钥哈希值
-3. **多层验证**：使用多重验证机制增强安全性
-4. **明确的错误信息**：当验证失败时提供明确的错误信息，防止发送敏感数据
-
-### 5. 缓存验证结果
-
-为提高性能，我们只在首次连接时验证证书，之后使用缓存结果：
-
-```typescript
-// 证书验证状态
-let certificateVerified = false;
-
-// 在拦截器中使用缓存状态
-if (!certificateVerified) {
-  const isVerified = await verifyCertificate();
-  // ... 验证逻辑 ...
-  certificateVerified = true;
-}
-```
-
-### 6. 环境区分
-
-我们的实现严格区分开发环境和生产环境：
-
-```typescript
-// 只在生产环境执行严格检查
-if (import.meta.env.MODE === 'production' && import.meta.env.VITE_SECURE_MODE === 'true') {
-  // 执行验证逻辑
-} else {
-  // 在开发环境中返回true
-  return true;
-}
-```
-
-## 安全评估
-
-虽然我们的实现提供了额外的安全层，但它仍有以下限制：
-
-1. **浏览器API限制**：JavaScript无法直接访问SSL证书详情，限制了验证的深度
-2. **依赖HTTPS**：我们的安全机制仍部分依赖浏览器的内置证书验证
-3. **需要初始信任**：首次下载应用时需要通过可信渠道
-
-尽管有这些限制，我们的实现仍然显著提高了应用安全性，特别是在面对中间人攻击和钓鱼攻击时。通过验证服务器证书，我们可以确保客户端只与可信的服务器通信。
-
-## 服务器证书生成过程
-
-我们的应用使用Let's Encrypt作为CA（证书颁发机构）来签发服务器证书。以下是完整的证书生成和管理流程。
-
-### 1. Let's Encrypt证书签发流程
-
-Let's Encrypt是一个免费、自动化、开放的证书颁发机构，使用ACME（Automated Certificate Management Environment）协议验证域名所有权并签发证书。
-
-#### 证书申请步骤
-
-1. **安装Certbot客户端**
-   ```bash
-   sudo apt update
-   sudo apt install certbot python3-certbot-nginx
-   ```
-
-2. **申请证书**
-   ```bash
-   sudo certbot --nginx -d kang-mi.com
-   ```
-
-3. **验证过程**
-   - Certbot生成一个随机值并放置在网站的`.well-known/acme-challenge/`目录下
-   - Let's Encrypt服务器访问该URL验证域名控制权
-   - 验证成功后，Let's Encrypt签发证书
-
-4. **证书存储位置**
-   证书文件存储在`/etc/letsencrypt/live/kang-mi.com/`目录下：
-   - `cert.pem` - 服务器证书
-   - `privkey.pem` - 私钥
-   - `chain.pem` - 中间证书
-   - `fullchain.pem` - 服务器证书+中间证书
-
-### 2. Let's Encrypt CA证书结构
-
-Let's Encrypt使用分层的PKI（公钥基础设施）结构：
-
-1. **根证书（ISRG Root X1）**
-   - 离线存储，用于签署中间证书
-   - 有效期30年
-   - 被大多数浏览器和操作系统信任
-
-2. **中间证书（Let's Encrypt Authority X3）**
-   - 由根证书签名
-   - 用于日常签发终端实体证书
-   - 有效期5年
-
-3. **终端实体证书（kang-mi.com）**
-   - 由中间证书签名
-   - 有效期90天
-   - 需要定期更新
-
-### 3. 证书自动续期
-
-Let's Encrypt证书有效期只有90天，需要定期更新：
-```bash
-# 检查自动续期状态
-sudo systemctl status certbot.timer
-
-# 手动测试续期（不实际操作）
-sudo certbot renew --dry-run
-```
-
-自动续期通过系统定时任务完成，无需手动干预：
-```bash
-# 查看定时任务
-cat /etc/cron.d/certbot
-```
-
-### 4. 在前端验证Let's Encrypt证书的考虑
-
-由于Let's Encrypt使用的CA结构可能会变化（例如从ISRG Root X1迁移到ISRG Root X2），我们的前端验证主要基于服务器证书的指纹和公钥，而非CA证书本身。这样可以避免CA证书变更带来的影响。
-
-为确保与Let's Encrypt证书系统的兼容性，我们的证书验证流程：
-
-1. 仅验证终端实体证书（服务器证书）
-2. 不验证证书链
-3. 使用公钥哈希作为主要验证手段，该方式不受证书更新影响（只要使用相同密钥对生成新证书）
-4. 可选地验证证书指纹，但这需要在每次证书更新后更新前端验证值
-
-### 5. 查看当前证书信息
-
-可以使用以下命令查看当前部署的证书详细信息：
-
-```bash
-# 查看证书内容
-sudo openssl x509 -in /etc/letsencrypt/live/kang-mi.com/cert.pem -text -noout
-
-# 查看证书链
-sudo openssl verify -CAfile /etc/letsencrypt/live/kang-mi.com/chain.pem \
-  /etc/letsencrypt/live/kang-mi.com/cert.pem
-```
-
-通过上述命令可以确认证书的有效性、签发者、有效期等重要信息。 
+---

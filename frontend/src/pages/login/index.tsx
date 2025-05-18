@@ -59,6 +59,7 @@ const LoginPage: React.FC = () => {
             <Input
               prefix={<UserOutlined className="site-form-item-icon" />}
               placeholder={t('login.username')}
+              autoComplete="username"
             />
           </Form.Item>
 
@@ -69,6 +70,7 @@ const LoginPage: React.FC = () => {
             <Input.Password
               prefix={<LockOutlined className="site-form-item-icon" />}
               placeholder={t('login.password')}
+              autoComplete="current-password"
             />
           </Form.Item>
 

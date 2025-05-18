@@ -1,7 +1,7 @@
 const live2d_settings = {
     // 基本设置
-    'modelUrl': '/live2d/model',                        // 存放模型的文件夹路径，绝对路径
-    'tipsMessage': '/live2d/waifu-tips.json',           // 看板娘提示消息文件的路径，可以留空不加载
+    'modelUrl': '/var/www/chat-frontend/live2d/model',                        // 存放模型的文件夹路径，绝对路径
+    'tipsMessage': '/var/www/chat-frontend/live2d/waifu-tips.json',           // 看板娘提示消息文件的路径，可以留空不加载
     // 模型设置
     'modelName': 'anon',                      // 默认加载的模型名称，仅在无本地记录的情况下有效
     'modelStorage': false,                       // 记忆模型，下次打开页面会加载上次选择的模型
@@ -25,14 +25,14 @@ const live2d_settings = {
     'showCopyMessage': false,                    // 显示复制内容提示，默认只对 '#articleContent' 元素内的复制进行监视，如果你的文章内容不在这个标签下，可以在下方搜索并修改
     'showF12OpenMsg': false,                     // 显示控制台打开提示
     //看板娘样式设置
-    'live2dHeight': 400,                        // 看板娘高度，不需要单位
-    'live2dWidth': 300,                         // 看板娘宽度，不需要单位
+    'live2dHeight': 500,                        // 看板娘高度，不需要单位
+    'live2dWidth': 400,                         // 看板娘宽度，不需要单位
     'waifuMinWidth': 'disable',                 // 页面小于宽度小于指定数值时隐藏看板娘，例如 'disable'(禁用)，推荐 '1040px'
     'waifuEdgeSide': 'right:0',                 // 看板娘贴边方向，例如 'left:0'(靠左 0px)，'right:30'(靠右 30px)，可以被下面的模型设置覆盖
     // 其他杂项设置
     'debug': false,                              // 全局 DEBUG 设置
     'debugMousemove': false,                    // 在控制台打印指针移动坐标，仅在 debug 为 true 时可用
-    'logMessageToConsole': false,                // 在控制台打印看板娘提示消息
+    'logMessageToConsole': true,                // 在控制台打印看板娘提示消息
     'l2dVersion': '2.0.0',                      // 当前版本
     'homePageUrl': 'https://rivens.bronya.moe/',  // 主页地址，可选 'auto'(自动), '{URL 网址}'
     'aboutPageUrl': 'https://github.com/Konata09/Live2dOnWeb/', // 关于页地址, '{URL 网址}'
@@ -43,7 +43,8 @@ const live2d_models = [
     {
         name: 'anon',
         message: 'SDK2 匿名模型',
-        version: 2
+        version: 2,
+        position: 'right'
     }
 ]
 /****************************************************************************************************/
@@ -117,7 +118,7 @@ const $$ = (selector) => {
     }
 }
 const re = /x/;
-console.log(re);
+
 const live2dId2 = 'live2d2';
 const live2dId4 = 'live2d4';
 const waifuTips = $$('#waifu-message');
@@ -147,7 +148,7 @@ function showMessage(text, timeout, flag) {
     if (flag || getSS('waifu-text') === '' || getSS('waifu-text') === null) {
         if (timeoutID) window.clearTimeout(timeoutID);
         if (Array.isArray(text)) text = text[Math.floor(Math.random() * text.length + 1) - 1];
-        if (live2d_settings.logMessageToConsole) console.log('[WaifuTips]', text.replace(/<[^<>]+>/g, ''));
+        if (live2d_settings.logMessageToConsole);
         if (flag) setSS('waifu-text', text);
         waifuTips.style.opacity = 1;
         waifuTips.innerHTML = text;
@@ -198,13 +199,9 @@ function initModel() {
 
     // 确保初始化过程在live2d_bundle.js完全加载后进行
     if (!window.live2dv2) {
-        console.log('[WaifuTips] live2dv2未初始化，等待加载...');
         setTimeout(initModel, 500);
         return;
     }
-
-    /* console welcome message */
-    console.log("\u304f__,.\u30d8\u30fd.\u3000\u3000\u3000\u3000/\u3000,\u30fc\uff64 \u3009\n\u3000\u3000\u3000\u3000\u3000\uff3c ', !-\u2500\u2010-i\u3000/\u3000/\u00b4\n\u3000\u3000\u3000 \u3000 \uff0f\uff40\uff70'\u3000\u3000\u3000 L/\uff0f\uff40\u30fd\uff64\n\u3000\u3000 \u3000 /\u3000 \uff0f,\u3000 /|\u3000 ,\u3000 ,\u3000\u3000\u3000 ',\n\u3000\u3000\u3000\uff72 \u3000/ /-\u2010/\u3000\uff49\u3000L_ \uff8a \u30fd!\u3000 i\n\u3000\u3000\u3000 \uff9a \uff8d 7\uff72\uff40\uff84\u3000 \uff9a'\uff67-\uff84\uff64!\u30cf|\u3000 |\n\u3000\u3000\u3000\u3000 !,/7 '0'\u3000\u3000 \u00b40i\u30bd| \u3000 |\u3000\u3000\u3000\n\u3000\u3000\u3000\u3000 |.\u4ece\"\u3000\u3000_\u3000\u3000 ,,,, / |./ \u3000 |\n\u3000\u3000\u3000\u3000 \uff9a'| i\uff1e.\uff64,,__\u3000_,.\u30a4 / \u3000.i \u3000|\n\u3000\u3000\u3000\u3000\u3000 \uff9a'| | / k_\uff17_/\uff9a'\u30fd,\u3000\uff8a.\u3000|\n\u3000\u3000\u3000\u3000\u3000\u3000 | |/i \u3008|/\u3000 i\u3000,.\uff8d |\u3000i\u3000|\n\u3000\u3000\u3000\u3000\u3000\u3000.|/ /\u3000\uff49\uff1a \u3000 \uff8d!\u3000\u3000\uff3c\u3000|\n\u3000\u3000\u3000 \u3000 \u3000 k\u30fd>\uff64\uff8a \u3000 _,.\uff8d\uff64 \u3000 /\uff64!\n\u3000\u3000\u3000\u3000\u3000\u3000 !'\u3008//\uff40\uff34\u00b4', \uff3c \uff40'7'\uff70r'\n\u3000\u3000\u3000\u3000\u3000\u3000 \uff9a'\u30fdL__|___i,___,\u30f3\uff9a|\u30ce\n\u3000\u3000\u3000\u3000\u3000 \u3000\u3000\u3000\uff84-,/\u3000|___./\n\u3000\u3000\u3000\u3000\u3000 \u3000\u3000\u3000'\uff70'\u3000\u3000!_,.:\nLive2D \u770b\u677f\u5a18 v" + live2d_settings.l2dVersion + " / Konata");
 
     $$(`#${live2dId2}`).setAttribute('height', live2d_settings.live2dHeight);
     $$(`#${live2dId2}`).setAttribute('width', live2d_settings.live2dWidth);
@@ -247,7 +244,8 @@ function initModel() {
     if (live2d_settings.tipsMessage)
         window.fetch(live2d_settings.tipsMessage)
             .then(res => res.json())
-            .then(resjson => loadTipsMessage(resjson));
+            .then(resjson => loadTipsMessage(resjson))
+            .catch(() => { }); // 完全隐藏错误
 
     let modelName = getLS('modelName');
 
@@ -269,10 +267,6 @@ function initModel() {
 
     if (live2d_settings.tryWebp) {
         testWebP().then(r => window.webpReady = r).then(() => {
-            if (window.webpReady === true)
-                console.log("[WaifuTips] Your browser support WebP format. Try to load WebP texture first.");
-            else
-                console.log("[WaifuTips] Your browser do not support WebP format.");
             loadModel(modelName);
         });
     } else {
@@ -285,7 +279,7 @@ function loadModel(modelName) {
         setLS('modelName', modelName);
     else
         setSS('modelName', modelName);
-    live2d_settings.debug && console.log(`[WaifuTips] 加载模型 ${modelName}`);
+    live2d_settings.debug;
     let modelVersion = 2;
     // 在配置中找到要加载模型的版本
     let modelFound = false;
@@ -294,7 +288,6 @@ function loadModel(modelName) {
             modelVersion = model.version;
             changePosition(model.position);
             modelFound = true;
-            console.log(`[WaifuTips] 找到模型配置: ${modelName}, 版本: ${modelVersion}`);
             break;
         }
     }
@@ -305,7 +298,6 @@ function loadModel(modelName) {
         if (live2d_models.length > 0) {
             modelName = live2d_models[0].name;
             modelVersion = live2d_models[0].version;
-            console.log(`[WaifuTips] 使用默认模型: ${modelName}`);
         }
     }
 
@@ -322,14 +314,14 @@ function loadModel(modelName) {
 
     try {
         // 获取正确的模型路径 - 使用绝对路径
-        const modelBasePath = window.waifuPath || '/live2d';
+        const modelBasePath = window.waifuPath || '/var/www/chat-frontend/live2d';
         const modelPath = `${modelBasePath}/model/${modelName}/model.json`;
         const modelPath3 = `${modelBasePath}/model/${modelName}/${modelName}.model3.json`;
 
         // 根据模型版本选择不同的SDK加载
         if (modelVersion === 2) {
             $$(`#${live2dId2}`).style.display = 'block';
-            console.log(`[WaifuTips] 加载模型(v2): ${modelPath}`);
+
 
             // 检查live2dv2是否已经加载
             if (window.live2dv2 && typeof window.live2dv2.load === 'function') {
@@ -338,7 +330,7 @@ function loadModel(modelName) {
                 console.error('[WaifuTips] live2dv2未加载或不支持load方法，请确保live2d_bundle.js已正确加载');
             }
         } else if (window.live2dCurrentVersion === modelVersion) {
-            console.log(`[WaifuTips] 切换模型(v3): ${modelPath3}`);
+
 
             if (window.live2dv4 && typeof window.live2dv4.change === 'function') {
                 window.live2dv4.change(`${modelBasePath}/model/${modelName}`, `${modelName}.model3.json`);
@@ -347,7 +339,6 @@ function loadModel(modelName) {
             }
         } else {
             $$(`#${live2dId4}`).style.display = 'block';
-            console.log(`[WaifuTips] 加载模型(v3): ${modelPath3}`);
 
             if (window.live2dv4 && typeof window.live2dv4.load === 'function') {
                 window.live2dv4.load(live2dId4, `${modelBasePath}/model/${modelName}`, `${modelName}.model3.json`);
@@ -546,6 +537,7 @@ function loadTipsMessage(result) {
                         }
                         showMessage(resJson.text, 5000, true);
                     })
+                    .catch(() => { }) // 完全隐藏错误
                 break;
             case 'fghrsh.net':
                 window.fetch('https://api.fghrsh.net/hitokoto/rand/?encode=jsc&uid=3335')
@@ -560,6 +552,7 @@ function loadTipsMessage(result) {
                             showMessage(resJson.hitokoto, 5000, true);
                         }
                     })
+                    .catch(() => { }) // 完全隐藏错误
                 break;
             case 'jinrishici.com':
                 window.fetch('https://v2.jinrishici.com/one.json')
@@ -578,6 +571,7 @@ function loadTipsMessage(result) {
                         }
                         showMessage(resJson.data.content, 5000, true);
                     })
+                    .catch(() => { }) // 完全隐藏错误
                 break;
             default:
                 window.fetch('https://v1.hitokoto.cn')
@@ -592,6 +586,7 @@ function loadTipsMessage(result) {
                         }
                         showMessage(resJson.hitokoto, 5000, true);
                     })
+                    .catch(() => { }) // 完全隐藏错误
         }
     }
 
@@ -699,4 +694,5 @@ color:#43CBFF
 initModel();
 window.downloadCap = blobDownload;
 window.initModel = initModel;
-export { showMessage, initModel }
+window.showMessage = showMessage;
+window.initModel = initModel;

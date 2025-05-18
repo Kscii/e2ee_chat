@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Slider, Spin } from 'antd';
+import { Switch, Avatar, Typography, Divider, Upload, message, Input, Select, Slider, Spin, Button } from 'antd';
 import { UserOutlined, CameraOutlined, GlobalOutlined } from '@ant-design/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useMarkdown } from '../../contexts/MarkdownContext';
@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import type { UploadChangeParam } from 'antd/es/upload';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
+import { getPrivateKey } from '../../api/keys';
+import { CryptoService } from '../../utils/crypto';
 import './index.css';
 
 const { Title } = Typography;
@@ -77,6 +79,51 @@ const SettingsPage: React.FC = () => {
         console.error('设置头像失败:', error);
         message.error(t('settings.profile.avatarError') || '头像设置失败');
       }
+    }
+  };
+
+  // 下载原始(解密后的)私钥 (Base64 编码)
+  const handleDownloadPrivateKey = async () => {
+    try {
+      // 优先从本地缓存获取原始私钥
+      const localKeyPair = CryptoService.getUserKeyPair();
+      let secretKeyBase64: string | null = localKeyPair ? localKeyPair.secretKey : null;
+
+      // 如果本地不存在，则尝试从服务器获取加密私钥并要求用户输入密码解密
+      if (!secretKeyBase64) {
+        const encryptedPrivateKey = await getPrivateKey();
+        if (!encryptedPrivateKey) {
+          message.error('No private key found');
+          return;
+        }
+
+        const password = window.prompt('Enter your password to decrypt the private key');
+        if (!password) return;
+
+        const decrypted = await CryptoService.decryptPrivateKey(encryptedPrivateKey, password);
+        if (!decrypted) {
+          message.error('Password incorrect or decryption failed');
+          return;
+        }
+        secretKeyBase64 = decrypted;
+      }
+
+      // 生成并下载文件
+      const blob = new Blob([secretKeyBase64], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'private_key.raw.base64.txt';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      message.success('Private key downloaded');
+    } catch (error) {
+      console.error('Download private key failed:', error);
+      message.error('Failed to download private key');
     }
   };
 
@@ -388,6 +435,22 @@ const SettingsPage: React.FC = () => {
                   formatter: (value) => `${value}x`
                 }}
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Encryption section */}
+        <div className="settings-section">
+          <Divider />
+          <div className="setting-item">
+            <div className="setting-label">
+              <span className="setting-label-title">End-to-End Encryption</span>
+              <span className="setting-label-description">Download an encrypted copy of your private key for backup.</span>
+            </div>
+            <div className="setting-control">
+              <Button type="primary" onClick={handleDownloadPrivateKey}>
+                Download Private Key
+              </Button>
             </div>
           </div>
         </div>

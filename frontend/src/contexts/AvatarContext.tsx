@@ -30,9 +30,17 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
         if (response.ok) {
           setAvatar(`${avatarUrl}?t=${new Date().getTime()}`); // 添加时间戳避免缓存
+        } else {
+          // 当头像不存在时，设置为null但不记录错误
+          setAvatar(null);
         }
       } catch (error) {
-        console.error('获取头像失败:', error);
+        // 头像不存在时设置为null，但不输出错误日志
+        setAvatar(null);
+        // 只记录非404错误
+        if (!(error instanceof Error && error.message.includes('404'))) {
+          console.error('获取头像失败:', error);
+        }
       }
     };
 

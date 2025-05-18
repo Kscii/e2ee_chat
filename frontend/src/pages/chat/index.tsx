@@ -394,24 +394,56 @@ const ChatPage: React.FC = () => {
           if (msg.receiver_username === user.username && msg.sender_username === user.username) {
             // 这是自己发给自己的消息，检查它是否包含了当前对话中的内容
             // 如果能找到相应的原始消息，则保留这个副本
-            return messagesData.some(origMsg =>
+            const matchedMessage = messagesData.find(origMsg =>
               origMsg.sender_username === user.username &&
               origMsg.receiver_username === otherUsername &&
-              new Date(origMsg.created_at).getTime() - new Date(msg.created_at).getTime() < 5000 // 5秒内发送的消息视为同一条
+              Math.abs(new Date(origMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 2000
             );
+
+            const timeDiff = matchedMessage
+              ? Math.abs(new Date(matchedMessage.created_at).getTime() - new Date(msg.created_at).getTime())
+              : null;
+
+            // 仅在开发环境中输出调试日志
+            if (import.meta.env.MODE === 'development') {
+              console.log(`🕒 Self message ${msg.id} time diff:`, {
+                hasSelfCopy: !!matchedMessage,
+                timeDiff: timeDiff !== null ? `${timeDiff}ms` : 'N/A',
+                selfTime: new Date(msg.created_at).toISOString(),
+                matchedMsgTime: matchedMessage ? new Date(matchedMessage.created_at).toISOString() : 'N/A',
+                currentChatUser: otherUsername
+              });
+            }
+
+            return !!matchedMessage;
           }
 
           // 如果是自己发给对方的消息，去除它，我们会显示自己的副本
           if (msg.sender_username === user.username && msg.receiver_username === otherUsername) {
             // 查看是否有对应的自己发给自己的副本
-            const hasSelfCopy = selfMessages.some(selfMsg =>
+            const selfCopy = selfMessages.find(selfMsg =>
               selfMsg.sender_username === user.username &&
               selfMsg.receiver_username === user.username &&
-              Math.abs(new Date(selfMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 5000
+              Math.abs(new Date(selfMsg.created_at).getTime() - new Date(msg.created_at).getTime()) < 2000
             );
 
+            const timeDiff = selfCopy
+              ? Math.abs(new Date(selfCopy.created_at).getTime() - new Date(msg.created_at).getTime())
+              : null;
+
+            // 仅在开发环境中输出调试日志
+            if (import.meta.env.MODE === 'development') {
+              console.log(`🕒 Original message ${msg.id} check:`, {
+                hasSelfCopy: !!selfCopy,
+                timeDiff: timeDiff !== null ? `${timeDiff}ms` : 'N/A',
+                origTime: new Date(msg.created_at).toISOString(),
+                selfCopyTime: selfCopy ? new Date(selfCopy.created_at).toISOString() : 'N/A',
+                receiver: msg.receiver_username
+              });
+            }
+
             // 如果有自己的副本，则不显示发给对方的版本
-            return !hasSelfCopy;
+            return !selfCopy;
           }
 
           return true; // 保留所有其他消息

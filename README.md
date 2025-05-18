@@ -1,259 +1,202 @@
-# web_chat_project
-[English](#english) | [中文](#中文)
+# INFO2222-Group
 
-## English
+> A secure, modern and customizable web chat platform built with React, TypeScript, and Flask.
 
-### Project Introduction
-This is a modern web chat application built with React and TypeScript. It features AI-powered conversations, text-to-speech capabilities, and supports multiple languages. The project includes a backend authentication system built with Flask and SQLite.
+![License](https://img.shields.io/github/license/cran0556/INFO2222-group)
+![Last Commit](https://img.shields.io/github/last-commit/cran0556/INFO2222-group)
+![Repo Size](https://img.shields.io/github/repo-size/cran0556/INFO2222-group)
+![Uptime](https://img.shields.io/uptimerobot/status/mg0jcmvKCH8)
 
-If you want to experience this project, you can visit:  
--> [**kang-mi.com**](https://kang-mi.com/)
+### 📦 Project Status
 
-### Key Features
-- AI Chat Assistant (powered by OpenAI)
-- End-to-End Encryption (E2EE) for secure communication
-  - Double-hashing password system for enhanced security
-  - Password-protected private key storage
-  - Zero-knowledge proof password verification
-  - Message self-copying mechanism for viewing sent messages
-  - Secure key management and recovery
-- Group chat with encryption support
-- User authentication (register/login)
-- Multi-service Text-to-Speech support
-  - Browser native TTS
-  - Azure TTS
-  - Google Cloud TTS
-  - GPT-SoVITS
-- User avatar and profile management
-- Server and channel system (similar to Discord)
-- Internationalization (i18n) support
-  - English
-  - Chinese
-- Rich Text Editor with Markdown support
-- Dark/Light theme
-- Responsive design
-- Mobile-friendly UI
+![Issues](https://img.shields.io/github/issues/cran0556/INFO2222-group)
+![PRs](https://img.shields.io/github/issues-pr/cran0556/INFO2222-group)
+![Stars](https://img.shields.io/github/stars/cran0556/INFO2222-group)
 
-### Technology Stack
-#### Frontend
-- Framework: React 18
-- Build Tool: Vite 6
-- Language: TypeScript
-- UI Framework: Ant Design 5
-- State Management: React Context
-- Router: React Router 6
-- Encryption: TweetNaCl.js
-  - X25519 for key exchange
-  - XSalsa20 for symmetric encryption
-  - Poly1305 for message authentication
-  - Double-hashing password system with server-side salts
-- Rich Text Editor: Tiptap
-- Internationalization: i18next
-- Code Quality: ESLint
+### 🧠 Tech Stack
 
-#### Backend
-- Framework: Flask
-- Database: SQLite
-- Authentication: JWT
-- Encryption: Public/Private key infrastructure 
-- Password security: Server-side salts with secure storage
+![Node](https://img.shields.io/badge/node-18.x-brightgreen)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Flask](https://img.shields.io/badge/Flask-2.2-lightgrey)
+![SQLite](https://img.shields.io/badge/Database-SQLite-lightblue)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.9%2B-blue)
+![Vite](https://img.shields.io/badge/Vite-6.x-yellow)
+![Ant Design](https://img.shields.io/badge/Ant%20Design-5.x-blueviolet)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-ff69b4)
 
-### Prerequisites
-- Node.js (version 16 or above)
-- npm (version 8 or above)
-- Python (version 3.8 or above)
-- pip (latest version)
+### 🔐 Security & Encryption
 
-### Installation and Setup
-1. Clone the repository
+![E2EE](https://img.shields.io/badge/Encryption-End--to--End-green)
+![bcrypt](https://img.shields.io/badge/Password-bcrypt%20%2B%20pepper-informational)
+![JWT](https://img.shields.io/badge/Auth-JWT-yellowgreen)
+![HTTPS](https://img.shields.io/badge/HTTPS-enabled-brightgreen)
+![TLS](https://img.shields.io/badge/TLS-1.3-blue)
+
+### 🚀 Deployment
+
+![AWS](https://img.shields.io/badge/deploy-AWS%20EC2-orange)
+![i18n](https://img.shields.io/badge/i18n-20%2B%20Languages-blue)
+
+
+## Project Overview
+
+This is a secure, modern, and highly customizable web chat platform built with **React 18**, **TypeScript**, and a lightweight **Flask** backend.
+It integrates AI assistance, end-to-end encryption, multi-service text-to-speech, rich-text messaging, and extensive internationalization support.
+This README serves as the homepage of the GitHub repository and provides new contributors and users with a comprehensive understanding of the codebase.
+
+For a live demo, please visit **[kang-mi.com](https://kang-mi.com/)**
+
+## Key Features
+
+1. **AI Assistant (OpenAI GPT-4o)** – Contextual replies, multilingual responses, and configurable API keys.
+2. **End-to-End Encryption (E2EE)** – X25519 key exchange, XSalsa20 + Poly1305 authenticated encryption, with client-side key generation.
+3. **Password Hardening** – Double hashing (SHA-256 on client ➜ bcrypt + pepper on server), per-user salt, no plaintext password storage.
+4. **Group / Server System** – Discord-style servers and channels with user management APIs.
+5. **Rich Text & File Sharing** – Markdown (Tiptap), syntax highlighting, image preview, and PDF/Office attachments under 10MB.
+6. **Text-to-Speech (TTS)** – Native browser, Azure, Google Cloud, and **GPT-SoVITS** support with auto language detection and custom voices.
+7. **Internationalization** – Supports 20+ languages (including Chinese, Japanese, French, Korean, Arabic, etc.) via i18next.
+8. **Responsive UI** – Built with Ant Design 5 components, dark/light theme support, and mobile-first layout.
+9. **Avatar & Profile Management** – Secure avatar upload API, editable profile, and real-time avatar refresh.
+10. **Live2D Integration** – Interactive animated character models supporting Cubism 2/3/4 via [Live2dOnWeb](https://github.com/Konata09/Live2dOnWeb).
+11. **Extensible Architecture** – Clear React Context-based state, RESTful Flask APIs (WebSocket support coming), and modular deployment scripts.
+
+## Tech Stack
+
+### Frontend
+
+* React 18 + TypeScript + Vite 6
+* Ant Design 5 UI component library
+* React Router 6 and React Context for state management
+* Encryption: tweetnacl / tweetnacl-util
+* Rich text editor: **Tiptap** + lowlight/highlight.js
+* HTTP: Axios (polling-based updates), with Socket.IO client included for future real-time support
+* Internationalization: i18next + lazy-loaded JSON translations
+* Code quality tools: ESLint 9 + typescript-eslint
+
+### Backend
+
+* Flask 2.2 with flask-cors
+* SQLite (`sqlite3`) – no external dependencies
+* Authentication: **JWT + bcrypt**
+* Secure file uploads (Werkzeug), 5 MB size limit
+* Configurable via `.env` and `backend/config.py`
+
+### Deployment
+
+* Production instance deployed on AWS EC2 ([kang-mi.com](https://kang-mi.com/))
+* Nginx web server with HTTP/2 support
+* SSL/TLS certificates provided by Let’s Encrypt with auto-renewal via Certbot
+* Custom deployment scripts supporting CI/CD pipelines
+
+## Repository Structure (Top-level)
+
+```
+INFO2222-group/
+├── frontend/      # React application (see frontend/README.md for details)
+├── backend/       # Flask API server
+├── docs/          # Design and security documentation
+└── README.md      # This file
+```
+
+## Security Design (Summary)
+
+* **Double-hash Passwords**:
+  `hash1 = SHA256(password+salt)` (client)
+  `hash2 = bcrypt(hash1+pepper)` (server)
+  Even if the database leaks, original passwords or private keys cannot be recovered.
+
+* **Key Management**:
+  Public keys are stored in `user_keys`; private keys are encrypted client-side using `hash1` before upload (optional cloud backup).
+
+* **Message Flow**:
+
+  1. Client fetches the recipient’s public key
+  2. Generates X25519 shared key → encrypts message with XSalsa20/Poly1305
+  3. Sends ciphertext via `/api/messages` (private) or `/api/group/encrypted-messages` (group)
+  4. Recipient decrypts locally; the server never sees plaintext.
+
+* **TLS Security**:
+
+  1. Uses modern ciphers (ECDHE + AES-GCM / ChaCha20-Poly1305)
+  2. Perfect forward secrecy via ephemeral key exchange
+  3. HSTS enabled to prevent downgrade attacks
+  4. HTTP/2 for efficient binary transmission
+
+* **Certificate Management**:
+
+  1. Server certificates issued by Let’s Encrypt (trusted CA)
+  2. Client validates the server certificate chain before sending credentials
+  3. Certificates auto-renew every 90 days via Certbot
+  4. OCSP Stapling enabled for faster revocation checks
+
+* See `docs/security-demo-e2ee.md` for a step-by-step walkthrough.
+
+## Screenshots
+
+![Login UI](https://i.imgur.com/yAOG1FN.png)
+
+![Chat UI](https://i.imgur.com/DtSprxu.png)
+
+## Installation & Setup
+
+The following instructions are aligned with the current codebase. Frontend and backend can be launched separately or together via helper scripts.
+
+### 1. Clone the repository
+
 ```bash
 git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
 cd INFO2222-group
-git checkout web_chat_project
 ```
 
-#### Frontend Setup
-1. Install frontend dependencies
+### 2. Launch Frontend
+
 ```bash
 cd frontend
 npm install
+npm run dev   # => http://localhost:5173
+# For production: ./deploy.sh
 ```
 
-2. Configure environment variables (optional)
-- Add your API keys if you want to use AI and TTS features
+(Optional) Configure API keys in `frontend/.env` or via the UI settings panel.
 
-3. Start the frontend development server
-```bash
-npm run dev
-```
+### 3. Launch Backend
 
-4. Open your browser and visit `http://localhost:xxxx`
-
-#### Backend Setup
-1. Create and activate a virtual environment
 ```bash
 cd backend
-python -m venv venv
-
-# On macOS/Linux
-source venv/bin/activate
-
-# On Windows
-venv\Scripts\activate
-```
-
-2. Install backend dependencies
-```bash
+python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+./restart.sh dev
+# For production: ./restart.sh prod
 ```
 
-3. Configure environment variables (optional)
-```bash
-# Copy the sample environment file
-cp sample.env .env
+Default API URL: `http://localhost:8000`
 
-# Edit .env file with your configuration
-# The default values should work for development
-```
+> For detailed deployment and CI setup, see `frontend/deploy.sh` and `docs/server_environment.md`.
 
-4. Start the backend server
-```bash
-cd backend
-python run.py
-```
-or
-```bash
-gunicorn -w 4 -b 0.0.0.0:8000 run:app
-```
+## API Quick Reference
 
-The backend server will run on `http://localhost:8000` by default.
+| Endpoint                        | Method   | Auth   | Description                            |
+| ------------------------------- | -------- | ------ | -------------------------------------- |
+| `/api/register`                 | POST     | –      | Create account (with double-hashing)   |
+| `/api/login`                    | POST     | –      | Obtain JWT                             |
+| `/api/user`                     | GET/PUT  | Bearer | Fetch or update user profile           |
+| `/api/messages`                 | POST     | Bearer | Send encrypted private message         |
+| `/api/messages/<username>`      | GET      | Bearer | Get conversation messages (paginated)  |
+| `/api/group/encrypted-messages` | GET/POST | Bearer | Group chat operations                  |
+| `/api/servers`                  | GET/POST | Bearer | Create, retrieve, or update server     |
+| More…                           | –        | –      | See `backend/app.py` for all endpoints |
 
+## Contributing
 
----
+Pull requests are welcome!
+Please read the `docs/security-demo-*` series before making changes to any cryptographic logic.
 
-## 中文
+Before submitting:
 
-### 项目介绍
-这是一个使用 React 和 TypeScript 构建的现代化网页聊天应用。它具有 AI 对话功能、语音合成功能，并支持多语言。项目包含基于 Flask 和 SQLite 构建的后端认证系统。
+1. Run `npm run lint` to ensure frontend code quality
+2. Use clear, descriptive commit messages
+3. Update i18n translation files if your changes affect UI text
 
-如果你想体验本项目的效果，可以访问：  
--> [**kang-mi.com**](https://kang-mi.com/)
+## License
 
-### 主要功能
-- AI 聊天助手（由 OpenAI 驱动）
-- 端到端加密通信（E2EE），确保消息安全
-  - 双重哈希密码系统提升安全性
-  - 密码保护的私钥存储方案
-  - 零知识证明密码验证
-  - 消息自我副本机制，便于查看已发送的消息
-  - 安全的密钥管理和恢复功能
-- 支持加密的群组聊天功能
-- 用户认证（注册/登录）
-- 多服务语音合成支持
-  - 浏览器原生语音
-  - Azure 语音服务
-  - Google Cloud 语音服务
-  - GPT-SoVITS 语音合成
-- 用户头像和个人资料管理
-- 服务器和频道系统（类似 Discord）
-- 国际化支持
-  - 中文
-  - 英文
-- 支持 Markdown 的富文本编辑器
-- 深色/浅色主题
-- 响应式设计
-- 移动端适配
-
-### 技术栈
-#### 前端
-- 框架：React 18
-- 构建工具：Vite 6
-- 开发语言：TypeScript
-- UI 框架：Ant Design 5
-- 状态管理：React Context
-- 路由管理：React Router 6
-- 加密实现：TweetNaCl.js
-  - X25519 用于密钥交换
-  - XSalsa20 用于对称加密
-  - Poly1305 用于消息认证
-  - 双重哈希密码系统配合服务器端盐值
-- 富文本编辑器：Tiptap
-- 国际化：i18next
-- 代码质量：ESLint
-
-#### 后端
-- 框架：Flask
-- 数据库：SQLite
-- 认证机制：JWT
-- 加密系统：公钥/私钥基础设施
-- 密码安全：服务器端盐值与安全存储
-
-### 环境要求
-- Node.js（16.0.0 或以上版本）
-- npm（8.0.0 或以上版本）
-- Python（3.8 或以上版本）
-- pip（最新版本）
-
-### 安装和设置
-1. 克隆仓库
-```bash
-git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
-cd INFO2222-group
-git checkout web_chat_project
-```
-
-#### 前端设置
-1. 安装前端依赖
-```bash
-cd frontend
-npm install
-```
-
-2. 配置环境变量（可选）
-- 如果要使用 AI 和语音功能，添加 API 密钥
-
-3. 启动前端开发服务器
-```bash
-npm run dev
-```
-
-4. 打开浏览器访问 `http://localhost:xxxx`
-
-#### 后端设置
-1. 创建并激活虚拟环境
-```bash
-cd backend
-python -m venv venv
-
-# macOS/Linux系统
-source venv/bin/activate
-
-# Windows系统
-venv\Scripts\activate
-```
-
-2. 安装后端依赖
-```bash
-pip install -r requirements.txt
-```
-
-3. 配置环境变量（可选）
-```bash
-# 复制示例环境文件
-cp sample.env .env
-
-# 编辑.env文件进行配置
-# 开发环境下默认值应该可以正常工作
-```
-
-4. 启动后端服务器
-```bash
-cd backend
-python run.py
-```
-或者
-```bash
-gunicorn -w 4 -b 0.0.0.0:8000 run:app
-```
-
-后端服务器默认运行在 `http://localhost:8000`。
+MIT © 2025 INFO2222 Group. See [LICENSE](./LICENSE) for details.

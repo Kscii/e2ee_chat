@@ -9,7 +9,7 @@ const useVoiceChat = ({ channelId, isMuted }: UseVoiceChatProps) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 获取麦克风权限并开启音频流
+  // Get microphone permission and start audio stream
   const startAudio = useCallback(async () => {
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -23,12 +23,12 @@ const useVoiceChat = ({ channelId, isMuted }: UseVoiceChatProps) => {
       setStream(audioStream);
       setError(null);
     } catch (err) {
-      setError('无法访问麦克风，请检查权限设置');
-      console.error('麦克风访问错误:', err);
+      setError('Unable to access microphone, please check permission settings');
+      console.error('🎤 Microphone access error:', err);
     }
   }, []);
 
-  // 停止音频流
+  // Stop audio stream
   const stopAudio = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
@@ -36,7 +36,7 @@ const useVoiceChat = ({ channelId, isMuted }: UseVoiceChatProps) => {
     }
   }, [stream]);
 
-  // 切换静音状态
+  // Toggle mute state
   useEffect(() => {
     if (stream) {
       stream.getAudioTracks().forEach(track => {
@@ -45,7 +45,7 @@ const useVoiceChat = ({ channelId, isMuted }: UseVoiceChatProps) => {
     }
   }, [stream, isMuted]);
 
-  // 当加入/退出频道时，开启/关闭音频流
+  // Start/stop audio stream when joining/leaving channel
   useEffect(() => {
     if (channelId && !stream) {
       startAudio();
@@ -54,7 +54,7 @@ const useVoiceChat = ({ channelId, isMuted }: UseVoiceChatProps) => {
     }
   }, [channelId, stream, startAudio, stopAudio]);
 
-  // 组件卸载时清理
+  // Clean up when component unmounts
   useEffect(() => {
     return () => {
       stopAudio();

@@ -1,261 +1,236 @@
-# 安全密码传输演示
+# Server Certificate Verification Implementation (INFO2222-group Project)
 
-## TLS通道密码传输安全
+---
 
-在现代Web应用中，确保用户凭据的安全传输是基本要求。本文档说明我们如何确保密码通过安全通道传输，以及相关的TLS技术细节。
+## 1. Backend (Flask + Nginx)
 
-### 1. 安全传输要求
+### 1.1 Certificate Configuration  
+File: `/etc/nginx/sites-available/chat` (Nginx config)  
+* **Certificate Path**: Managed by Let's Encrypt, located at `/etc/letsencrypt/live/kang-mi.com/`, including:
+  * `fullchain.pem` - Server + intermediate certificate chain
+  * `privkey.pem` - Private key  
+* **TLS Settings**:
+  * Enables TLS 1.2 and 1.3
+  * Disables insecure protocol versions
+  * Configures secure cipher suites (ECDHE-ECDSA and ECDHE-RSA families)
+  * Sets session cache and timeout
+  * Disables session tickets
+  * Enables HSTS header (`max-age=63072000`)
 
-**强制要求**：所有密码和敏感信息必须通过安全通道（如TLS 1.2+）传输。明文传输密码严格禁止。
+### 1.2 Certificate Renewal Mechanism  
+File: `/etc/cron.d/certbot` (system cron job)  
+* **Auto-Renewal**: Let's Encrypt certificates are valid for 90 days. A cron job checks for renewal every 12 hours with random delay to avoid load spikes.
+* **Post-Renewal**: Uses `--post-hook` to reload Nginx after renewal without downtime.
 
-#### 为什么需要安全传输
+### 1.3 Security Controls
 
-在不安全的HTTP连接上传输密码会导致严重安全风险：
+#### a. OCSP Stapling  
+Enabled in Nginx to pre-fetch and serve OCSP responses, speeding up client validation. It validates stapled responses and sets the trusted chain.
 
-1. **窃听风险**：网络攻击者可能监听网络流量并捕获明文密码
-2. **中间人攻击**：攻击者可能拦截并修改通信内容
-3. **凭据盗窃**：暴露的密码可能被用于未授权访问用户账户
-4. **违反合规要求**：不符合GDPR、PCI-DSS等安全标准
+#### b. Private Key Protection  
+* **File Permissions**: Private key is owned by root with chmod 600.
+* **Key Types**: Uses RSA-2048 or ECDSA P-256 depending on configuration.
 
-### 2. TLS保护机制
+#### c. HTTPS Enforcement  
+All HTTP requests are permanently redirected to HTTPS using a separate server block on port 80 (301 redirect).
 
-TLS（传输层安全协议）提供三层关键保护：
+---
 
-#### 加密
+## 2. Frontend (React + TypeScript)
 
-- 使用非对称密钥交换建立会话密钥
-- 使用对称加密（如AES-256-GCM）保护所有传输数据
-- 加密确保即使数据被拦截也无法被解读
+### 2.1 Utility Layer  
+`frontend/src/utils/certificateValidator.ts`
 
-#### 身份验证
+| Purpose                  | Function                         | Input                        | Output                     |
+|--------------------------|----------------------------------|------------------------------|-----------------------------|
+| Certificate verification | `verifyCertificate()`           | Optional fingerprint/pubkey | Boolean (pass/fail)        |
+| Domain verification      | `validateServerDomain()`        | –                            | Boolean                    |
+| Get trusted domain       | `getTrustedDomain()`            | –                            | Trusted domain string      |
+| Fingerprint comparison   | `compareCertificateFingerprint()`| Certificate, expected value | Boolean (match or not)     |
 
-- 服务器使用X.509证书证明其身份
-- 证书由可信的证书颁发机构(CA)签名
-- 客户端验证证书链确保连接到合法服务器
+### 2.2 API-Level Verification  
+`frontend/src/api/apiClient.ts`
 
-#### 数据完整性
+#### a. Request Interceptor  
+All API requests go through an interceptor that performs server certificate verification.  
+`apiClient.interceptors.request` checks if running in production and secure mode. If not previously verified, it calls `verifyCertificate()` and caches the result. On failure, it throws an error. Also sets auth tokens.
 
-- 使用消息认证码(MAC)校验数据完整性
-- 检测传输中的任何数据篡改
-- 被篡改的消息会被自动拒绝
+#### b. Pre-Login Validation  
+`frontend/src/api/auth.ts > login()`  
+Before submitting credentials, `verifyCertificate()` is called. If it fails, request is aborted. On success, password hash is generated and sent with `is_hashed: true`.
 
-### 3. TLS握手过程
+### 2.3 Certificate Verification Logic  
+`frontend/src/utils/certificateValidator.ts`
 
-TLS握手建立安全通道的过程如下：
+#### a. Core Validation Function  
+`verifyCertificate()`:
+* Returns `true` immediately in development or non-HTTPS.
+* Calls `validateServerDomain()` to check hostname.
+* Makes a test `fetch` request to the trusted domain (HEAD + no-cors + timeout).
+* Due to browser restrictions, no direct access to certs, so validation is indirect.
+* If request succeeds → returns `true`; else → logs and returns `false`.
 
-1. **客户端问候**
-   - 客户端发送支持的TLS版本和加密算法
-   - 我们要求最低TLS 1.2，但优先使用TLS 1.3
+#### b. Domain Matching  
+`validateServerDomain()` compares `window.location.hostname` to trusted domain from env or default `'kang-mi.com'`.
 
-2. **服务器回应**
-   - 服务器选择TLS版本和加密算法
-   - 服务器发送其X.509证书
+#### c. Build-Time Certificate Pinning  
+`frontend/scripts/build-production.sh` injects environment variables:
+- `VITE_SECURE_MODE`
+- `VITE_CERT_FINGERPRINT`
+- `VITE_PUBLIC_KEY_HASH`
+- `VITE_TRUSTED_DOMAIN`  
+These are stored in `.env.production.local` for runtime access.
 
-3. **证书验证**
-   - 客户端验证服务器证书是否由受信任的CA签名
-   - 验证证书的域名是否匹配请求的域名
-   - 检查证书是否在有效期内且未被吊销
+---
 
-4. **密钥交换**
-   - 使用非对称加密（RSA或ECDHE）安全交换会话密钥
-   - TLS 1.3提供前向保密，即使私钥被盗也无法解密过去的通信
+## 3. Server Certificate Generation Process
 
-5. **建立加密通道**
-   - 完成握手后，所有数据都使用会话密钥加密
-   - 此时可以安全传输密码和其他敏感信息
+### 3.1 Let's Encrypt Issuance Flow
 
-### 4. 浏览器证书验证
+#### a. Issuance Steps  
+Install Certbot and Nginx plugin, run `certbot` with desired domain. Check with `certbot certificates`.
 
-在使用HTTPS的Web应用中，证书验证主要由浏览器处理：
+#### b. ACME Protocol Validation
+1. **Request**: Certbot registers with Let's Encrypt
+2. **Challenge**: Token placed in `.well-known/acme-challenge/`
+3. **Authorization**: Let's Encrypt verifies domain control
+4. **Issuance**: On success, cert is returned
+5. **Deployment**: Installed in Nginx and auto-configured
 
-1. 当访问HTTPS页面时，TLS握手在浏览器的网络栈中完成
-2. 服务器在握手过程中提供其TLS证书
-3. 浏览器验证证书是否：
-   - 由受信任的证书颁发机构签名
-   - 与请求的域名匹配
-   - 在有效期内且未被吊销
-4. 只有在证书验证通过后，浏览器才会建立加密连接并渲染页面
+### 3.2 Certificate Chain and Structure
 
-Web开发者通常不需要编写JavaScript或服务器端代码来验证证书，因为这由浏览器自动处理。
+#### a. Let's Encrypt Chain  
+Structure: Root (ISRG Root X1/X2) → Intermediate (R3) → Leaf (kang-mi.com)
 
-### 5. 我们系统中的实现
+#### b. File Location  
+Stored in `/etc/letsencrypt/live/kang-mi.com/`, includes:
+- `cert.pem`: Server certificate
+- `chain.pem`: Intermediate cert
+- `fullchain.pem`: cert.pem + chain.pem
+- `privkey.pem`: Private key
 
-#### 5.1 服务器端配置
+### 3.3 Auto-Renewal
 
-我们的服务器经过以下配置确保TLS安全性：
+* **Validity**: 90 days
+* **Renewal**: Every 12 hours via cron; renews if <30 days left
+* **Dry Run**: `certbot renew --dry-run` for testing
+* **Zero Downtime**: Post-renew hook reloads Nginx seamlessly
 
-```nginx
-# Nginx服务器配置示例
-server {
-    listen 443 ssl http2;
-    server_name kang-mi.com;
+---
 
-    # 证书配置
-    ssl_certificate /etc/letsencrypt/live/kang-mi.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/kang-mi.com/privkey.pem;
-    
-    # 现代TLS设置
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers on;
-    
-    # HSTS启用（告诉浏览器始终使用HTTPS）
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
-    
-    # 其他安全头
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options DENY;
-    add_header X-XSS-Protection "1; mode=block";
-}
-```
+## 4. Questions & Justifications
 
-#### 5.2 前端实现
+### 4.1 How Does the Client Validate the Server Certificate? (10 marks)
 
-我们的前端应用通过以下方式确保密码安全传输：
+* **Implementation**:
+  * API requests go through `apiClient.interceptors.request`
+  * Critical actions like login/registration call `verifyCertificate()` before sending credentials
+  * Uses Certificate Pinning for extra security
 
-1. **仅使用HTTPS通信**
-   ```javascript
-   // API服务配置
-   const API_BASE_URL = 'https://kang-mi.com/api';
+* **Validation Methods**:
+  * **Domain Check**: Match current hostname with trusted domain
+  * **Protocol Check**: Must use HTTPS
+  * **Fingerprint & Public Key Hash Check**: Compared with injected env values
+
+* **Security Features**:
+  * **Mandatory Verification**: Blocks credentials if verification fails
+  * **Cached Result**: Avoids redundant checks
+  * **Hardcoded Values**: Prevents MITM and DNS poisoning
+  * **SSL Downgrade Prevention**: Enforces HTTPS
+
+* **Error Handling**:
+  * Clear messages when verification fails
+  * Blocks unsafe requests
+  * Detailed logging for debugging
+
+### 4.2 Security of Hardcoded CA Public Key & Certificate Issuance (10 marks)
+
+* **Security Benefits**:
+  1. Prevents MITM even with valid rogue certs
+  2. Isolates CA compromise risks
+  3. Explicit trust model (only selected certs allowed)
+  4. Pinning allows cert validation without trust chain
+
+* **Challenges**:
+  1. Cert rotation requires front-end updates
+  2. Complex deployment: build-time injection
+  3. Emergency revocation is hard to propagate
+  4. Initial trust setup remains a challenge
+  5. Must sync cert and app deployments
+
+* **Certificate Issuance Flow**:
+  1. **CA**: Let’s Encrypt (free, automated)
+  2. **Key Pair**: Domain key generated
+  3. **CSR**: Certificate Signing Request created
+  4. **Validation**: ACME via HTTP-01 or DNS-01
+  5. **Issuance**: Cert issued after verification
+  6. **Deployment**: Installed in Nginx
+  7. **Auto-Renew**: Cron jobs keep cert up-to-date
+
+* **Let's Encrypt Hierarchy**:
+  - **Root**: ISRG Root X1/X2 (30 years)
+  - **Intermediate**: R3 (5 years)
+  - **Leaf**: kang-mi.com (90 days)
+
+* **Solutions for Rotation**:
+  1. Use **public key hash** (remains stable even after cert change)
+  2. Integrate rotation into CI/CD
+  3. Add **in-app update mechanism** for fingerprint
+
+---
+
+## 5. Certificate Verification Sequence Diagram
+
+1. Production API Request Flow
+   ```
+   Browser:
+     Initiates API request
+     ↓
+   API Interceptor:
+     Checks if certificate verified
+     If not, runs verifyCertificate:
+       Validate domain
+       Ensure HTTPS
+       Trigger browser verification via HEAD request
+       Compare pinned fingerprint + public key hash
+     On failure: throw error and abort
+     On success: cache result and continue
+     ↓
+   Server:
+     Processes request and returns response
    ```
 
-2. **强制HTTPS重定向**
-   ```javascript
-   // 在应用初始化时检查并强制HTTPS
-   if (window.location.protocol !== 'https:' && process.env.NODE_ENV === 'production') {
-     window.location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
-   }
+2. Login with Certificate Validation
+   ```
+   Browser:
+     User enters credentials
+     ↓
+   login() function:
+     Calls verifyCertificate()
+     If fails → throw error
+     If success → generate hash1(password+salt)
+     POST username + hash1 via HTTPS
+     ↓
+   Server:
+     Authenticates and returns JWT
    ```
 
-3. **基于浏览器的证书验证**
-   - 依赖浏览器的内建证书验证机制
-   - 浏览器会自动验证服务器证书并拒绝不受信任的连接
-
-4. **额外的证书指纹验证**
-   ```javascript
-   // 在发送敏感请求前验证服务器证书
-   // 这是对浏览器标准验证的补充层
-   async function verifyServerBeforeLogin(username, password) {
-     if (process.env.VITE_SECURE_MODE === 'true') {
-       const isVerified = await verifyCertificate(
-         process.env.VITE_CERT_FINGERPRINT,
-         process.env.VITE_PUBLIC_KEY_HASH
-       );
-       
-       if (!isVerified) {
-         throw new Error('服务器证书验证失败，拒绝发送登录请求');
-       }
-     }
-     
-     // 证书验证通过后，通过HTTPS发送凭据
-     return await api.login(username, password);
-   }
+3. Certificate Renewal Process
+   ```
+   Cron job:
+     Runs certbot every 12 hours
+     If <30 days remaining → renew
+     ↓
+   Let’s Encrypt:
+     Validates domain via ACME
+     Issues new cert
+     ↓
+   Certbot:
+     Deploys new cert
+     Reloads Nginx via post-hook
+     ↓
+   Frontend:
+     On next build → inject new fingerprint + pubkey hash
    ```
 
-### 6. 验证密码传输安全
-
-可以通过以下方法验证我们的应用是否正确实现了安全密码传输：
-
-#### 6.1 使用开发者工具
-
-1. 打开浏览器开发者工具
-2. 导航到"网络"标签
-3. 尝试登录应用
-4. 检查登录请求：
-   - 确认使用HTTPS(`https://`)
-   - 检查请求头是否有安全标记
-   - 检查响应包含适当的安全头
-
-示例请求：
-```
-请求URL: https://kang-mi.com/api/login
-请求方法: POST
-状态码: 200 OK
-远程地址: 203.0.113.1:443
-引用者策略: strict-origin-when-cross-origin
-```
-
-#### 6.2 使用网络分析工具
-
-使用Wireshark等分析工具检查网络流量：
-
-1. 启动网络捕获
-2. 执行登录操作
-3. 验证所有通信被加密
-4. 确认没有明文密码暴露
-
-#### 6.3 SSL/TLS服务器检测
-
-使用SSL Labs等服务评估我们的TLS配置：
-
-```bash
-# 使用sslyze检查TLS配置
-sslyze --regular kang-mi.com:443
-
-# 或使用在线服务
-# https://www.ssllabs.com/ssltest/
-```
-
-良好的TLS配置应获得A+评级，确保使用现代密码套件和协议。
-
-### 7. 常见问题与解决方案
-
-#### 7.1 混合内容警告
-
-问题：页面上的某些资源通过HTTP加载，导致混合内容警告。
-
-解决方案：
-```javascript
-// 确保所有资源都通过HTTPS加载
-const ensureSecureUrls = (url) => {
-  if (process.env.NODE_ENV === 'production' && url.startsWith('http:')) {
-    return url.replace('http:', 'https:');
-  }
-  return url;
-};
-```
-
-#### 7.2 旧浏览器兼容性
-
-问题：某些旧浏览器可能不支持现代TLS版本。
-
-解决方案：显示明确的浏览器要求，并推荐用户升级。
-
-```javascript
-// 检测浏览器TLS支持
-function checkTLSSupport() {
-  const userAgent = navigator.userAgent;
-  // 检测已知不支持TLS 1.2的旧浏览器
-  if (/* 检测逻辑 */) {
-    alert('您的浏览器不支持现代安全标准。请升级到最新版本以保护您的账户安全。');
-  }
-}
-```
-
-### 8. 最佳实践总结
-
-1. **强制使用HTTPS**
-   - 实施HSTS策略
-   - 配置安全重定向
-
-2. **使用最新TLS版本**
-   - 只允许TLS 1.2和1.3
-   - 定期更新密码套件配置
-
-3. **正确配置证书**
-   - 使用可信CA签发的证书
-   - 设置适当的域名和扩展
-
-4. **定期安全审计**
-   - 使用扫描工具检查TLS配置
-   - 监控TLS漏洞公告
-
-5. **防止密码泄露**
-   - 前端验证永远不替代安全传输
-   - 实施多层保护机制
-
-6. **安全头配置**
-   - 设置CSP限制资源加载
-   - 配置安全相关HTTP头
-
-通过实施以上措施，我们确保所有密码和敏感信息通过安全通道传输，完全符合现代Web安全标准和最佳实践。
+---
