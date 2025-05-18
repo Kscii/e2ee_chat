@@ -3,29 +3,25 @@
 > A secure, modern and customizable web chat platform built with React, TypeScript, and Flask.
 
 
-### 🧠 Tech Stack
+## Project Stack
 
-![Node](https://img.shields.io/badge/node-18.x-brightgreen)
-![Python](https://img.shields.io/badge/python-3.12-blue)
-![Flask](https://img.shields.io/badge/Flask-2.2-lightgrey)
-![SQLite](https://img.shields.io/badge/Database-SQLite-lightblue)
-![TypeScript](https://img.shields.io/badge/TypeScript-4.9%2B-blue)
-![Vite](https://img.shields.io/badge/Vite-6.x-yellow)
-![Ant Design](https://img.shields.io/badge/Ant%20Design-5.x-blueviolet)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-ff69b4)
-
-### 🔐 Security & Encryption
-
-![E2EE](https://img.shields.io/badge/Encryption-End--to--End-green)
-![bcrypt](https://img.shields.io/badge/Password-bcrypt%20%2B%20pepper-informational)
-![JWT](https://img.shields.io/badge/Auth-JWT-yellowgreen)
-![HTTPS](https://img.shields.io/badge/HTTPS-enabled-brightgreen)
-![TLS](https://img.shields.io/badge/TLS-1.3-blue)
-
-### 🚀 Deployment
-
-![AWS](https://img.shields.io/badge/deploy-AWS%20EC2-orange)
-![i18n](https://img.shields.io/badge/i18n-20%2B%20Languages-blue)
+<div align="center">
+<img src="https://img.shields.io/badge/node-18.x-brightgreen" />
+<img src="https://img.shields.io/badge/python-3.12-blue" />
+<img src="https://img.shields.io/badge/Flask-2.2-lightgrey" />
+<img src="https://img.shields.io/badge/Database-SQLite-lightblue" />
+<img src="https://img.shields.io/badge/TypeScript-4.9%2B-blue" />
+<img src="https://img.shields.io/badge/Vite-6.x-yellow" />
+<img src="https://img.shields.io/badge/Ant%20Design-5.x-blueviolet" />
+<img src="https://img.shields.io/badge/OpenAI-GPT--4o-ff69b4" />
+<img src="https://img.shields.io/badge/Encryption-End--to--End-green" />
+<img src="https://img.shields.io/badge/Password-bcrypt%20%2B%20pepper-informational" />
+<img src="https://img.shields.io/badge/Auth-JWT-yellowgreen" />
+<img src="https://img.shields.io/badge/HTTPS-enabled-brightgreen" />
+<img src="https://img.shields.io/badge/TLS-1.3-blue" />
+<img src="https://img.shields.io/badge/deploy-AWS%20EC2-orange" />
+<img src="https://img.shields.io/badge/i18n-20%2B%20Languages-blue" />
+</div>
 
 
 ## Project Overview
@@ -34,7 +30,9 @@ This is a secure, modern, and highly customizable web chat platform built with *
 It integrates AI assistance, end-to-end encryption, multi-service text-to-speech, rich-text messaging, and extensive internationalization support.
 This README serves as the homepage of the GitHub repository and provides new contributors and users with a comprehensive understanding of the codebase.
 
-For a live demo, please visit **[kang-mi.com](https://kang-mi.com/)**
+Check out the **[kang-mi.com](https://kang-mi.com)**  
+![Uptime](https://img.shields.io/uptimerobot/status/mg0jcmvKCH8)
+
 
 ## Key Features
 
