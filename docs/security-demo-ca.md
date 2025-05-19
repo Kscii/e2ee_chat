@@ -5,7 +5,7 @@
 ## 1. Backend (Flask + Nginx)
 
 ### 1.1 Certificate Configuration  
-`/etc/nginx/sites-available/chat` (Nginx config)  
+`/etc/nginx/sites-available/chat-app` (Nginx config)  
 * **Certificate Path**: Managed by Let’s Encrypt at `/etc/letsencrypt/live/kang-mi.com/`, including:
   * `fullchain.pem` – server + intermediate cert chain
   * `privkey.pem` – private key  

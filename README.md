@@ -73,7 +73,7 @@ Check out the **[kang-mi.com](https://kang-mi.com)**
 
 * Production instance deployed on AWS EC2 ([kang-mi.com](https://kang-mi.com/))
 * Nginx web server with HTTP/2 support
-* SSL/TLS certificates provided by Let’s Encrypt with auto-renewal via Certbot
+* SSL/TLS certificates provided by Let's Encrypt with auto-renewal via Certbot
 * Custom deployment scripts supporting CI/CD pipelines
 
 ## Repository Structure (Top-level)
@@ -98,7 +98,7 @@ INFO2222-group/
 
 * **Message Flow**:
 
-  1. Client fetches the recipient’s public key
+  1. Client fetches the recipient's public key
   2. Generates X25519 shared key → encrypts message with XSalsa20/Poly1305
   3. Sends ciphertext via `/api/messages` (private) or `/api/group/encrypted-messages` (group)
   4. Recipient decrypts locally; the server never sees plaintext.
@@ -107,12 +107,13 @@ INFO2222-group/
 
   1. Uses modern ciphers (ECDHE + AES-GCM / ChaCha20-Poly1305)
   2. Perfect forward secrecy via ephemeral key exchange
-  3. HSTS enabled to prevent downgrade attacks
-  4. HTTP/2 for efficient binary transmission
+  3. HSTS enabled with includeSubDomains and preload options
+  4. Additional security headers (X-Content-Type-Options, Referrer-Policy)
+  5. HTTP/2 for efficient binary transmission
 
 * **Certificate Management**:
 
-  1. Server certificates issued by Let’s Encrypt (trusted CA)
+  1. Server certificates issued by Let's Encrypt (trusted CA)
   2. Client validates the server certificate chain before sending credentials
   3. Certificates auto-renew every 90 days via Certbot
   4. OCSP Stapling enabled for faster revocation checks
