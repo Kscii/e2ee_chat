@@ -138,6 +138,7 @@ cd INFO2222-group
 ```
 
 ### 2. Launch Frontend
+rename frontend/src/config/apiConfig.ts.example to frontend/src/config/apiConfig.ts
 
 ```bash
 cd frontend
@@ -146,7 +147,6 @@ npm run dev   # => http://localhost:5173
 # For production: ./deploy.sh
 ```
 
-(Optional) Configure API keys in `frontend/.env` or via the UI settings panel.
 
 ### 3. Launch Backend
 
