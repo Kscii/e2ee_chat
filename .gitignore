@@ -1,0 +1,6 @@
+*.pyc
+.venv/
+__pycache__/
+backend/venv/
+*.db
+frontend/package-lock.json

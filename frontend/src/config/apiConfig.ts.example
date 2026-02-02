@@ -1,0 +1,15 @@
+const apiConfig = {
+  gpt: { apiKey: "", baseUrl: "" },
+
+  // Azure TTS
+  azure: { apiKey: "", region: "" },
+
+  // Google TTS
+  google: { apiKey: "" },
+
+  // GPT-SoVITS
+  gptSoVITS: { serviceUrl: "" },
+  gptSovits: { serviceUrl: "" },
+};
+
+export default apiConfig;
