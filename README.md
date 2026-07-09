@@ -1,124 +1,131 @@
-# INFO2222-Group
+# E2EE Chat
 
-> A secure, modern and customizable web chat platform built with React, TypeScript, and Flask.
-
-
-## Project Stack
+> A secure full-stack chat platform with end-to-end encrypted messaging, hardened authentication, and deployable React + Flask architecture.
 
 <div align="center">
-<img src="https://img.shields.io/badge/node-18.x-brightgreen" />
-<img src="https://img.shields.io/badge/python-3.12-blue" />
-<img src="https://img.shields.io/badge/Flask-2.2-lightgrey" />
-<img src="https://img.shields.io/badge/Database-SQLite-lightblue" />
-<img src="https://img.shields.io/badge/TypeScript-4.9%2B-blue" />
-<img src="https://img.shields.io/badge/Vite-6.x-yellow" />
-<img src="https://img.shields.io/badge/Ant%20Design-5.x-blueviolet" />
-<img src="https://img.shields.io/badge/OpenAI-GPT--4o-ff69b4" />
-<img src="https://img.shields.io/badge/Encryption-End--to--End-green" />
-<img src="https://img.shields.io/badge/Password-bcrypt%20%2B%20pepper-informational" />
-<img src="https://img.shields.io/badge/Auth-JWT-yellowgreen" />
-<img src="https://img.shields.io/badge/HTTPS-enabled-brightgreen" />
-<img src="https://img.shields.io/badge/TLS-1.3-blue" />
-<img src="https://img.shields.io/badge/deploy-AWS%20EC2-orange" />
-<img src="https://img.shields.io/badge/i18n-20%2B%20Languages-blue" />
+
+![React](https://img.shields.io/badge/React-18-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)
+![Vite](https://img.shields.io/badge/Vite-6.x-646cff)
+![Flask](https://img.shields.io/badge/Flask-2.2-lightgrey)
+![SQLite](https://img.shields.io/badge/SQLite-embedded-003b57)
+![JWT](https://img.shields.io/badge/Auth-JWT-yellowgreen)
+![E2EE](https://img.shields.io/badge/Encryption-E2EE-green)
+![TLS](https://img.shields.io/badge/TLS-1.2%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
 </div>
 
+E2EE Chat is a web-based communication system designed around privacy, secure authentication, and practical deployment. It combines a React/TypeScript frontend with a Flask backend, SQLite persistence, client-side cryptography, password hardening, TLS deployment notes, internationalization, and optional AI/TTS/Live2D enhancements.
 
-## Project Overview
+The project was originally developed as a USyd INFO2222 group project. This public portfolio fork is maintained by **Xuejian Fang / Kscii** and is presented as an open-source codebase for security-focused full-stack collaboration software.
 
-This is a secure, modern, and highly customizable web chat platform built with **React 18**, **TypeScript**, and a lightweight **Flask** backend.
-It integrates AI assistance, end-to-end encryption, multi-service text-to-speech, rich-text messaging, and extensive internationalization support.
-This README serves as the homepage of the GitHub repository and provides new contributors and users with a comprehensive understanding of the codebase.
+## Highlights
 
-Check out the **[kang-mi.com](https://kang-mi.com)**  
-![Uptime](https://img.shields.io/uptimerobot/status/m800560711-7c331981f23e9271381b3362?style=for-the-badge)
+- **End-to-end encrypted messaging**: private and group messages are encrypted on the client using TweetNaCl X25519 public-key cryptography and XSalsa20-Poly1305 authenticated encryption.
+- **Client-side key lifecycle**: users generate key pairs in the browser; public keys are stored server-side, while private keys are encrypted before upload for multi-device recovery.
+- **Hardened password flow**: the browser sends a salted SHA-256-derived value, and the backend applies peppered SHA-256 preprocessing plus bcrypt storage.
+- **JWT authentication**: protected Flask APIs use bearer tokens with expiry.
+- **TLS and certificate checks**: production deployment documentation covers HTTPS, HSTS, Let's Encrypt certificates, Nginx reverse proxying, and frontend certificate/domain validation.
+- **Discord-style collaboration model**: servers, channels, direct messages, group messages, avatars, file sharing, Markdown rendering, and responsive layouts.
+- **Internationalized UI**: i18next locale files cover 16+ languages.
+- **Optional AI and voice features**: OpenAI-assisted chat, multi-service text-to-speech configuration, and Live2D character integration are included as secondary experience layers.
 
+## Architecture
 
-## Key Features
-
-1. **AI Assistant (OpenAI GPT-4o)** – Contextual replies, multilingual responses, and configurable API keys.
-2. **End-to-End Encryption (E2EE)** – X25519 key exchange, XSalsa20 + Poly1305 authenticated encryption, with client-side key generation.
-3. **Password Hardening** – Double hashing (SHA-256 on client ➜ bcrypt + pepper on server), per-user salt, no plaintext password storage.
-4. **Group / Server System** – Discord-style servers and channels with user management APIs.
-5. **Rich Text & File Sharing** – Markdown (Tiptap), syntax highlighting, image preview, and PDF/Office attachments under 10MB.
-6. **Text-to-Speech (TTS)** – Native browser, Azure, Google Cloud, and **GPT-SoVITS** support with auto language detection and custom voices.
-7. **Internationalization** – Supports 20+ languages (including Chinese, Japanese, French, Korean, Arabic, etc.) via i18next.
-8. **Responsive UI** – Built with Ant Design 5 components, dark/light theme support, and mobile-first layout.
-9. **Avatar & Profile Management** – Secure avatar upload API, editable profile, and real-time avatar refresh.
-10. **Live2D Integration** – Interactive animated character models supporting Cubism 2/3/4 via [Live2dOnWeb](https://github.com/Konata09/Live2dOnWeb).
-11. **Extensible Architecture** – Clear React Context-based state, RESTful Flask APIs (WebSocket support coming), and modular deployment scripts.
-
-## Tech Stack
+```text
+e2ee_chat/
+├── frontend/      # React 18 + TypeScript + Vite application
+├── backend/       # Flask API server, SQLite models, auth, messaging APIs
+├── docs/          # Security walkthroughs, deployment notes, project reports
+└── README.md
+```
 
 ### Frontend
 
-* React 18 + TypeScript + Vite 6
-* Ant Design 5 UI component library
-* React Router 6 and React Context for state management
-* Encryption: tweetnacl / tweetnacl-util
-* Rich text editor: **Tiptap** + lowlight/highlight.js
-* HTTP: Axios (polling-based updates), with Socket.IO client included for future real-time support
-* Internationalization: i18next + lazy-loaded JSON translations
-* Code quality tools: ESLint 9 + typescript-eslint
+- React 18, TypeScript, Vite 6, React Router, Ant Design 5.
+- State is organized through React Context providers for auth, crypto, API configuration, language, theme, AI, TTS, avatars, and server/channel state.
+- `frontend/src/utils/crypto.ts` contains key generation, password-derived hashing, private-key encryption, and message encryption helpers.
+- `frontend/src/utils/certificateValidator.ts` contains production connection checks used before sensitive API requests.
 
 ### Backend
 
-* Flask 2.2 with flask-cors
-* SQLite (`sqlite3`) – no external dependencies
-* Authentication: **JWT + bcrypt**
-* Secure file uploads (Werkzeug), 5 MB size limit
-* Configurable via `.env` and `backend/config.py`
+- Flask 2.2 with `flask-cors`, PyJWT, bcrypt, and SQLite.
+- `backend/models.py` defines users, messages, conversations, servers, groups, group members, user keys, and encrypted group message storage.
+- `backend/app.py` exposes REST endpoints for registration, login, profile management, key storage/recovery, direct messages, group messages, server/channel operations, avatars, and uploads.
+- Gunicorn + Nginx deployment notes are documented in `docs/server_environment.md`.
 
-### Deployment
+### Security Flow
 
-* Production instance deployed on AWS EC2 ([kang-mi.com](https://kang-mi.com/))
-* Nginx web server with HTTP/2 support
-* SSL/TLS certificates provided by Let's Encrypt with auto-renewal via Certbot
-* Custom deployment scripts supporting CI/CD pipelines
+1. During registration, the frontend generates a user-specific salt, derives a client-side password hash, creates an X25519 key pair, and encrypts the private key before upload.
+2. The backend stores the peppered/bcrypted password verifier, public key, encrypted private key blob, profile data, and routing metadata.
+3. When sending a message, the client fetches the recipient public key, encrypts locally, and sends ciphertext to the Flask API.
+4. The server stores and forwards ciphertext; plaintext message content is only available on clients with the correct private key.
 
-## Repository Structure (Top-level)
+## Quick Start
 
+### Prerequisites
+
+- Node.js 18+
+- npm 9+
+- Python 3.12+
+
+### Clone
+
+```bash
+git clone https://github.com/Kscii/e2ee_chat.git
+cd e2ee_chat
 ```
-INFO2222-group/
-├── frontend/      # React application (see frontend/README.md for details)
-├── backend/       # Flask API server
-├── docs/          # Design and security documentation
-└── README.md      # This file
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+cp src/config/apiConfig.ts.example src/config/apiConfig.ts
+npm run dev
 ```
 
-## Security Design (Summary)
+The frontend development server runs at `http://localhost:5173` by default.
 
-* **Double-hash Passwords**:
-  `hash1 = SHA256(password+salt)` (client)
-  `hash2 = bcrypt(hash1+pepper)` (server)
-  Even if the database leaks, original passwords or private keys cannot be recovered.
+### Backend
 
-* **Key Management**:
-  Public keys are stored in `user_keys`; private keys are encrypted client-side using `hash1` before upload (optional cloud backup).
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+./restart.sh dev
+```
 
-* **Message Flow**:
+The backend API runs at `http://localhost:8000` by default.
 
-  1. Client fetches the recipient's public key
-  2. Generates X25519 shared key → encrypts message with XSalsa20/Poly1305
-  3. Sends ciphertext via `/api/messages` (private) or `/api/group/encrypted-messages` (group)
-  4. Recipient decrypts locally; the server never sees plaintext.
+## API Overview
 
-* **TLS Security**:
+| Endpoint | Method | Auth | Purpose |
+| --- | --- | --- | --- |
+| `/api/register` | POST | No | Create a user and return a JWT |
+| `/api/login` | POST | No | Authenticate and return a JWT |
+| `/api/user` | GET/PUT | Bearer | Fetch or update the current profile |
+| `/api/user/encryption-salt/<username>` | GET/POST | Mixed | Fetch or set password/key derivation salt |
+| `/api/keys/public` | GET/POST | Bearer | Manage the current user's public key |
+| `/api/keys/public/<username>` | GET | No | Fetch another user's public key |
+| `/api/keys/private` | GET/POST | Bearer | Store or recover encrypted private key blobs |
+| `/api/messages` | GET/POST | Bearer | Send and fetch encrypted direct messages |
+| `/api/group/encrypted-messages` | GET/POST | Bearer | Send and fetch per-recipient encrypted group messages |
+| `/api/servers` | GET/POST | Bearer | Manage collaboration servers |
 
-  1. Uses modern ciphers (ECDHE + AES-GCM / ChaCha20-Poly1305)
-  2. Perfect forward secrecy via ephemeral key exchange
-  3. HSTS enabled with includeSubDomains and preload options
-  4. Additional security headers (X-Content-Type-Options, Referrer-Policy)
-  5. HTTP/2 for efficient binary transmission
+See `backend/app.py` for the complete route list.
 
-* **Certificate Management**:
+## Documentation
 
-  1. Server certificates issued by Let's Encrypt (trusted CA)
-  2. Client validates the server certificate chain before sending credentials
-  3. Certificates auto-renew every 90 days via Certbot
-  4. OCSP Stapling enabled for faster revocation checks
-
-* See `docs/security-demo-e2ee.md` for a step-by-step walkthrough.
+- [End-to-end encryption walkthrough](docs/security-demo-e2ee.md)
+- [Password storage and verification](docs/security-demo-password.md)
+- [Secure password transmission and TLS](docs/security-demo-tls.md)
+- [Certificate verification and CA discussion](docs/security-demo-ca.md)
+- [Production server environment](docs/server_environment.md)
+- [Phase 1 project report](docs/INFO2222_Group_Project_Part_1.pdf)
+- [Phase 2 project report](docs/INFO2222_Group_Part_2.pdf)
 
 ## Screenshots
 
@@ -126,66 +133,30 @@ INFO2222-group/
 
 ![Chat UI](https://i.imgur.com/DtSprxu.png)
 
-## Installation & Setup
+## Development Notes
 
-The following instructions are aligned with the current codebase. Frontend and backend can be launched separately or together via helper scripts.
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.sydney.edu.au/cran0556/INFO2222-group.git
-cd INFO2222-group
-```
-
-### 2. Launch Frontend
-rename frontend/src/config/apiConfig.ts.example to frontend/src/config/apiConfig.ts
-
-```bash
-cd frontend
-npm install
-npm run dev   # => http://localhost:5173
-# For production: ./deploy.sh
-```
-
-
-### 3. Launch Backend
-
-```bash
-cd backend
-python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-./restart.sh dev
-# For production: ./restart.sh prod
-```
-
-Default API URL: `http://localhost:8000`
-
-> For detailed deployment and CI setup, see `frontend/deploy.sh` and `docs/server_environment.md`.
-
-## API Quick Reference
-
-| Endpoint                        | Method   | Auth   | Description                            |
-| ------------------------------- | -------- | ------ | -------------------------------------- |
-| `/api/register`                 | POST     | –      | Create account (with double-hashing)   |
-| `/api/login`                    | POST     | –      | Obtain JWT                             |
-| `/api/user`                     | GET/PUT  | Bearer | Fetch or update user profile           |
-| `/api/messages`                 | POST     | Bearer | Send encrypted private message         |
-| `/api/messages/<username>`      | GET      | Bearer | Get conversation messages (paginated)  |
-| `/api/group/encrypted-messages` | GET/POST | Bearer | Group chat operations                  |
-| `/api/servers`                  | GET/POST | Bearer | Create, retrieve, or update server     |
-| More…                           | –        | –      | See `backend/app.py` for all endpoints |
+- The frontend currently uses HTTP polling and REST endpoints for message updates. Socket.IO client dependencies exist for future realtime work, but realtime WebSocket delivery should be treated as a roadmap item unless implemented in the backend.
+- The cryptographic design is suitable for demonstrating client-side encryption and secure storage tradeoffs. It does not yet implement Double Ratchet, metadata encryption, or cryptographic identity verification.
+- The production examples reference the original demo deployment domain used during development. Configure your own domain, certificates, and trusted host values before deploying.
 
 ## Contributing
 
-Pull requests are welcome!
-Please read the `docs/security-demo-*` series before making changes to any cryptographic logic.
+Issues and pull requests are welcome.
 
-Before submitting:
+Before changing security-sensitive code, please read the E2EE, password, TLS, and certificate documentation in `docs/`. Changes to cryptographic flows should include a short design note explaining the threat model, migration impact, and manual test steps.
 
-1. Run `npm run lint` to ensure frontend code quality
-2. Use clear, descriptive commit messages
-3. Update i18n translation files if your changes affect UI text
+Suggested checks before opening a PR:
+
+```bash
+cd frontend && npm run lint
+cd frontend && npm run build
+python -m py_compile backend/*.py
+```
+
+## Attribution
+
+E2EE Chat was originally developed as a USyd INFO2222 group project by the authors listed in the MIT license. This public portfolio fork is maintained by **Xuejian Fang / Kscii** and keeps collaborator attribution intact while documenting the project as an open-source secure communication system.
 
 ## License
 
-MIT © 2025 INFO2222 Group. See [LICENSE](./LICENSE) for details.
+MIT. See [LICENSE](./LICENSE) for details.
